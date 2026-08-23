@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2b1d16">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>SWARMLORDS</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- Shared canvas: conquest map + battles render here -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- ============ TITLE ============ -->
+  <section id="screen-title" class="screen dom-screen">
+    <div class="title-inner">
+      <div id="title-logo" class="title-logo">
+        <span class="logo-word">SWARM<span class="logo-lords">LORDS</span></span>
+        <div class="logo-sub">A RUCKUS IN THE GARDEN</div>
+      </div>
+      <div class="title-bugs" id="title-bugs"></div>
+      <div class="title-buttons">
+        <button id="btn-continue" class="big-btn hidden">CONTINUE CAMPAIGN</button>
+        <button id="btn-newrun" class="big-btn">NEW CAMPAIGN</button>
+        <button id="btn-howto" class="small-btn">HOW TO PLAY</button>
+        <div class="toggle-row">
+          <button id="btn-sfx" class="small-btn">SFX: ON</button>
+          <button id="btn-music" class="small-btn">MUSIC: ON</button>
+        </div>
+      </div>
+      <div class="title-footer">v1.0 — an insect kingdoms roguelike</div>
+    </div>
+  </section>
+
+  <!-- ============ FACTION SELECT ============ -->
+  <section id="screen-faction" class="screen dom-screen hidden">
+    <h2 class="screen-title">CHOOSE YOUR KINGDOM</h2>
+    <div id="faction-list" class="faction-list"></div>
+    <div class="faction-actions">
+      <button id="btn-faction-back" class="small-btn">BACK</button>
+      <button id="btn-faction-go" class="big-btn" disabled>TO WAR</button>
+    </div>
+  </section>
+
+  <!-- ============ HOW TO PLAY ============ -->
+  <section id="screen-howto" class="screen dom-screen hidden">
+    <h2 class="screen-title">HOW TO PLAY</h2>
+    <div class="howto-body">
+      <p><b>THE GARDEN.</b> A fresh map every campaign. You and three rival
+      kingdoms hold territories; the wilds hold the rest. Rivals war with
+      each other as much as with you. <b>Last kingdom standing wins.</b></p>
+      <p><b>YOUR TURN.</b> Collect gold, then take ONE action: <b>ATTACK</b> a
+      neighboring territory, <b>FORTIFY</b> a garrison, or <b>WAIT</b> for
+      +2 gold. The shop at your capital is always open on your turn.</p>
+      <p><b>BATTLE.</b> Tap a card, tap a lane. Bugs march up and fight what
+      they meet. Chew the enemy hive to zero. Fliers skip past ground
+      troops but fall to anything that shoots up — only heavy fliers
+      that STRAFE will fight the ground. Enemy garrisons are finite;
+      outlast their reserves and the field is yours.</p>
+      <p><b>LOSING.</b> Lose a battle, lose that territory — not the run.
+      You're only done when you hold nothing at all.</p>
+      <p><b>GROWING.</b> Conquer a territory to recruit from its native
+      species and collect its yield every turn. Plan a campaign trail
+      toward the boons you want.</p>
+    </div>
+    <button id="btn-howto-back" class="big-btn">GOT IT</button>
+  </section>
+
+  <!-- ============ CONQUEST MAP UI ============ -->
+  <div id="map-ui" class="hidden">
+    <div id="map-topbar">
+      <span id="tb-gold" class="tb-item">◉ 0</span>
+      <span id="tb-terr" class="tb-item">⬢ 0</span>
+      <span id="tb-turn" class="tb-item">TURN 1</span>
+      <button id="btn-deck" class="tb-btn">DECK</button>
+      <button id="btn-menu" class="tb-btn">≡</button>
+    </div>
+    <div id="map-panel" class="hidden">
+      <div id="mp-info">
+        <div id="mp-name">Territory</div>
+        <div id="mp-owner">owner</div>
+        <div id="mp-detail">details</div>
+      </div>
+      <div id="mp-actions"></div>
+    </div>
+    <div id="map-actionbar">
+      <button id="btn-shop" class="action-btn">SHOP</button>
+      <button id="btn-endturn" class="action-btn primary">WAIT +2◉</button>
+    </div>
+    <div id="turn-banner" class="hidden"></div>
+  </div>
+
+  <!-- ============ BATTLE UI ============ -->
+  <div id="battle-ui" class="hidden">
+    <div id="battle-topbar">
+      <span id="bt-stakes"></span>
+      <button id="btn-forfeit" class="tb-btn">FORFEIT</button>
+    </div>
+    <div id="hand-area">
+      <div id="energy-bar"><div id="energy-fill"></div><span id="energy-num">5</span></div>
+      <div id="hand-cards"></div>
+      <div id="next-card"><span class="next-label">NEXT</span><div id="next-thumb"></div></div>
+    </div>
+  </div>
+
+  <!-- ============ OVERLAYS ============ -->
+  <div id="overlay-root"></div>
+  <div id="titlecard-root" class="hidden">
+    <div id="titlecard-burst"></div>
+    <div id="titlecard-text">SPLAT!</div>
+    <div id="titlecard-sub"></div>
+  </div>
+  <div id="toast-root"></div>
+
+</div>
+
+<script src="js/rng.js"></script>
+<script src="js/data.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/save.js"></script>
+<script src="js/mapgen.js"></script>
+<script src="js/battle.js"></script>
+<script src="js/conquest.js"></script>
+<script src="js/shop.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

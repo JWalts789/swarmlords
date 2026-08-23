@@ -1,0 +1,737 @@
+// SWARMLORDS — conquest layer: run state, turn loop, rival kingdoms AI,
+// auto-resolve, captures, eliminations, boons, income, map render + input.
+window.SL = window.SL || {};
+
+(function () {
+  let run = null;
+  let selectedId = -1;
+
+  // ---------------- run lifecycle ----------------
+
+  function eventRng() {
+    run.rngCounter = (run.rngCounter || 0) + 1;
+    return SL.makeRng((run.seed ^ (run.rngCounter * 2654435761)) >>> 0);
+  }
+
+  function startRun(factionId) {
+    const seed = (Math.random() * 0xffffffff) >>> 0;
+    const rng = SL.makeRng(seed);
+    const gen = SL.mapgen.generate(rng, factionId);
+    run = {
+      seed, rngCounter: 1,
+      faction: factionId,
+      turn: 1, gold: 8,
+      deck: SL.DATA.START_DECKS[factionId].slice(),
+      upgrades: [],
+      territories: gen.territories,
+      rivals: gen.rivals,
+      rivalState: {},
+      capitalId: gen.playerCapital,
+      stats: { battlesWon: 0, battlesLost: 0, territoriesTaken: 0, factionsEliminated: 0, goldEarned: 0 },
+      shopStock: null,
+      unlockedThisRun: [],
+    };
+    gen.rivals.forEach((f, i) => {
+      run.rivalState[f] = {
+        alive: true,
+        power: 3 + i * 0.5,
+        aggression: 0.5 + rng.range(0, 0.2),
+        grudges: {},
+      };
+    });
+    SL.shop.restock(run, eventRng());
+    collectIncome(true);
+    SL.save.saveRun(run);
+    selectedId = -1;
+    SL.ui.showScreen('map');
+    SL.ui.updateTopbar();
+    SL.ui.turnBanner('TURN 1 — ' + SL.DATA.FACTIONS[factionId].kingdom.toUpperCase());
+    SL.audio.music('map');
+  }
+
+  function resumeRun(saved) {
+    run = saved;
+    selectedId = -1;
+    SL.ui.showScreen('map');
+    SL.ui.updateTopbar();
+    SL.ui.turnBanner('TURN ' + run.turn);
+    SL.audio.music('map');
+  }
+
+  function getRun() { return run; }
+  function endRunCleanup() { run = null; SL.save.clearRun(); }
+
+  // ---------------- helpers ----------------
+
+  function terr(id) { return run.territories[id]; }
+  function ownedBy(owner) { return run.territories.filter((t) => t.owner === owner); }
+  function playerTerrs() { return ownedBy('player'); }
+
+  function factionAlive(fid) {
+    return fid === 'player' ? playerTerrs().length > 0 : run.rivalState[fid] && run.rivalState[fid].alive;
+  }
+
+  function attackableByPlayer(t) {
+    if (t.owner === 'player') return false;
+    return t.adj.some((n) => terr(n).owner === 'player');
+  }
+
+  function deckPower() {
+    return run.deck.reduce((s, id) => s + (SL.DATA.CARDS[id] ? SL.DATA.CARDS[id].cost : 0), 0);
+  }
+
+  function playerBoons() {
+    const agg = { b_energy: 0, b_hp: 0, b_dmg: 0, b_card: 0, b_hive: 0, b_shop: 0 };
+    for (const t of playerTerrs()) if (t.boon) agg[t.boon]++;
+    return agg;
+  }
+
+  function playerMods(defTerr) {
+    const boons = playerBoons();
+    const m = {
+      hpMult: 1 + boons.b_hp * 0.05,
+      dmgMult: 1 + boons.b_dmg * 0.05,
+      armorAdd: 0, spdMult: 1, flierSpdMult: 1,
+      startEnergy: boons.b_energy,
+      energyMax: 0,
+      handSize: boons.b_card > 0 ? 1 : 0,
+      hiveRegen: 0, venom: false, hiveDmgMult: 1, unhurtDmgMult: 1,
+      lootMult: 1,
+      hiveBonus: boons.b_hive * 5,
+    };
+    for (const u of run.upgrades) {
+      if (u === 'royal_jelly') m.hpMult += 0.15;
+      else if (u === 'mandibles') m.dmgMult += 0.15;
+      else if (u === 'rally') m.startEnergy += 1;
+      else if (u === 'tunnels') m.handSize = Math.max(m.handSize, 1);
+      else if (u === 'silk') m.hiveRegen += 0.2;
+      else if (u === 'venom') m.venom = true;
+      else if (u === 'chitin') m.armorAdd += 1;
+      else if (u === 'drums') m.spdMult *= 1.15;
+      else if (u === 'forage') m.lootMult += 0.5;
+    }
+    if (defTerr && defTerr.capitalOf === 'player') m.hiveBonus += 10;
+    return m;
+  }
+
+  function enemyBudgetFor(t) {
+    let b = 10 + t.garrison * 3.5 + run.turn * 0.6;
+    if (t.capitalOf) b += 10;
+    return Math.round(Math.max(10, Math.min(50, b)));
+  }
+
+  function enemyFactionFor(t) {
+    return t.owner === 'neutral' ? 'neutral' : t.owner;
+  }
+
+  // ---------------- player actions ----------------
+
+  function playerAttack(tid) {
+    const t = terr(tid);
+    if (!attackableByPlayer(t)) return;
+    const enemyFaction = enemyFactionFor(t);
+    const budget = enemyBudgetFor(t);
+    SL.ui.hideTerritoryPanel();
+    selectedId = -1;
+    launchBattle({
+      stakes: 'ASSAULT ON ' + t.name.toUpperCase(),
+      enemyFaction, budget,
+      defending: false,
+      defTerr: t,
+      onDone: (won) => resolvePlayerAttack(t, won),
+    });
+  }
+
+  function resolvePlayerAttack(t, won) {
+    if (won) {
+      run.stats.battlesWon++;
+      const rng = eventRng();
+      const loot = Math.round((3 + t.garrison * 2) * playerMods().lootMult);
+      run.gold += loot; run.stats.goldEarned += loot;
+      const prevOwner = t.owner;
+      captureTerritory(t.id, 'player');
+      run.stats.territoriesTaken++;
+      SL.audio.sfx('coin');
+      SL.ui.toast('Captured ' + t.name + '! +' + loot + ' gold');
+      checkUnlocks('any');
+      // recruitment draft from the defender's species
+      const pool = draftPool(prevOwner === 'neutral' ? 'neutral' : prevOwner, rng, 3);
+      SL.ui.draftModal(pool, {
+        title: 'RECRUITMENT', sub: 'The defeated bend the knee. Enlist one:',
+        skippable: true, skipLabel: 'SKIP (+2 gold)',
+      }, (picked) => {
+        if (picked) { run.deck.push(picked); SL.audio.sfx('draft'); }
+        else run.gold += 2;
+        afterPlayerAction();
+      });
+    } else {
+      run.stats.battlesLost++;
+      SL.ui.toast('The assault on ' + t.name + ' was repelled.', true);
+      afterPlayerAction();
+    }
+  }
+
+  function playerFortify(tid) {
+    const t = terr(tid);
+    if (t.owner !== 'player') return;
+    if (t.garrison >= 6) { SL.ui.toast('Garrison is at maximum (6).', true); return; }
+    const cost = fortifyCost(t);
+    if (run.gold < cost) { SL.ui.toast('Not enough gold.', true); return; }
+    run.gold -= cost;
+    t.garrison++;
+    SL.audio.sfx('stomp');
+    SL.ui.toast(t.name + ' fortified — garrison ' + t.garrison);
+    SL.ui.hideTerritoryPanel();
+    selectedId = -1;
+    afterPlayerAction();
+  }
+
+  function fortifyCost(t) { return 4 + t.garrison * 2; }
+
+  function playerWait() {
+    run.gold += 2;
+    SL.ui.toast('Waited. +2 gold.');
+    afterPlayerAction();
+  }
+
+  function afterPlayerAction() {
+    SL.ui.updateTopbar();
+    SL.ui.hideTerritoryPanel();
+    selectedId = -1;
+    if (checkRunOver()) return;
+    rivalPhase();
+  }
+
+  // ---------------- draft ----------------
+
+  function draftPool(faction, rng, n) {
+    const D = SL.DATA;
+    const tierCap = Math.min(4, 1 + Math.floor(run.turn / 7));
+    let cards = (faction === 'neutral'
+      ? D.NEUTRAL_POOL.map((id) => D.CARDS[id])
+      : D.cardsOfFaction(faction));
+    cards = cards.filter((c) => c.tier <= Math.max(2, tierCap));
+    const picks = [];
+    const shuffled = rng.shuffle(cards);
+    for (const c of shuffled) {
+      if (picks.length >= n) break;
+      if (!picks.includes(c.id)) picks.push(c.id);
+    }
+    return picks;
+  }
+
+  // ---------------- rival phase ----------------
+
+  function rivalPhase() {
+    const order = eventRng().shuffle(run.rivals.filter((f) => factionAlive(f)));
+    processRivals(order, 0);
+  }
+
+  function processRivals(order, i) {
+    if (checkRunOver()) return;
+    if (i >= order.length) { endOfTurn(); return; }
+    const fid = order[i];
+    if (!factionAlive(fid)) { processRivals(order, i + 1); return; }
+    const next = () => processRivals(order, i + 1);
+
+    const rng = eventRng();
+    const rs = run.rivalState[fid];
+    const mine = ownedBy(fid);
+    // candidate targets: adjacent to any owned territory, not owned by self
+    const targets = [];
+    for (const t of mine) {
+      for (const n of t.adj) {
+        const tt = terr(n);
+        if (tt.owner !== fid && !targets.includes(tt)) targets.push(tt);
+      }
+    }
+    if (!targets.length) { next(); return; }
+
+    const attackChance = Math.min(0.85, rs.aggression + mine.length * 0.03 + run.turn * 0.006);
+    if (!rng.chance(attackChance)) {
+      // fortify a border territory (garrisons cap out — no eternal turtling)
+      const border = mine.filter((t) => t.garrison < 4 && t.adj.some((n) => terr(n).owner !== fid));
+      if (border.length) rng.pick(border).garrison++;
+      rs.power += 0.35;
+      next();
+      return;
+    }
+
+    // score targets: weak + boons + grudges (capped) + blood in the water
+    let best = null, bestScore = -Infinity;
+    for (const t of targets) {
+      let s = -t.garrison * 1.2 + rng.range(0, 2.5);
+      if (t.boon) s += 1.2;
+      if (t.yield >= 3) s += 0.8;
+      if (t.capitalOf) s -= 1.0; // capitals are scary
+      const g = t.owner === 'player' ? (rs.grudges.player || 0) : (rs.grudges[t.owner] || 0);
+      s += Math.min(3, g) * 0.8;
+      if (t.owner === 'player') s += 0.4; // the player is everyone's problem
+      if (t.owner === 'neutral' && mine.length < 5) s += 0.6; // safe expansion first
+      // finish off the weak — this is what ends wars
+      // (the player gets a short grace period before the sharks circle)
+      const ownerHolds = t.owner === 'neutral' ? 99 : ownedBy(t.owner).length;
+      if (ownerHolds <= 2 && (t.owner !== 'player' || run.turn > 5)) s += 1.8;
+      if (s > bestScore) { bestScore = s; best = t; }
+    }
+    if (!best) { next(); return; }
+
+    if (best.owner === 'player') {
+      rivalAttacksPlayer(fid, best, next);
+    } else {
+      resolveRivalVsRival(fid, best, rng);
+      next();
+    }
+  }
+
+  function rivalAttacksPlayer(fid, t, next) {
+    const rs = run.rivalState[fid];
+    const fac = SL.DATA.FACTIONS[fid];
+    const budget = Math.round(Math.max(10, Math.min(50, 8 + rs.power * 2.2 + run.turn * 0.6)));
+    const defBonus = t.capitalOf === 'player' ? 2 : 0;
+    const myScore = t.garrison * 2 + deckPower() / 10 + defBonus;
+    const theirScore = rs.power + run.turn * 0.15;
+    const oddsHint = myScore > theirScore + 2 ? 'Favorable' : myScore > theirScore - 2 ? 'Even' : 'Grim';
+
+    SL.audio.sfx('alarm');
+    SL.ui.defenseModal({
+      title: fac.kingdom.toUpperCase() + ' ATTACKS!',
+      sub: 'They march on ' + t.name + ' (garrison ' + t.garrison + '). Auto-resolve odds: ' + oddsHint + '.',
+    }, (fight) => {
+      if (fight) {
+        launchBattle({
+          stakes: 'HOLD ' + t.name.toUpperCase() + '!',
+          enemyFaction: fid, budget,
+          defending: true,
+          defTerr: t,
+          onDone: (won) => {
+            const rng = eventRng();
+            if (won) {
+              run.stats.battlesWon++;
+              const loot = Math.round(3 * playerMods().lootMult);
+              run.gold += loot; run.stats.goldEarned += loot;
+              rs.grudges.player = (rs.grudges.player || 0) + 1;
+              rs.power = Math.max(2, rs.power - 0.6);
+              SL.ui.toast('Held ' + t.name + '! +' + loot + ' gold');
+              if (rng.chance(0.5)) {
+                const pool = draftPool(fid, rng, 2);
+                SL.ui.draftModal(pool, {
+                  title: 'PRISONERS', sub: 'Captured attackers offer service:',
+                  skippable: true, skipLabel: 'REFUSE',
+                }, (picked) => {
+                  if (picked) { run.deck.push(picked); SL.audio.sfx('draft'); }
+                  next();
+                });
+                return;
+              }
+            } else {
+              run.stats.battlesLost++;
+              captureTerritory(t.id, fid);
+              rs.power += 0.5;
+              SL.ui.toast(t.name + ' has fallen to ' + fac.kingdom + '.', true);
+            }
+            next();
+          },
+        });
+      } else {
+        // auto-resolve
+        const rng = eventRng();
+        const my = myScore + rng.range(0, 4);
+        const theirs = theirScore + rng.range(0, 4) + 1; // auto is a bit worse than fighting well
+        if (my >= theirs) {
+          t.garrison = Math.max(1, t.garrison - 1);
+          rs.power = Math.max(2, rs.power - 0.3);
+          rs.grudges.player = (rs.grudges.player || 0) + 1;
+          SL.ui.toast('Garrison held ' + t.name + ' (auto).');
+        } else {
+          captureTerritory(t.id, fid);
+          rs.power += 0.5;
+          SL.ui.toast(t.name + ' has fallen to ' + fac.kingdom + ' (auto).', true);
+        }
+        SL.ui.updateTopbar();
+        next();
+      }
+    });
+  }
+
+  function resolveRivalVsRival(fid, t, rng) {
+    const rs = run.rivalState[fid];
+    const attScore = rs.power + ownedBy(fid).length * 0.3 + rng.range(0, 3);
+    let defScore = t.garrison * 1.5 + rng.range(0, 3);
+    if (t.owner !== 'neutral') {
+      const ds = run.rivalState[t.owner];
+      defScore += ds ? ds.power * 0.7 : 0;
+      if (t.capitalOf) defScore += 2;
+    } else {
+      defScore += 1.2;
+    }
+    const attFac = SL.DATA.FACTIONS[fid];
+    if (attScore >= defScore) {
+      const prevOwner = t.owner;
+      captureTerritory(t.id, fid);
+      rs.power = Math.min(25, rs.power + 0.4);
+      if (prevOwner !== 'neutral') {
+        const ds = run.rivalState[prevOwner];
+        if (ds) {
+          ds.grudges[fid] = (ds.grudges[fid] || 0) + 1;
+          ds.power = Math.max(2, ds.power - 0.4); // losing ground weakens you
+        }
+        SL.ui.toast(attFac.kingdom + ' seized ' + t.name + ' from ' + SL.DATA.FACTIONS[prevOwner].kingdom + '.');
+      } else {
+        SL.ui.toast(attFac.kingdom + ' claimed ' + t.name + '.');
+      }
+    } else {
+      t.garrison = Math.max(1, t.garrison - 1);
+      rs.power = Math.max(2, rs.power - 0.2);
+    }
+  }
+
+  // ---------------- captures & eliminations ----------------
+
+  function captureTerritory(tid, newOwner) {
+    const t = terr(tid);
+    const prevOwner = t.owner;
+    t.owner = newOwner;
+    if (newOwner !== 'player') t.garrison = Math.max(1, t.garrison);
+
+    // player capital fell?
+    if (prevOwner === 'player' && tid === run.capitalId) {
+      const remaining = playerTerrs();
+      if (remaining.length) {
+        let cheapest = remaining[0];
+        for (const r of remaining) if (r.yield < cheapest.yield) cheapest = r;
+        run.capitalId = cheapest.id;
+        cheapest.capitalOf = 'player';
+        t.capitalOf = null;
+        SL.shop.halveStock(run);
+        SL.ui.toast('Capital fallen! Court flees to ' + cheapest.name + '.', true);
+      }
+    }
+    if (prevOwner === 'player' && terr(tid).capitalOf === 'player' && tid !== run.capitalId) {
+      terr(tid).capitalOf = null;
+    }
+
+    // eliminations
+    if (prevOwner !== 'neutral' && prevOwner !== newOwner && prevOwner !== 'player') {
+      if (ownedBy(prevOwner).length === 0 && run.rivalState[prevOwner] && run.rivalState[prevOwner].alive) {
+        run.rivalState[prevOwner].alive = false;
+        const fac = SL.DATA.FACTIONS[prevOwner];
+        SL.ui.toast('☠ ' + fac.kingdom + ' has fallen. The garden forgets them.', true);
+        SL.audio.sfx('dirge');
+        if (newOwner === 'player') {
+          run.stats.factionsEliminated++;
+          checkUnlocks('any');
+        }
+      }
+    }
+    SL.ui.updateTopbar();
+  }
+
+  function checkRunOver() {
+    if (!run) return true;
+    if (playerTerrs().length === 0) {
+      finishRun(false);
+      return true;
+    }
+    const anyRival = run.rivals.some((f) => factionAlive(f));
+    if (!anyRival) {
+      finishRun(true);
+      return true;
+    }
+    return false;
+  }
+
+  function finishRun(won) {
+    if (won) checkUnlocks('win');
+    const summary = {
+      won,
+      faction: run.faction,
+      turns: run.turn,
+      stats: run.stats,
+      unlockedThisRun: run.unlockedThisRun.slice(),
+    };
+    const meta = SL.game.meta;
+    meta.runsPlayed++;
+    if (won) {
+      meta.wins[run.faction] = (meta.wins[run.faction] || 0) + 1;
+      if (!meta.bestTurns || run.turn < meta.bestTurns) meta.bestTurns = run.turn;
+    }
+    SL.save.saveMeta(meta);
+    endRunCleanup();
+    SL.ui.resultsScreen(summary);
+  }
+
+  // ---------------- turn end / income ----------------
+
+  function endOfTurn() {
+    run.turn++;
+    for (const f of run.rivals) {
+      if (factionAlive(f)) run.rivalState[f].power = Math.min(25, run.rivalState[f].power + 0.25);
+    }
+    collectIncome(false);
+    SL.shop.restock(run, eventRng());
+    SL.save.saveRun(run);
+    SL.ui.updateTopbar();
+    SL.ui.turnBanner('TURN ' + run.turn);
+    SL.audio.music('map');
+  }
+
+  function collectIncome(first) {
+    let gold = 0;
+    for (const t of playerTerrs()) gold += t.yield;
+    if (run.upgrades.includes('nectar')) gold += 2;
+    run.gold += gold;
+    run.stats.goldEarned += gold;
+    if (!first && gold > 0) {
+      SL.audio.sfx('coin');
+      SL.ui.toast('+' + gold + ' gold from your territories');
+    }
+  }
+
+  // ---------------- unlocks ----------------
+
+  function checkUnlocks(when) {
+    const meta = SL.game.meta;
+    for (const u of SL.DATA.UNLOCKS) {
+      if (meta.unlocked.includes(u.faction)) continue;
+      if (u.when !== when && u.when !== 'any') continue;
+      if (u.when === 'win' && when !== 'win') continue;
+      let ok = false;
+      try { ok = u.check(run.stats, run); } catch (e) {}
+      if (ok) {
+        meta.unlocked.push(u.faction);
+        run.unlockedThisRun.push(u.faction);
+        SL.save.saveMeta(meta);
+        const fac = SL.DATA.FACTIONS[u.faction];
+        SL.ui.titleCard('UNLOCKED!', fac.kingdom.toUpperCase());
+        SL.audio.sfx('fanfare');
+      }
+    }
+  }
+
+  // ---------------- battle launcher ----------------
+
+  function launchBattle(opts) {
+    const t = opts.defTerr;
+    const mods = playerMods(opts.defending ? t : null);
+    let playerHive = 30 + mods.hiveBonus;
+    let enemyHive = 30;
+    if (!opts.defending && t && t.capitalOf) enemyHive += 10;
+
+    SL.ui.showScreen('battle');
+    SL.audio.music('battle');
+    SL.ui.titleCard(opts.defending ? 'DEFEND!' : 'TO BATTLE!', opts.stakes);
+
+    SL.battle.start({
+      playerFaction: run.faction,
+      playerDeck: run.deck.slice(),
+      playerMods: mods,
+      enemyFaction: opts.enemyFaction,
+      enemyBudget: opts.budget,
+      defending: opts.defending,
+      playerHiveMax: playerHive,
+      enemyHiveMax: enemyHive,
+      seed: (run.seed ^ (run.rngCounter * 7919) ^ (run.turn * 104729)) >>> 0,
+      stakes: opts.stakes,
+      onEnd: (result) => {
+        SL.ui.showScreen('map');
+        SL.audio.music('map');
+        SL.ui.titleCard(result.won ? 'VICTORY!' : 'SQUASHED!',
+          result.won ? '' : 'the survivors limp home');
+        setTimeout(() => {
+          opts.onDone(result.won);
+          SL.ui.updateTopbar();
+          SL.save.saveRun(run);
+        }, 900);
+      },
+    });
+  }
+
+  // ---------------- map rendering ----------------
+
+  const MAP_W = 400;
+
+  function mapLayout(canvasW, canvasH) {
+    const scale = canvasW / MAP_W;
+    const H = canvasH / scale;
+    return { scale, H, top: 92, bot: H - 100, left: 34, right: MAP_W - 34 };
+  }
+
+  function nodePos(t, L) {
+    return {
+      x: L.left + t.x * (L.right - L.left),
+      y: L.top + t.y * (L.bot - L.top),
+    };
+  }
+
+  function ownerColor(t) {
+    if (t.owner === 'player') return SL.DATA.FACTIONS[run.faction].color;
+    if (t.owner === 'neutral') return '#7d8471';
+    return SL.DATA.FACTIONS[t.owner].color;
+  }
+
+  function renderMap(ctx, canvasW, canvasH, time) {
+    if (!run) return;
+    const L = mapLayout(canvasW, canvasH);
+    ctx.save();
+    ctx.scale(L.scale, L.scale);
+
+    // parchment ground
+    const g = ctx.createLinearGradient(0, 0, 0, L.H);
+    g.addColorStop(0, '#e7d9b4');
+    g.addColorStop(1, '#cdbd92');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, MAP_W, L.H);
+    ctx.fillStyle = 'rgba(43,29,22,0.05)';
+    for (let yy = 0; yy < L.H; yy += 16) {
+      for (let xx = (yy / 16) % 2 ? 8 : 0; xx < MAP_W; xx += 16) ctx.fillRect(xx, yy, 2, 2);
+    }
+    ctx.font = '900 13px "Trebuchet MS", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(43,29,22,0.45)';
+    ctx.fillText('— THE GARDEN —', MAP_W / 2, L.top - 18);
+
+    // edges
+    ctx.strokeStyle = 'rgba(43,29,22,0.4)';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([1, 7]);
+    ctx.lineCap = 'round';
+    const drawn = new Set();
+    for (const t of run.territories) {
+      const p1 = nodePos(t, L);
+      for (const n of t.adj) {
+        const key = Math.min(t.id, n) + '-' + Math.max(t.id, n);
+        if (drawn.has(key)) continue;
+        drawn.add(key);
+        const p2 = nodePos(terr(n), L);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+
+    // nodes
+    for (const t of run.territories) {
+      const p = nodePos(t, L);
+      const col = ownerColor(t);
+      const r = t.capitalOf ? 24 : 19;
+      const canHit = attackableByPlayer(t);
+
+      // attackable pulse ring
+      if (canHit) {
+        const pulse = 3 + Math.sin(time * 4 + t.id) * 2;
+        ctx.strokeStyle = 'rgba(224,165,30,0.85)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r + pulse, 0, Math.PI * 2); ctx.stroke();
+      }
+
+      // blob
+      ctx.fillStyle = col;
+      ctx.strokeStyle = '#1b120c';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      // wobbly blob
+      for (let a = 0; a <= 8; a++) {
+        const ang = (a / 8) * Math.PI * 2;
+        const rr = r * (1 + 0.09 * Math.sin(ang * 3 + t.id * 2.1));
+        const px = p.x + Math.cos(ang) * rr;
+        const py = p.y + Math.sin(ang) * rr;
+        if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+
+      // capital crown
+      if (t.capitalOf) {
+        ctx.fillStyle = '#e0a51e';
+        ctx.strokeStyle = '#1b120c';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(p.x - 9, p.y - r - 2);
+        ctx.lineTo(p.x - 8, p.y - r - 11); ctx.lineTo(p.x - 4, p.y - r - 5);
+        ctx.lineTo(p.x, p.y - r - 12); ctx.lineTo(p.x + 4, p.y - r - 5);
+        ctx.lineTo(p.x + 8, p.y - r - 11); ctx.lineTo(p.x + 9, p.y - r - 2);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
+
+      // garrison pips
+      ctx.fillStyle = '#1b120c';
+      for (let i = 0; i < Math.min(6, t.garrison); i++) {
+        ctx.beginPath();
+        ctx.arc(p.x - (Math.min(6, t.garrison) - 1) * 3 + i * 6, p.y + r + 7, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // yield
+      ctx.font = '900 10px "Trebuchet MS", sans-serif';
+      ctx.fillStyle = '#f0e3c8';
+      ctx.strokeStyle = '#1b120c';
+      ctx.lineWidth = 2.5;
+      ctx.textAlign = 'center';
+      ctx.strokeText('◉' + t.yield, p.x, p.y + 4);
+      ctx.fillText('◉' + t.yield, p.x, p.y + 4);
+
+      // boon icon
+      if (t.boon) {
+        ctx.font = '10px sans-serif';
+        ctx.strokeText(SL.DATA.BOONS[t.boon].icon, p.x + r - 3, p.y - r + 5);
+        ctx.fillText(SL.DATA.BOONS[t.boon].icon, p.x + r - 3, p.y - r + 5);
+      }
+
+      // selection ring
+      if (t.id === selectedId) {
+        ctx.strokeStyle = '#e0a51e';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r + 7, 0, Math.PI * 2); ctx.stroke();
+      }
+    }
+
+    // legend: faction chips at top
+    let lx = 10;
+    const chips = [['player', run.faction]].concat(run.rivals.map((f) => [f, f]));
+    for (const [owner, fid] of chips) {
+      const alive = factionAlive(owner === 'player' ? 'player' : fid);
+      const fac = SL.DATA.FACTIONS[fid];
+      ctx.globalAlpha = alive ? 1 : 0.35;
+      ctx.fillStyle = fac.color;
+      ctx.strokeStyle = '#1b120c';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(lx + 7, L.top - 40, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.font = '900 9px "Trebuchet MS", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#2b1d16';
+      const label = owner === 'player' ? 'YOU' : fac.name;
+      ctx.fillText(alive ? label : label + ' ☠', lx + 17, L.top - 37);
+      lx += 26 + ctx.measureText(alive ? label : label + ' ☠').width;
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.restore();
+  }
+
+  function tapMap(lx, ly, canvasW, canvasH) {
+    if (!run) return;
+    const L = mapLayout(canvasW, canvasH);
+    let hit = null, hitD = Infinity;
+    for (const t of run.territories) {
+      const p = nodePos(t, L);
+      const d = Math.hypot(lx - p.x, ly - p.y);
+      if (d < 28 && d < hitD) { hit = t; hitD = d; }
+    }
+    if (hit) {
+      selectedId = hit.id;
+      SL.audio.sfx('click');
+      SL.ui.showTerritoryPanel(hit);
+    } else {
+      selectedId = -1;
+      SL.ui.hideTerritoryPanel();
+    }
+  }
+
+  SL.conquest = {
+    startRun, resumeRun, getRun, endRunCleanup,
+    playerAttack, playerFortify, playerWait, fortifyCost,
+    attackableByPlayer, playerTerrs, deckPower, playerBoons, factionAlive,
+    renderMap, tapMap,
+    terr: (id) => terr(id),
+    abandonRun: () => { endRunCleanup(); SL.ui.showScreen('title'); },
+  };
+})();
