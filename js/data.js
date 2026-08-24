@@ -86,7 +86,7 @@ window.SL = window.SL || {};
   // ================= ANTS — swarm =================
   add(U('ant_worker', 'ants', 1, 1, 'Worker Ants',
     { hp: 14, dmg: 3, atkInt: 0.8, spd: 55, hiveDmg: 1, traits: { swarm: 2 } },
-    { shape: 'ant', size: 0.7 }, 'Two eager little chompers.'));
+    { shape: 'ant', size: 0.7, sheetScale: 1.2 }, 'Two eager little chompers.'));
   add(U('ant_soldier', 'ants', 1, 2, 'Soldier Ant',
     { hp: 38, dmg: 6, atkInt: 0.9, spd: 45, hiveDmg: 2 },
     { shape: 'ant', size: 1.0 }, 'The dependable line-bug.'));
