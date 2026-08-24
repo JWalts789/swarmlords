@@ -293,7 +293,9 @@ window.SL = window.SL || {};
       let frame;
       if (o.state === 'fight' || o.state === 'chomp') frame = 4 + (Math.floor(o.t * 6) % 2);
       else frame = Math.floor(o.t * 8) % 4;
-      const d = S * 1.6;
+      // sheetScale compensates sheets whose subject is drawn small in-cell
+      // (e.g. sluglet: already drawn half-size AND stat-scaled — see data.js)
+      const d = S * 1.6 * ((def.art && def.art.sheetScale) || 1);
       ctx.drawImage(img, frame * fw, 0, fw, fw, -d / 2, -d / 2, d, d);
     } else {
       drawBugLocal(ctx, def, o);

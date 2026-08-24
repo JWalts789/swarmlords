@@ -266,7 +266,7 @@ window.SL = window.SL || {};
     { shape: 'slug', size: 1.0 }, 'Splits into two when squashed.'));
   add(U('neu_sluglet', 'neutral', 1, 0, 'Sluglet',
     { hp: 15, dmg: 4, atkInt: 1.0, spd: 35, hiveDmg: 1 },
-    { shape: 'slug', size: 0.6 }, 'Half a slug, all the grudge.'));
+    { shape: 'slug', size: 0.6, sheetScale: 1.6 }, 'Half a slug, all the grudge.'));
 
   // Neutral garrison pool (sluglet is spawn-only, never dealt)
   const NEUTRAL_POOL = ['neu_pillbug', 'neu_slug', 'neu_orbweaver', 'neu_wolf', 'neu_snail', 'neu_centipede'];
