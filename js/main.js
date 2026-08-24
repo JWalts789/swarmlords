@@ -103,6 +103,16 @@ window.SL = window.SL || {};
         seed: 42, stakes: 'DEMO SKIRMISH',
         onEnd: () => SL.ui.showScreen('title'),
       });
+      // ?demo=battle&spawn=<cardId> → drop that unit on the field both ways
+      // (art QA: enemy copies face down, player copy faces up)
+      const spm = /spawn=([a-z_0-9]+)/.exec(location.search);
+      if (spm) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        SL.battle.render(ctx, canvas.width / dpr, canvas.height / dpr); // set layout
+        SL.battle.debugSpawn(1, spm[1], 1, 0.35);
+        SL.battle.debugSpawn(1, spm[1], 2, 0.5);
+        SL.battle.debugSpawn(0, spm[1], 0, 0.4);
+      }
       // ?demo=battle&ff=12 → fast-forward N sim-seconds with a scripted player
       const ffm = /ff=(\d+)/.exec(location.search);
       if (ffm) {

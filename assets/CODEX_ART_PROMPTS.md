@@ -248,7 +248,7 @@ crown, deep violet; attack = silent screaming dive with trailing wisps.
 
 | Batch | Sheets | Status |
 |---|---|---|
-| P1 wilds | W1–W7 | PENDING |
+| P1 wilds | W1–W7 | **W1 ACCEPTED** 2026-08-23 · W2–W7 pending |
 | P1 ants | A1–A7 | PENDING |
 | P1 hives | 7 × hive_*.png | PENDING |
 | P1 brand | logo_wordmark, icon-512/192 | PENDING (vector placeholders live) |

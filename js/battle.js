@@ -919,6 +919,10 @@ window.SL = window.SL || {};
 
   SL.battle = {
     start, stop, update, render, tapField, forfeit,
+    debugSpawn: (sideIdx, cardId, lane, atFrac) => {
+      const def = SL.DATA.CARDS[cardId];
+      if (def && B.active && B.layout) spawnUnit(sideIdx, def, lane, atFrac);
+    },
     get active() { return B.active; },
     get over() { return B.over; },
     _B: B,
