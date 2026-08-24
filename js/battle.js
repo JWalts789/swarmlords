@@ -104,6 +104,7 @@ window.SL = window.SL || {};
     B.aiTimer = 2.0;
     B.suddenTick = 0;
     B.unitSeq = 0;
+    B.lastReserves = -1;
     B.stats = { killed: 0, lost: 0 };
 
     const enemyDeck = buildEnemyDeck(cfg.enemyFaction, cfg.enemyBudget, B.rng);
@@ -827,12 +828,17 @@ window.SL = window.SL || {};
     drawHiveBar(ctx, B.sides[1], W / 2, L.hiveTopY + 12, ef.color);
     drawHiveBar(ctx, B.sides[0], W / 2, L.hiveBotY + 26, pf.color);
 
-    // enemy reserves counter (their garrison army is finite)
+    // enemy reserves counter lives in the DOM topbar (always readable
+    // regardless of what the hive art covers)
     const reserves = B.sides[1].draw.length + B.sides[1].hand.filter(Boolean).length;
-    ctx.font = '900 9px "Trebuchet MS", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = reserves > 0 ? 'rgba(43,29,22,0.75)' : '#d84b2a';
-    ctx.fillText(reserves > 0 ? 'ENEMY RESERVES: ' + reserves : 'ENEMY RESERVES SPENT!', W / 2, L.hiveTopY + 36);
+    if (reserves !== B.lastReserves) {
+      B.lastReserves = reserves;
+      const el = document.getElementById('bt-stakes');
+      if (el) {
+        el.textContent = (B.cfg && B.cfg.stakes ? B.cfg.stakes + '  ·  ' : '') +
+          (reserves > 0 ? 'ENEMY RESERVES: ' + reserves : 'RESERVES SPENT!');
+      }
+    }
 
     // --- units (sorted by y so lower draws over) ---
     const sorted = B.units.filter((u) => !u.dead).sort((a, b) => a.y - b.y);

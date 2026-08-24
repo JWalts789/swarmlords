@@ -326,15 +326,19 @@ window.SL = window.SL || {};
     const h = o.h || 64;
     ctx.save();
     ctx.translate(o.x, o.y);
-    if (o.side === 1) ctx.scale(1, -1); // enemy hive hangs from top
     if (img) {
-      // preserve the delivered art's aspect ratio inside a max box
+      // Delivered hive art always draws UPRIGHT (a mirrored building reads
+      // as a reflection); the enemy hive occupies the same band, base-down.
       const maxH = o.maxH || 80;
       let dw = o.w;
       let dh = dw * (img.height / img.width);
       if (dh > maxH) { dh = maxH; dw = dh * (img.width / img.height); }
-      ctx.drawImage(img, -dw / 2, -dh, dw, dh);
-    } else {
+      ctx.drawImage(img, -dw / 2, o.side === 1 ? 0 : -dh, dw, dh);
+      ctx.restore();
+      return;
+    }
+    if (o.side === 1) ctx.scale(1, -1); // placeholder enemy hive hangs from top
+    {
       const col = o.color;
       const ink = '#1b120c';
       // mound
