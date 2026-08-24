@@ -328,7 +328,12 @@ window.SL = window.SL || {};
     ctx.translate(o.x, o.y);
     if (o.side === 1) ctx.scale(1, -1); // enemy hive hangs from top
     if (img) {
-      ctx.drawImage(img, -o.w / 2, -h, o.w, h);
+      // preserve the delivered art's aspect ratio inside a max box
+      const maxH = o.maxH || 80;
+      let dw = o.w;
+      let dh = dw * (img.height / img.width);
+      if (dh > maxH) { dh = maxH; dw = dh * (img.width / img.height); }
+      ctx.drawImage(img, -dw / 2, -dh, dw, dh);
     } else {
       const col = o.color;
       const ink = '#1b120c';
