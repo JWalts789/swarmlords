@@ -249,7 +249,7 @@ crown, deep violet; attack = silent screaming dive with trailing wisps.
 | Batch | Sheets | Status |
 |---|---|---|
 | P1 wilds | W1–W7 | **ALL ACCEPTED** 2026-08-23. Fix log — W2: stray frame-6 tail fragment erased from frame 5 locally (watch cell bleed); W3: two eyes instead of four, accepted; W7: baked ground shadow erased from hop frame 4 (NO baked shadows — engine draws them), engine given a sheetScale compensator since the subject is intentionally drawn small in-cell |
-| P1 ants | A1–A7 | **A1 ACCEPTED** 2026-08-23 (given sheetScale 1.2 — small-stat units drawn proportionally small in-cell shrink twice; engine compensates in data.js) · A2–A7 pending |
+| P1 ants | A1–A7 | **A1–A2 ACCEPTED** 2026-08-23 (A1 given sheetScale 1.2 — small-stat units drawn proportionally small in-cell shrink twice; engine compensates in data.js. A2: detached speed lines in the chomp frame are intentional and kept) · A3–A7 pending |
 | P1 hives | 7 × hive_*.png | PENDING |
 | P1 brand | logo_wordmark, icon-512/192 | PENDING (vector placeholders live) |
 | P2 wasps | WA1–WA7 | PENDING |
