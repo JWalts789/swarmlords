@@ -94,11 +94,14 @@ window.SL = window.SL || {};
       SL.conquest.startRun('ants');
     } else if (location.search.indexOf('demo=battle') >= 0) {
       SL.ui.showScreen('battle');
+      // ?enemy=wasps etc. overrides the demo opponent (art QA for hives/rosters)
+      const em = /enemy=([a-z]+)/.exec(location.search);
       SL.battle.start({
         playerFaction: 'ants',
         playerDeck: SL.DATA.START_DECKS.ants.slice(),
         playerMods: null,
-        enemyFaction: 'neutral', enemyBudget: 20,
+        enemyFaction: (em && SL.DATA.FACTIONS[em[1]]) ? em[1] : 'neutral',
+        enemyBudget: 20,
         defending: false, playerHiveMax: 30, enemyHiveMax: 30,
         seed: 42, stakes: 'DEMO SKIRMISH',
         onEnd: () => SL.ui.showScreen('title'),
