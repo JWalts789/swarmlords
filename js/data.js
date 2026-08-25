@@ -176,7 +176,7 @@ window.SL = window.SL || {};
     { shape: 'mantis', size: 1.0 }, 'Fast blades in the green.'));
   add(U('man_sickle', 'mantids', 2, 4, 'Sickle Guard',
     { hp: 75, dmg: 17, atkInt: 1.2, spd: 45, air: true, hiveDmg: 3 },
-    { shape: 'mantis', size: 1.2 }, 'Snatches fliers out of the air.'));
+    { shape: 'mantis', size: 1.2, sheetScale: 1.4 }, 'Snatches fliers out of the air.'));
   add(U('man_ghost', 'mantids', 2, 4, 'Ghost Mantis',
     { hp: 50, dmg: 14, atkInt: 1.1, spd: 55, hiveDmg: 2, traits: { dodge: 0.25 } },
     { shape: 'mantis', size: 1.0, ghost: true }, '25% of hits pass right through.'));
