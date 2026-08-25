@@ -23,6 +23,17 @@ BEETLES steel blue `#3f7fae` · MANTIDS jade green `#4da05c` · TERMITES bone
 
 **Generate one faction per session** so the hand stays consistent.
 
+## DELIVERY PROTOCOL (agreed 2026-08-25, after the beetle batch)
+
+Deliver the generator's **raw RGBA output, untouched**:
+- No matte removal, alpha reconstruction, or color un-premultiplication
+- No automated background cleanup (a lossy pass ghosted an entire batch once)
+- Suspected halos, grid lines, or stray fragments: **document them in the
+  delivery note** — QA has non-destructive tooling and fixes them here
+- The one thing enforced at generation time: **cell containment** — each
+  256px frame contains ONLY its own pose (no neighbor fragments, no art
+  crossing cell boundaries), and no baked ground shadows
+
 ## UNIT SHEET FORMAT (all unit sheets identical)
 
 `1536×256` PNG, six `256×256` cells, character centered in each cell,
