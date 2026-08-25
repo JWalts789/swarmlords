@@ -252,7 +252,7 @@ crown, deep violet; attack = silent screaming dive with trailing wisps.
 | P1 ants | A1–A7 | **ALL ACCEPTED** 2026-08-23/24. Fix log — A1 given sheetScale 1.2 (small-stat units drawn proportionally small in-cell shrink twice; engine compensates in data.js); A2/A4/A5/A6/A7: detached speed lines, dust, bite marks, whirl arcs, and stars in motion frames are intentional and kept |
 | P1 hives | 7 × hive_*.png | **ALL 7 ACCEPTED** 2026-08-24/25 (engine preserves hive art aspect ratio; delivered hives draw UPRIGHT on both ends — no mirroring; reserves counter moved to the topbar) |
 | P1 brand | logo_wordmark, icon-512/192 | **ALL ACCEPTED** 2026-08-25 (title swap now retries while the image loads at boot; sw.js CACHE bumped to v2 for the icons). **PRIORITY 1 COMPLETE.** |
-| P2 wasps | WA1–WA7 | PENDING |
+| P2 wasps | WA1–WA7 | **WA1 ACCEPTED** 2026-08-25 (fliers hover above the cell ground line — correct; wings as blur-disc read great at scale) · WA2–WA7 pending |
 | P2 beetles | B1–B7 | PENDING |
 | P3 mantids | M1–M6 | PENDING |
 | P3 termites | TE1–TE7 | PENDING |
