@@ -40,6 +40,14 @@ window.SL = window.SL || {};
     }
     // codex wordmark swap
     const logo = SL.sprites.logoSheet();
+    if (!logo && !$('title-logo').dataset.swapped) {
+      // wordmark may still be loading at boot — retry while on the title
+      const tries = Number($('title-logo').dataset.tries || 0);
+      if (tries < 40) {
+        $('title-logo').dataset.tries = tries + 1;
+        setTimeout(() => { if (SL.game.screen === 'title') refreshTitle(); }, 400);
+      }
+    }
     if (logo && !$('title-logo').dataset.swapped) {
       $('title-logo').dataset.swapped = '1';
       $('title-logo').innerHTML = '';
@@ -48,6 +56,10 @@ window.SL = window.SL || {};
       img.style.maxWidth = '86vw';
       img.style.imageRendering = 'auto';
       $('title-logo').appendChild(img);
+      const sub = document.createElement('div');
+      sub.className = 'logo-sub';
+      sub.textContent = 'A RUCKUS IN THE GARDEN';
+      $('title-logo').appendChild(sub);
     }
   }
 
