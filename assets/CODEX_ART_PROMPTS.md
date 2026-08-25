@@ -253,7 +253,7 @@ crown, deep violet; attack = silent screaming dive with trailing wisps.
 | P1 hives | 7 × hive_*.png | **ALL 7 ACCEPTED** 2026-08-24/25 (engine preserves hive art aspect ratio; delivered hives draw UPRIGHT on both ends — no mirroring; reserves counter moved to the topbar) |
 | P1 brand | logo_wordmark, icon-512/192 | **ALL ACCEPTED** 2026-08-25 (title swap now retries while the image loads at boot; sw.js CACHE bumped to v2 for the icons). **PRIORITY 1 COMPLETE.** |
 | P2 wasps | WA1–WA7 | **ALL ACCEPTED** 2026-08-25. Fix log — WA4 (lancer) frames 4–5 and WA6 (hornet) frame 5 had detached pennant/body fragments from a NEIGHBORING pose drawn inside the cell (floating ahead of the unit); erased locally. Watch for this: every frame must contain ONLY its own pose. Kept: jacket punch stars, dauber trowel/mud, hornet+queen impact bursts. Fliers hover above the ground line and wings-as-blur-disc both read great — keep both conventions. |
-| P2 beetles | B1–B7 | PENDING |
+| P2 beetles | B1–B7 | **ALL ACCEPTED** 2026-08-25 — after local restoration. The delivered batch arrived ghosted (median alpha ~100 vs 255 on prior batches; a background-matte "correction" had crushed alpha and white-matted the colors). Restored by reversing the white-matte premultiplication + rebuilding alpha. Also fixed: ladybird grid-line remnants erased and its undersized frame 1 rescaled. Tortoise/rhino keep a faint chalk fringe — fine at gameplay scale. **CODEX: deliver raw RGBA output; do NOT post-process backgrounds — flag issues instead and QA handles them here.** |
 | P3 mantids | M1–M6 | PENDING |
 | P3 termites | TE1–TE7 | PENDING |
 | P3 moths | MO1–MO7 | PENDING |
