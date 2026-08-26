@@ -267,7 +267,11 @@ crown, deep violet; attack = silent screaming dive with trailing wisps.
 | P2 beetles | B1–B7 | **ALL ACCEPTED** 2026-08-25 — after local restoration. The delivered batch arrived ghosted (median alpha ~100 vs 255 on prior batches; a background-matte "correction" had crushed alpha and white-matted the colors). Restored by reversing the white-matte premultiplication + rebuilding alpha. Also fixed: ladybird grid-line remnants erased and its undersized frame 1 rescaled. Tortoise/rhino keep a faint chalk fringe — fine at gameplay scale. **CODEX: deliver raw RGBA output; do NOT post-process backgrounds — flag issues instead and QA handles them here.** |
 | P3 mantids | M1–M6 | **ALL ACCEPTED** 2026-08-25 — first raw-protocol batch. Generator delivered oversized canvases (2172×724 rows / 1536×1024 spreads, poses on transparency with faint glow); QA extracted, keyed the ambient wash, cut at occupancy valleys (stalker needed manual cuts — uneven spacing), normalized one scale per sheet, ground-anchored at y=220. Erased 5 cross-cut blade/arm fragments; kept all fades, petals, trails. Raw originals preserved in git (commit 6705cce). man_sickle got sheetScale 1.4 (very vertical poses). |
 | P3 termites | TE1–TE7 | **ALL ACCEPTED** 2026-08-25 — raw-protocol extraction (valley cuts; sapper needed manual cuts — the gap between thrower and airborne keg fooled the cutter; nasute's brown wash keyed at floor 80; alate kept translucent wings, hover baseline). Raws in git 2d266ac. Rampart idles/braces as briefed. |
-| P3 moths | MO1–MO7 | PENDING |
+| P3 moths | MO1–MO7 | **ALL ACCEPTED** 2026-08-25 — raw-protocol extraction (backdrops keyed per-sheet at floors 60–90; witch gauze kept at floor 25; fliers on the hover baseline). Sister and dustcaster needed manual cuts — long attack effects (healing thread, flung cloud) fooled the valley cutter; the dustcaster's release frame is a QA composite of the cast pose + its living dust cloud. Raws in git 9d77105. |
+
+**🎉 ALL ART COMPLETE 2026-08-25: 48 unit sheets, 7 hives, wordmark, and
+icons accepted. SWARMLORDS is placeholder-free.** The swap interface remains
+live — any future re-delivery drops in the same way.
 
 Total: 48 unit sheets + 7 hives + wordmark + icon. The game is fully
 playable on placeholders the whole way — deliver in priority order and the
