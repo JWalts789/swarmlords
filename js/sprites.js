@@ -482,7 +482,9 @@ window.SL = window.SL || {};
     ctx.restore();
   }
 
-  // animated bug canvas for title screen decoration
+  // animated bug canvas for title screen / faction select decoration.
+  // Uses the delivered walk cycle (frames 1-4) as soon as the sheet loads;
+  // falls back to placeholder vector art until then.
   function makeMarchingBug(cardId, size) {
     const def = SL.DATA.CARDS[cardId];
     const fac = SL.DATA.FACTIONS[def.faction];
@@ -491,14 +493,24 @@ window.SL = window.SL || {};
     cv.style.width = size + 'px'; cv.style.height = size + 'px';
     const ctx = cv.getContext('2d');
     let alive = true;
+    let frames = 0;
     function tick(ms) {
-      if (!alive || !cv.isConnected) { alive = false; return; }
+      // stop once detached (allow a grace period before first attach)
+      if (!alive) return;
+      if (!cv.isConnected && frames > 90) { alive = false; return; }
+      frames++;
       ctx.clearRect(0, 0, cv.width, cv.height);
-      ctx.save();
-      ctx.scale(2, 2);
-      ctx.translate(size / 2, size / 2 + size * 0.1);
-      drawBugLocal(ctx, def, { t: ms / 1000, state: 'march', color: fac.color, size: size * 0.6 });
-      ctx.restore();
+      const img = sheet(cardId + '_sheet');
+      if (img) {
+        const f = Math.floor(ms / 130) % 4;
+        ctx.drawImage(img, f * 256, 0, 256, 256, 0, 0, cv.width, cv.height);
+      } else {
+        ctx.save();
+        ctx.scale(2, 2);
+        ctx.translate(size / 2, size / 2 + size * 0.1);
+        drawBugLocal(ctx, def, { t: ms / 1000, state: 'march', color: fac.color, size: size * 0.6 });
+        ctx.restore();
+      }
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);

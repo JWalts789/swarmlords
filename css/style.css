@@ -115,7 +115,8 @@ html, body {
   color: var(--ink-soft);
 }
 
-.title-bugs { height: 80px; display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 100%; overflow: hidden; }
+.title-bugs { height: 92px; display: flex; align-items: center; justify-content: center; gap: 2px; max-width: 100%; overflow: hidden; }
+#title-logo img { max-width: 84vw; max-height: 30vh; height: auto; display: block; margin: 0 auto; }
 .title-bugs img, .title-bugs canvas { image-rendering: auto; }
 
 .title-buttons { display: flex; flex-direction: column; gap: 12px; align-items: center; }
@@ -477,9 +478,15 @@ body.ui-art .modal-box, body.ui-art #map-panel {
   #energy-bar { bottom: calc(94px + var(--safe-bot)); height: 11px; }
   #next-thumb { width: 34px; height: 44px; }
   .screen-title { font-size: 20px; margin: 6px 0 10px; }
-  .title-logo { margin-top: 2vh; }
-  .logo-word { font-size: clamp(36px, 9vh, 56px); }
-  .title-bugs { height: 60px; }
-  .big-btn { padding: 10px 22px; font-size: 16px; }
+  .title-logo { margin-top: 0; }
+  .logo-word { font-size: clamp(32px, 8vh, 48px); }
+  #title-logo img { max-height: 24vh; }
+  .logo-sub { font-size: 10px; letter-spacing: 3px; margin-top: 4px; }
+  .title-bugs { height: 58px; }
+  .title-bugs canvas { width: 52px !important; height: 52px !important; }
+  .title-buttons { gap: 7px; }
+  .big-btn { padding: 9px 20px; font-size: 15px; min-width: 200px; }
+  .small-btn { padding: 6px 12px; font-size: 12px; }
+  .title-footer { display: none; }
   .faction-list { max-width: 640px; }
 }

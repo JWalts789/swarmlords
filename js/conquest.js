@@ -573,7 +573,7 @@ window.SL = window.SL || {};
     const W = canvasW / scale;
     return {
       scale, W,
-      top: Math.min(96, 44 / scale + 40),
+      top: Math.min(112, 44 / scale + 58), // room for the legend strip
       bot: MAP_H - Math.min(120, 66 / scale + 44),
       left: 60, right: W - 60,
     };
@@ -739,27 +739,83 @@ window.SL = window.SL || {};
       }
     }
 
-    // legend: faction chips at top
-    let lx = 10;
+    drawLegend(ctx, L);
+    ctx.restore();
+  }
+
+  // one representative bug per kingdom for the legend
+  const LEGEND_BUG = {
+    ants: 'ant_soldier', wasps: 'wasp_drone', beetles: 'btl_ladybird',
+    mantids: 'man_stalker', termites: 'ter_snapjaw', moths: 'mot_hawk',
+  };
+
+  function drawLegend(ctx, L) {
     const chips = [['player', run.faction]].concat(run.rivals.map((f) => [f, f]));
-    for (const [owner, fid] of chips) {
+    const ICON = 26, PAD = 7, GAP = 12;
+    ctx.font = '900 10px "Trebuchet MS", sans-serif';
+    ctx.textAlign = 'left';
+
+    // measure
+    const widths = chips.map(([owner, fid]) => {
+      const label = owner === 'player' ? 'YOU' : SL.DATA.FACTIONS[fid].name;
+      return ICON + 4 + ctx.measureText(label).width + PAD * 2;
+    });
+    const total = widths.reduce((a, b) => a + b, 0) + GAP * (chips.length - 1);
+    let lx = Math.max(8, (L.W - total) / 2);
+    const cy = L.top - 34;
+    const h = ICON + PAD;
+
+    chips.forEach(([owner, fid], i) => {
       const alive = factionAlive(owner === 'player' ? 'player' : fid);
       const fac = SL.DATA.FACTIONS[fid];
-      ctx.globalAlpha = alive ? 1 : 0.35;
-      ctx.fillStyle = fac.color;
+      const label = owner === 'player' ? 'YOU' : fac.name;
+      const w = widths[i];
+      ctx.globalAlpha = alive ? 1 : 0.4;
+
+      // parchment chip
+      ctx.fillStyle = 'rgba(240,227,200,0.92)';
       ctx.strokeStyle = '#1b120c';
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(lx + 7, L.top - 16, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.font = '900 9px "Trebuchet MS", sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#2b1d16';
-      const label = owner === 'player' ? 'YOU' : fac.name;
-      ctx.fillText(alive ? label : label + ' ☠', lx + 17, L.top - 13);
-      lx += 26 + ctx.measureText(alive ? label : label + ' ☠').width;
-      ctx.globalAlpha = 1;
-    }
+      roundRect(ctx, lx, cy - h / 2, w, h, 9);
+      ctx.fill(); ctx.stroke();
+      // faction color tab
+      ctx.fillStyle = fac.color;
+      roundRect(ctx, lx, cy - h / 2, 5, h, 3); ctx.fill();
 
-    ctx.restore();
+      // bug portrait (delivered walk frame; colored dot fallback)
+      const bug = LEGEND_BUG[fid];
+      const img = bug ? SL.sprites.sheet(bug + '_sheet') : null;
+      const ix = lx + PAD;
+      if (img) {
+        ctx.drawImage(img, 0, 0, 256, 256, ix, cy - ICON / 2, ICON, ICON);
+      } else {
+        ctx.fillStyle = fac.color;
+        ctx.beginPath(); ctx.arc(ix + ICON / 2, cy, 7, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+      }
+
+      ctx.fillStyle = '#2b1d16';
+      ctx.fillText(alive ? label : label + ' ☠', ix + ICON + 4, cy + 4);
+
+      if (!alive) { // struck through
+        ctx.strokeStyle = '#d84b2a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(lx + 4, cy); ctx.lineTo(lx + w - 4, cy); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      lx += w + GAP;
+    });
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
   }
 
   function tapMap(cssX, cssY, canvasW, canvasH) {

@@ -34,8 +34,10 @@ window.SL = window.SL || {};
     const wrap = $('title-bugs');
     if (!wrap.dataset.built) {
       wrap.dataset.built = '1';
-      ['ant_soldier', 'wasp_hornet', 'btl_rhino', 'man_sickle', 'mot_luna'].forEach((id) => {
-        wrap.appendChild(SL.sprites.makeMarchingBug(id, 56));
+      // one per kingdom, chosen for punchy colour separation at parade size
+      ['ant_soldier', 'wasp_drone', 'btl_ladybird', 'man_orchid',
+       'mot_deathshead', 'ter_snapjaw'].forEach((id) => {
+        wrap.appendChild(SL.sprites.makeMarchingBug(id, 84));
       });
     }
     // codex wordmark swap
@@ -81,7 +83,7 @@ window.SL = window.SL || {};
       const sw = document.createElement('div');
       sw.className = 'faction-swatch';
       sw.style.background = fac.color;
-      const starter = { ants: 'ant_soldier', wasps: 'wasp_hornet', beetles: 'btl_rhino', mantids: 'man_sickle', termites: 'ter_snapjaw', moths: 'mot_luna' }[fid];
+      const starter = { ants: 'ant_soldier', wasps: 'wasp_drone', beetles: 'btl_ladybird', mantids: 'man_orchid', termites: 'ter_snapjaw', moths: 'mot_deathshead' }[fid];
       sw.appendChild(SL.sprites.makeMarchingBug(starter, 46));
       const info = document.createElement('div');
       info.className = 'faction-info';
