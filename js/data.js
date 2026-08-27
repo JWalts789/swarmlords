@@ -329,6 +329,22 @@ window.SL = window.SL || {};
   // tier available when player holds >= N territories
   const TIER_GATE = { 1: 0, 2: 4, 3: 7, 4: 10 };
 
+  // ================= BROOD LOYALTY =================
+  // Deck share of your chosen faction sets a loyalty tier at battle start.
+  // KINDRED (>=50%): your faction's units get +5% HP and +5% damage.
+  // DEVOTED (>=75%): Kindred bonus PLUS the faction's loyalty power below.
+  // Rival armies are always mono-faction — they fight Devoted.
+  const LOYALTY_KINDRED = 0.5;
+  const LOYALTY_DEVOTED = 0.75;
+  const LOYALTY = {
+    ants: { name: 'Endless Brood', desc: 'Ant cards costing 2 or less cost 1 less (min 1).' },
+    wasps: { name: 'Sky Tyranny', desc: 'Your fliers deal +20% damage.' },
+    beetles: { name: 'Iron Doctrine', desc: 'All your units gain +1 armor.' },
+    mantids: { name: 'Duelist Code', desc: 'Your mantids dodge 10% of incoming hits.' },
+    termites: { name: 'The Great Work', desc: 'Hive damage bonus rises to +75%.' },
+    moths: { name: 'Choir Hymn', desc: 'Hive regeneration doubled, +1 starting energy.' },
+  };
+
   // ================= FACTION UNLOCKS =================
   // checked against (runStats, run) at capture/elimination/run-end events
   const UNLOCKS = [
@@ -365,6 +381,7 @@ window.SL = window.SL || {};
   SL.DATA = {
     FACTIONS, FACTION_ORDER, PASSIVES, CARDS: C, START_DECKS, NEUTRAL_POOL,
     UPGRADES, BOONS, TERR_NAMES, CAPITAL_NAMES, TIER_GATE, UNLOCKS,
+    LOYALTY, LOYALTY_KINDRED, LOYALTY_DEVOTED,
     cardsOfFaction, statLine,
   };
 })();

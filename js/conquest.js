@@ -80,6 +80,23 @@ window.SL = window.SL || {};
     return run.deck.reduce((s, id) => s + (SL.DATA.CARDS[id] ? SL.DATA.CARDS[id].cost : 0), 0);
   }
 
+  // Brood Loyalty status for the current deck (see data.js LOYALTY)
+  function loyaltyInfo() {
+    if (!run) return null;
+    const own = run.deck.filter((id) => {
+      const c = SL.DATA.CARDS[id];
+      return c && c.faction === run.faction;
+    }).length;
+    const frac = run.deck.length ? own / run.deck.length : 0;
+    const tier = frac >= SL.DATA.LOYALTY_DEVOTED ? 2
+      : frac >= SL.DATA.LOYALTY_KINDRED ? 1 : 0;
+    const power = SL.DATA.LOYALTY[run.faction];
+    return {
+      frac, tier, power,
+      label: tier === 2 ? 'DEVOTED' : tier === 1 ? 'KINDRED' : 'MONGREL',
+    };
+  }
+
   function playerBoons() {
     const agg = { b_energy: 0, b_hp: 0, b_dmg: 0, b_card: 0, b_hive: 0, b_shop: 0 };
     for (const t of playerTerrs()) if (t.boon) agg[t.boon]++;
@@ -547,20 +564,26 @@ window.SL = window.SL || {};
     });
   }
 
-  // ---------------- map rendering ----------------
+  // ---------------- map rendering (landscape) ----------------
 
-  const MAP_W = 400;
+  const MAP_H = 400;
 
   function mapLayout(canvasW, canvasH) {
-    const scale = canvasW / MAP_W;
-    const H = canvasH / scale;
-    return { scale, H, top: 92, bot: H - 100, left: 34, right: MAP_W - 34 };
+    const scale = canvasH / MAP_H;
+    const W = canvasW / scale;
+    return {
+      scale, W,
+      top: Math.min(96, 44 / scale + 40),
+      bot: MAP_H - Math.min(120, 66 / scale + 44),
+      left: 60, right: W - 60,
+    };
   }
 
+  // grid is generated 4 cols x 5 rows (portrait); transpose for landscape
   function nodePos(t, L) {
     return {
-      x: L.left + t.x * (L.right - L.left),
-      y: L.top + t.y * (L.bot - L.top),
+      x: L.left + t.y * (L.right - L.left),
+      y: L.top + t.x * (L.bot - L.top),
     };
   }
 
@@ -576,20 +599,25 @@ window.SL = window.SL || {};
     ctx.save();
     ctx.scale(L.scale, L.scale);
 
-    // parchment ground
-    const g = ctx.createLinearGradient(0, 0, 0, L.H);
-    g.addColorStop(0, '#e7d9b4');
-    g.addColorStop(1, '#cdbd92');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, MAP_W, L.H);
-    ctx.fillStyle = 'rgba(43,29,22,0.05)';
-    for (let yy = 0; yy < L.H; yy += 16) {
-      for (let xx = (yy / 16) % 2 ? 8 : 0; xx < MAP_W; xx += 16) ctx.fillRect(xx, yy, 2, 2);
+    // parchment ground (delivered map art replaces the flat gradient)
+    const bg = SL.sprites.sheet('map_bg');
+    if (bg) {
+      ctx.drawImage(bg, 0, 0, L.W, MAP_H);
+    } else {
+      const g = ctx.createLinearGradient(0, 0, 0, MAP_H);
+      g.addColorStop(0, '#e7d9b4');
+      g.addColorStop(1, '#cdbd92');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, L.W, MAP_H);
+      ctx.fillStyle = 'rgba(43,29,22,0.05)';
+      for (let yy = 0; yy < MAP_H; yy += 16) {
+        for (let xx = (yy / 16) % 2 ? 8 : 0; xx < L.W; xx += 16) ctx.fillRect(xx, yy, 2, 2);
+      }
     }
     ctx.font = '900 13px "Trebuchet MS", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(43,29,22,0.45)';
-    ctx.fillText('— THE GARDEN —', MAP_W / 2, L.top - 18);
+    ctx.fillText('— THE GARDEN —', L.W / 2, L.top - 16);
 
     // edges
     ctx.strokeStyle = 'rgba(43,29,22,0.4)';
@@ -624,32 +652,50 @@ window.SL = window.SL || {};
         ctx.beginPath(); ctx.arc(p.x, p.y, r + pulse, 0, Math.PI * 2); ctx.stroke();
       }
 
-      // blob
-      ctx.fillStyle = col;
+      // node: delivered territory art under an owner-color ring, else blob
+      const nodeImg = SL.sprites.sheet(t.capitalOf ? 'map_node_capital' : 'map_node') ||
+                      SL.sprites.sheet('map_node');
       ctx.strokeStyle = '#1b120c';
       ctx.lineWidth = 3;
-      ctx.beginPath();
-      // wobbly blob
-      for (let a = 0; a <= 8; a++) {
-        const ang = (a / 8) * Math.PI * 2;
-        const rr = r * (1 + 0.09 * Math.sin(ang * 3 + t.id * 2.1));
-        const px = p.x + Math.cos(ang) * rr;
-        const py = p.y + Math.sin(ang) * rr;
-        if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      if (nodeImg) {
+        const d = r * 2.5;
+        ctx.drawImage(nodeImg, p.x - d / 2, p.y - d / 2, d, d);
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 4.5;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = '#1b120c';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r + 2.6, 0, Math.PI * 2); ctx.stroke();
+      } else {
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        for (let a = 0; a <= 8; a++) {
+          const ang = (a / 8) * Math.PI * 2;
+          const rr = r * (1 + 0.09 * Math.sin(ang * 3 + t.id * 2.1));
+          const px = p.x + Math.cos(ang) * rr;
+          const py = p.y + Math.sin(ang) * rr;
+          if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
       }
-      ctx.closePath(); ctx.fill(); ctx.stroke();
 
       // capital crown
       if (t.capitalOf) {
-        ctx.fillStyle = '#e0a51e';
-        ctx.strokeStyle = '#1b120c';
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        ctx.moveTo(p.x - 9, p.y - r - 2);
-        ctx.lineTo(p.x - 8, p.y - r - 11); ctx.lineTo(p.x - 4, p.y - r - 5);
-        ctx.lineTo(p.x, p.y - r - 12); ctx.lineTo(p.x + 4, p.y - r - 5);
-        ctx.lineTo(p.x + 8, p.y - r - 11); ctx.lineTo(p.x + 9, p.y - r - 2);
-        ctx.closePath(); ctx.fill(); ctx.stroke();
+        const crown = SL.sprites.sheet('map_crown');
+        if (crown) {
+          const cd = r * 1.2;
+          ctx.drawImage(crown, p.x - cd / 2, p.y - r - cd + 2, cd, cd);
+        } else {
+          ctx.fillStyle = '#e0a51e';
+          ctx.strokeStyle = '#1b120c';
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(p.x - 9, p.y - r - 2);
+          ctx.lineTo(p.x - 8, p.y - r - 11); ctx.lineTo(p.x - 4, p.y - r - 5);
+          ctx.lineTo(p.x, p.y - r - 12); ctx.lineTo(p.x + 4, p.y - r - 5);
+          ctx.lineTo(p.x + 8, p.y - r - 11); ctx.lineTo(p.x + 9, p.y - r - 2);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+        }
       }
 
       // garrison pips
@@ -694,12 +740,12 @@ window.SL = window.SL || {};
       ctx.fillStyle = fac.color;
       ctx.strokeStyle = '#1b120c';
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(lx + 7, L.top - 40, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(lx + 7, L.top - 16, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
       ctx.font = '900 9px "Trebuchet MS", sans-serif';
       ctx.textAlign = 'left';
       ctx.fillStyle = '#2b1d16';
       const label = owner === 'player' ? 'YOU' : fac.name;
-      ctx.fillText(alive ? label : label + ' ☠', lx + 17, L.top - 37);
+      ctx.fillText(alive ? label : label + ' ☠', lx + 17, L.top - 13);
       lx += 26 + ctx.measureText(alive ? label : label + ' ☠').width;
       ctx.globalAlpha = 1;
     }
@@ -707,9 +753,10 @@ window.SL = window.SL || {};
     ctx.restore();
   }
 
-  function tapMap(lx, ly, canvasW, canvasH) {
+  function tapMap(cssX, cssY, canvasW, canvasH) {
     if (!run) return;
     const L = mapLayout(canvasW, canvasH);
+    const lx = cssX / L.scale, ly = cssY / L.scale;
     let hit = null, hitD = Infinity;
     for (const t of run.territories) {
       const p = nodePos(t, L);
@@ -730,6 +777,7 @@ window.SL = window.SL || {};
     startRun, resumeRun, getRun, endRunCleanup,
     playerAttack, playerFortify, playerWait, fortifyCost,
     attackableByPlayer, playerTerrs, deckPower, playerBoons, factionAlive,
+    loyaltyInfo,
     renderMap, tapMap,
     terr: (id) => terr(id),
     abandonRun: () => { endRunCleanup(); SL.ui.showScreen('title'); },

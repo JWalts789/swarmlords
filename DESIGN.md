@@ -25,7 +25,7 @@ brass-band violence, melodramatic title cards ("A GRUB START!", "SQUASHED!").
 | Decision | Choice |
 |---|---|
 | Theme | Insect kingdoms |
-| Orientation | Portrait, vertical lanes (spawn at bottom, march up) |
+| Orientation | ~~Portrait, vertical lanes~~ **LANDSCAPE, horizontal lanes (playtest revision 2026-08-26)** — player hive left, units march right in their native sprite facing; enemy mirrors. Map transposed to 5×4. |
 | Run structure | **Conquest map generated per run.** Living map: AI factions attack each other too. Lose a battle → lose that territory to the victor. Eliminated at 0 territories. Win = last faction standing. |
 | Spawning | Card hand + energy (Clash Royale style) |
 | Battle win | Destroy the enemy hive (HP bar each end) |

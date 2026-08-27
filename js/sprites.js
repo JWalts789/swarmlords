@@ -23,9 +23,13 @@ window.SL = window.SL || {};
   function init() {
     Object.keys(SL.DATA.CARDS).forEach((id) => {
       if (SL.DATA.CARDS[id].type === 'unit') probe(id + '_sheet');
+      else probe(id + '_icon'); // tactic/spell card art (256x256)
     });
     Object.keys(SL.DATA.FACTIONS).forEach((f) => probe('hive_' + f));
     probe('logo_wordmark');
+    // conquest map + UI kit art (all optional, auto-swapped when delivered)
+    ['map_bg', 'map_node', 'map_node_capital', 'map_crown',
+     'ui_panel', 'ui_icons'].forEach(probe);
   }
 
   function sheet(name) {
@@ -272,9 +276,10 @@ window.SL = window.SL || {};
     ctx.restore();
   }
 
-  // ---------- public draw: world space, vertical lanes ----------
-  // o: {x, y, side(0=player marching up, 1=enemy marching down), t, state,
+  // ---------- public draw: world space, horizontal lanes (landscape) ----------
+  // o: {x, y, side(0=player marching right, 1=enemy marching left), t, state,
   //     color, size, hpFrac, slowed, poisoned}
+  // Sprites are drawn facing RIGHT; enemy units mirror horizontally.
   function drawUnit(ctx, def, o) {
     ctx.save();
     ctx.translate(o.x, o.y);
@@ -287,7 +292,7 @@ window.SL = window.SL || {};
     ctx.fill();
 
     const img = sheet(def.id + '_sheet');
-    ctx.rotate(o.side === 1 ? Math.PI / 2 : -Math.PI / 2); // face up / down
+    if (o.side === 1) ctx.scale(-1, 1); // enemy faces left
     if (img) {
       const fw = 256;
       let frame;
@@ -327,17 +332,17 @@ window.SL = window.SL || {};
     ctx.save();
     ctx.translate(o.x, o.y);
     if (img) {
-      // Delivered hive art always draws UPRIGHT (a mirrored building reads
-      // as a reflection); the enemy hive occupies the same band, base-down.
+      // Landscape: hives stand upright on the field floor at each side.
+      // The enemy hive mirrors horizontally so its entrance faces the field.
       const maxH = o.maxH || 80;
       let dw = o.w;
       let dh = dw * (img.height / img.width);
       if (dh > maxH) { dh = maxH; dw = dh * (img.width / img.height); }
-      ctx.drawImage(img, -dw / 2, o.side === 1 ? 0 : -dh, dw, dh);
+      if (o.mirror) ctx.scale(-1, 1);
+      ctx.drawImage(img, -dw / 2, -dh, dw, dh);
       ctx.restore();
       return;
     }
-    if (o.side === 1) ctx.scale(1, -1); // placeholder enemy hive hangs from top
     {
       const col = o.color;
       const ink = '#1b120c';
@@ -399,7 +404,9 @@ window.SL = window.SL || {};
         ctx.restore();
       }
     } else {
-      drawTacticIcon(ctx, def, size, fac.color);
+      const icon = sheet(def.id + '_icon');
+      if (icon) ctx.drawImage(icon, 2, 2, size - 4, size - 4);
+      else drawTacticIcon(ctx, def, size, fac.color);
     }
     thumbs[key] = cv;
     return cv;
@@ -500,5 +507,9 @@ window.SL = window.SL || {};
 
   function logoSheet() { return sheet('logo_wordmark'); }
 
-  SL.sprites = { init, drawUnit, drawHive, thumb, shade, makeMarchingBug, logoSheet, hasSheet: (n) => !!sheet(n) };
+  SL.sprites = {
+    init, drawUnit, drawHive, thumb, shade, makeMarchingBug, logoSheet,
+    hasSheet: (n) => !!sheet(n),
+    sheet, // raw access for map/UI art
+  };
 })();

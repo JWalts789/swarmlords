@@ -16,24 +16,16 @@ window.SL = window.SL || {};
     canvas.height = Math.round(canvas.clientHeight * dpr);
   }
 
-  function logicalFromEvent(e) {
-    const rect = canvas.getBoundingClientRect();
-    const scale = rect.width / 400; // logical width 400 everywhere
-    return {
-      x: (e.clientX - rect.left) / scale,
-      y: (e.clientY - rect.top) / scale,
-      cw: canvas.width / dpr,
-      ch: canvas.height / dpr,
-    };
-  }
-
   canvas.addEventListener('pointerdown', (e) => {
     SL.audio.ensureCtx();
-    const p = logicalFromEvent(e);
+    const rect = canvas.getBoundingClientRect();
+    const cssX = e.clientX - rect.left;
+    const cssY = e.clientY - rect.top;
     if (SL.game.screen === 'battle' && SL.battle.active) {
-      SL.battle.tapField(p.x, p.y);
+      const s = rect.height / 400; // battle logical height is 400
+      SL.battle.tapField(cssX / s, cssY / s);
     } else if (SL.game.screen === 'map') {
-      SL.conquest.tapMap(p.x, p.y, p.cw, p.ch);
+      SL.conquest.tapMap(cssX, cssY, rect.width, rect.height);
     }
   });
 
@@ -125,12 +117,14 @@ window.SL = window.SL || {};
         SL.battle.render(ctx, canvas.width / dpr, canvas.height / dpr); // set layout
         for (let s = 0; s < secs * 20; s++) {
           SL.battle.update(0.05);
-          if (s % 30 === 0 && B.sides && !B.over) {
+          if (s % 30 === 0 && B.sides && !B.over && B.layout) {
             for (let i = 0; i < B.sides[0].hand.length; i++) {
               const d = SL.DATA.CARDS[B.sides[0].hand[i]];
               if (d && d.cost <= B.sides[0].energy) {
                 B.armed = i;
-                SL.battle.tapField(((s / 30) % 4) * 100 + 50, 400);
+                const lane = (s / 30) % 4;
+                SL.battle.tapField(B.layout.W / 2,
+                  B.layout.fieldTop + (lane + 0.5) * B.layout.laneH);
                 break;
               }
             }

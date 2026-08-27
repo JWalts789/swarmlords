@@ -269,9 +269,63 @@ crown, deep violet; attack = silent screaming dive with trailing wisps.
 | P3 termites | TE1–TE7 | **ALL ACCEPTED** 2026-08-25 — raw-protocol extraction (valley cuts; sapper needed manual cuts — the gap between thrower and airborne keg fooled the cutter; nasute's brown wash keyed at floor 80; alate kept translucent wings, hover baseline). Raws in git 2d266ac. Rampart idles/braces as briefed. |
 | P3 moths | MO1–MO7 | **ALL ACCEPTED** 2026-08-25 — raw-protocol extraction (backdrops keyed per-sheet at floors 60–90; witch gauze kept at floor 25; fliers on the hover baseline). Sister and dustcaster needed manual cuts — long attack effects (healing thread, flung cloud) fooled the valley cutter; the dustcaster's release frame is a QA composite of the cast pose + its living dust cloud. Raws in git 9d77105. |
 
-**🎉 ALL ART COMPLETE 2026-08-25: 48 unit sheets, 7 hives, wordmark, and
+**🎉 CORE ART COMPLETE 2026-08-25: 48 unit sheets, 7 hives, wordmark, and
 icons accepted. SWARMLORDS is placeholder-free.** The swap interface remains
 live — any future re-delivery drops in the same way.
+
+---
+
+# PRIORITY 4 — SPELLS, MAP & UI KIT (added 2026-08-26)
+
+The game is now LANDSCAPE (this changed nothing for unit sheets — profile
+facing right is now the native marching direction). All P4 assets are
+auto-probed by the engine like everything else: exact filenames, drop into
+`assets/sprites/`, done. Same rubber-hose house style throughout.
+
+## P4a — SPELL CARDS (9 icons)
+
+One `256×256` RGBA icon per tactic card, filename `<id>_icon.png`. These
+appear ON CARDS (in-hand at ~44px, in shop/draft at ~64px) — bold single
+emblems, faction accent color + parchment tones, hand-inked, no text, no
+background box (transparent; the card frame is behind them).
+
+| File | Subject |
+|---|---|
+| `ant_pheromone_icon.png` | a winding scent trail of ember-red arrows with little running ant feet along it |
+| `ant_tunnel_icon.png` | a burst-open mud hole with two eager antennae poking out |
+| `wasp_dive_icon.png` | three gold wasp silhouettes power-diving in formation with speed lines |
+| `wasp_frenzy_icon.png` | a gold wing-blur with angry crosshatch sparks around it |
+| `btl_shellwall_icon.png` | three overlapping riveted steel-blue shields in a wall |
+| `man_lunge_icon.png` | a jade scythe-arm mid-slash leaving a crescent trail |
+| `ter_undermine_icon.png` | a bone-white powder keg half-buried under a cracked floor, fuse lit |
+| `mot_lullaby_icon.png` | a violet dust cloud with sleepy Z-motes and a tiny crescent moon |
+| `mot_cocoon_icon.png` | a silk cocoon wrapped in a glowing thread, one warm sparkle |
+
+(Neutral drafts may later add tactics — the format is established.)
+
+## P4b — CONQUEST MAP ART
+
+| File | Size | Subject |
+|---|---|---|
+| `map_bg.png` | 1600×800 | A painted garden seen from above at dusk-gold hour: soft parchment ground with faint flowerbeds, a garden path, a pond corner, scattered leaves — MUTED and low-contrast (nodes and ink must read on top of it), rubber-hose etching warmth, vignette edges. Opaque. |
+| `map_node.png` | 256×256 | A territory marker: a round parchment clearing / trodden-earth mound seen from above, hand-inked wobbly border, subtle grass tufts around the rim. The engine draws the owner-colored ring ON TOP — keep the rim clean and the center calm (a garrison count and yield sit there). Transparent outside the blob. |
+| `map_node_capital.png` | 256×256 | Same language, grander: the clearing ringed with tiny palisade stakes and a banner pole shadow. |
+| `map_crown.png` | 128×128 | A small brass crown, tilted jauntily, hand-inked — marks capitals above their node. |
+
+## P4c — UI KIT
+
+| File | Size | Subject |
+|---|---|---|
+| `ui_panel.png` | 512×512 | A parchment panel with a hand-inked sepia border and stitched/riveted corners, 9-slice friendly: keep a uniform 72px decorative border, plain fillable center. Used for modals, map panel, shop. |
+| `ui_icons.png` | 1536×256 (six 256 cells) | Flat hand-inked glyphs, sepia + brass: 1 gold coin with a bug-face stamp · 2 hex territory tile · 3 garrison shield with mandible emblem · 4 energy lightning-drop · 5 deck of cards fanned · 6 crossed scythe & stinger (battle). Readable at 20px. |
+
+Delivery table addendum:
+
+| Batch | Assets | Status |
+|---|---|---|
+| P4a spells | 9 icons | PENDING |
+| P4b map | map_bg, map_node, map_node_capital, map_crown | PENDING |
+| P4c UI | ui_panel, ui_icons | PENDING |
 
 Total: 48 unit sheets + 7 hives + wordmark + icon. The game is fully
 playable on placeholders the whole way — deliver in priority order and the

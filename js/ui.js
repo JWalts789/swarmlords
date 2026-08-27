@@ -85,10 +85,12 @@ window.SL = window.SL || {};
       sw.appendChild(SL.sprites.makeMarchingBug(starter, 46));
       const info = document.createElement('div');
       info.className = 'faction-info';
+      const loy = SL.DATA.LOYALTY[fid];
       info.innerHTML =
         '<div class="faction-name">' + fac.name + (meta.wins[fid] ? ' 👑×' + meta.wins[fid] : '') + '</div>' +
         '<div class="faction-kingdom">' + fac.kingdom + '</div>' +
-        '<div class="faction-desc">' + fac.blurb + '<br><b>' + fac.passiveDesc + '</b></div>' +
+        '<div class="faction-desc">' + fac.blurb + '<br><b>' + fac.passiveDesc + '</b>' +
+        (loy ? '<br>Devoted: <b>' + loy.name + '</b> — ' + loy.desc : '') + '</div>' +
         (unlocked ? '' : '<div class="faction-lock">🔒 ' + fac.unlockHint + '</div>');
       el.appendChild(sw);
       el.appendChild(info);
@@ -306,6 +308,14 @@ window.SL = window.SL || {};
       row.appendChild(el);
     });
     wrap.appendChild(row);
+    const loy = SL.conquest.loyaltyInfo();
+    if (loy) {
+      const ls = document.createElement('div');
+      ls.className = 'modal-sub';
+      ls.textContent = 'Brood Loyalty: ' + Math.round(loy.frac * 100) + '% (' + loy.label +
+        ') — off-faction recruits dilute it.';
+      wrap.appendChild(ls);
+    }
     if (opts.skippable) {
       const brow = document.createElement('div');
       brow.className = 'modal-buttons';
@@ -340,6 +350,16 @@ window.SL = window.SL || {};
     t.className = 'modal-title';
     t.textContent = removable ? 'MUSTER OUT ONE' : 'YOUR ARMY (' + run.deck.length + ')';
     wrap.appendChild(t);
+    const loy = SL.conquest.loyaltyInfo();
+    if (loy) {
+      const ls = document.createElement('div');
+      ls.className = 'modal-sub';
+      ls.innerHTML = 'Brood Loyalty: <b>' + Math.round(loy.frac * 100) + '% — ' + loy.label + '</b>' +
+        (loy.tier === 2 ? '<br>' + loy.power.name + ': ' + loy.power.desc
+          : loy.tier === 1 ? '<br>Your ' + SL.DATA.FACTIONS[run.faction].name.toLowerCase() + ' get +5% HP and damage. Devoted at 75% unlocks ' + loy.power.name + '.'
+          : '<br>Kindred at 50% deck share; Devoted at 75% unlocks ' + loy.power.name + '.');
+      wrap.appendChild(ls);
+    }
     if (removable) {
       const s = document.createElement('div');
       s.className = 'modal-sub';

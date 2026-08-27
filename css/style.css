@@ -429,3 +429,36 @@ html, body {
 /* results screen reuses dom-screen + modal styles */
 .results-stats { font-size: 13px; line-height: 1.7; text-align: center; }
 .results-stats b { color: var(--blood); }
+
+/* ---------- landscape game: rotate prompt when held tall ---------- */
+
+#rotate-overlay {
+  position: absolute; inset: 0; z-index: 60;
+  display: none;
+  align-items: center; justify-content: center;
+  background: var(--ink);
+}
+@media (orientation: portrait) {
+  #rotate-overlay { display: flex; }
+}
+.rotate-inner { text-align: center; color: var(--paper); }
+.rotate-icon { font-size: 56px; animation: rotHint 1.6s ease-in-out infinite; }
+@keyframes rotHint { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
+.rotate-text { font-size: 20px; font-weight: 900; letter-spacing: 3px; margin-top: 14px; color: var(--brass); }
+.rotate-sub { font-size: 12px; letter-spacing: 2px; color: var(--paper-dark); margin-top: 6px; }
+
+/* compact battle hand on short (landscape phone) screens */
+@media (max-height: 500px) {
+  :root { --card-w: 62px; --card-h: 82px; }
+  .hand-card .hc-art canvas, .hand-card .hc-art img { width: 44px; height: 44px; }
+  .hand-card .hc-name { font-size: 7px; }
+  #hand-area { padding: 4px 8px calc(4px + var(--safe-bot)); }
+  #energy-bar { bottom: calc(94px + var(--safe-bot)); height: 11px; }
+  #next-thumb { width: 34px; height: 44px; }
+  .screen-title { font-size: 20px; margin: 6px 0 10px; }
+  .title-logo { margin-top: 2vh; }
+  .logo-word { font-size: clamp(36px, 9vh, 56px); }
+  .title-bugs { height: 60px; }
+  .big-btn { padding: 10px 22px; font-size: 16px; }
+  .faction-list { max-width: 640px; }
+}

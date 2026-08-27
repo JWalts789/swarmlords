@@ -93,9 +93,11 @@ window.SL = window.SL || {};
       title.textContent = 'THE CAPITAL SHOP';
       box.appendChild(title);
 
+      const loy = SL.conquest.loyaltyInfo();
       const goldLine = document.createElement('div');
       goldLine.className = 'modal-sub';
-      goldLine.innerHTML = 'Your treasury: <b>◉ ' + run.gold + '</b> · Species tier ' + tierCapFor(run) + ' available (' + SL.conquest.playerTerrs().length + ' territories held)';
+      goldLine.innerHTML = 'Your treasury: <b>◉ ' + run.gold + '</b> · Species tier ' + tierCapFor(run) + ' available (' + SL.conquest.playerTerrs().length + ' territories held)' +
+        (loy ? ' · Loyalty <b>' + Math.round(loy.frac * 100) + '% ' + loy.label + '</b>' : '');
       box.appendChild(goldLine);
 
       // --- species market ---

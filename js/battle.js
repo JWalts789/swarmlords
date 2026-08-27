@@ -1,14 +1,16 @@
 // SWARMLORDS — lane battle simulation + battle AI + renderer.
-// Portrait field, 4 vertical lanes. Player hive bottom, enemy hive top.
+// LANDSCAPE field, 4 horizontal lanes. Player hive LEFT, enemy hive RIGHT.
 // Units march toward the far hive, fight what they meet, chomp the hive.
+// Sprites are drawn in profile facing right: player units render natively,
+// enemy units mirror horizontally.
 window.SL = window.SL || {};
 
 (function () {
   const LANES = 4;
-  const LOGICAL_W = 400;
+  const LOGICAL_H = 400;          // logical height; width derives from aspect
   const MELEE_RANGE = 30;
   const MIN_GAP = 30;
-  const SUDDEN_DEATH_AT = 300; // seconds
+  const SUDDEN_DEATH_AT = 300;    // seconds
 
   const B = {
     active: false,
@@ -22,7 +24,7 @@ window.SL = window.SL || {};
     projectiles: [],
     particles: [],
     floaters: [],
-    laneEffects: [], // {side, lane, kind:'buff'|'slow', stat, mult, add, tLeft}
+    laneEffects: [], // {side, lane, kind:'buff'|'slowzone'|'flash', stat, mult, add, tLeft}
     sides: null,     // [player, enemy]
     armed: -1,       // index into player hand
     layout: null,
@@ -30,6 +32,7 @@ window.SL = window.SL || {};
     suddenTick: 0,
     unitSeq: 0,
     stats: null,
+    lastReserves: -1,
   };
 
   // ---------------- setup ----------------
@@ -43,7 +46,7 @@ window.SL = window.SL || {};
     };
   }
 
-  function mergePassive(mods, faction) {
+  function mergePassive(mods, faction, deckIds) {
     const p = SL.DATA.PASSIVES[faction] || {};
     const m = Object.assign(defaultMods(), mods || {});
     if (p.energyMax) m.energyMax += p.energyMax;
@@ -52,7 +55,38 @@ window.SL = window.SL || {};
     if (p.unhurtDmgMult) m.unhurtDmgMult *= p.unhurtDmgMult;
     if (p.hiveDmgMult) m.hiveDmgMult *= p.hiveDmgMult;
     if (p.hiveRegen) m.hiveRegen += p.hiveRegen;
+
+    // BROOD LOYALTY — deck share of your faction sets the tier
+    if (faction !== 'neutral' && deckIds && deckIds.length) {
+      const own = deckIds.filter((id) => {
+        const c = SL.DATA.CARDS[id];
+        return c && c.faction === faction;
+      }).length;
+      const frac = own / deckIds.length;
+      m.loyalFaction = faction;
+      m.loyalFrac = frac;
+      m.loyalTier = frac >= SL.DATA.LOYALTY_DEVOTED ? 2
+        : frac >= SL.DATA.LOYALTY_KINDRED ? 1 : 0;
+      if (m.loyalTier >= 1) m.factionStatMult = 1.05;
+      if (m.loyalTier === 2) {
+        if (faction === 'ants') m.cheapCostDown = true;
+        else if (faction === 'wasps') m.flierDmgMult = 1.2;
+        else if (faction === 'beetles') m.armorAdd += 1;
+        else if (faction === 'mantids') m.factionDodge = 0.10;
+        else if (faction === 'termites') m.hiveDmgMult *= 1.75 / 1.5;
+        else if (faction === 'moths') { m.hiveRegen *= 2; m.startEnergy += 1; }
+      }
+    }
     return m;
+  }
+
+  // loyalty-discounted card cost
+  function effCost(side, def) {
+    let c = def.cost;
+    if (side.mods.cheapCostDown && def.faction === side.mods.loyalFaction && def.cost <= 2) {
+      c = Math.max(1, c - 1);
+    }
+    return c;
   }
 
   function buildEnemyDeck(faction, budget, rng) {
@@ -74,7 +108,7 @@ window.SL = window.SL || {};
   }
 
   function makeSide(faction, deckIds, mods, hiveMax, rng, isPlayer) {
-    const m = mergePassive(mods, faction);
+    const m = mergePassive(mods, faction, deckIds);
     const draw = rng.shuffle(deckIds.slice());
     const handSize = Math.min(5, 4 + (isPlayer ? m.handSize : 0));
     const hand = [];
@@ -125,33 +159,40 @@ window.SL = window.SL || {};
 
   function stop() { B.active = false; }
 
-  // ---------------- layout ----------------
+  // ---------------- layout (landscape) ----------------
 
-  function layout(canvasW, canvasH, dpr) {
-    const scale = canvasW / LOGICAL_W;
-    const H = canvasH / scale;
-    const safeTop = 46;
-    const bottomUI = 168; // hand + energy area in logical px
-    const fieldTop = safeTop + 58;
-    const fieldBot = H - bottomUI - 30;
+  function layout(canvasW, canvasH) {
+    const scale = canvasH / LOGICAL_H;
+    const W = canvasW / scale;
+    // css-fixed chrome converted to logical units
+    const topbarL = Math.min(70, 44 / scale + 6);
+    const handL = Math.min(170, 128 / scale + 14);
+    const fieldTop = topbarL + 26;      // room for hive HP bars
+    const fieldBot = LOGICAL_H - handL - 6;
+    const laneH = (fieldBot - fieldTop) / LANES;
     B.layout = {
-      scale, H,
-      fieldTop, fieldBot,
-      laneW: LOGICAL_W / LANES,
-      hiveTopY: safeTop + 30,
-      hiveBotY: fieldBot + 26,
+      scale, W,
+      fieldTop, fieldBot, laneH,
+      fieldLeft: 150,
+      fieldRight: W - 150,
+      hiveLX: 78,
+      hiveRX: W - 78,
+      barY: topbarL + 4,
     };
     return B.layout;
   }
 
-  function laneX(l) { return (l + 0.5) * (LOGICAL_W / LANES); }
+  function laneY(l) {
+    const L = B.layout;
+    return L.fieldTop + (l + 0.5) * L.laneH;
+  }
 
   // ---------------- cards ----------------
 
   function cardPlayable(side, idx) {
     const id = side.hand[idx];
     if (!id) return false;
-    return SL.DATA.CARDS[id].cost <= side.energy;
+    return effCost(side, SL.DATA.CARDS[id]) <= side.energy;
   }
 
   function cyclePlayed(side, idx) {
@@ -165,12 +206,14 @@ window.SL = window.SL || {};
     const side = B.sides[sideIdx];
     const id = side.hand[handIdx];
     const def = SL.DATA.CARDS[id];
-    if (!def || def.cost > side.energy) return false;
-    side.energy -= def.cost;
+    if (!def) return false;
+    const cost = effCost(side, def);
+    if (cost > side.energy) return false;
+    side.energy -= cost;
 
     if (def.type === 'unit') {
       spawnFromCard(sideIdx, def, lane);
-      SL.audio.sfx(sideIdx === 0 ? 'deploy' : 'deploy');
+      SL.audio.sfx('deploy');
     } else {
       applyTactic(sideIdx, def, lane);
       SL.audio.sfx('tactic');
@@ -191,21 +234,23 @@ window.SL = window.SL || {};
     const L = B.layout;
     const side = B.sides[sideIdx];
     const m = side.mods;
-    const span = L.fieldBot - L.fieldTop;
-    let y;
+    const span = L.fieldRight - L.fieldLeft;
+    let x;
     if (atFrac !== undefined && atFrac !== null) {
-      y = sideIdx === 0 ? L.fieldBot - span * atFrac : L.fieldTop + span * atFrac;
+      x = sideIdx === 0 ? L.fieldLeft + span * atFrac : L.fieldRight - span * atFrac;
     } else {
-      y = sideIdx === 0 ? L.fieldBot - 8 : L.fieldTop + 8;
+      x = sideIdx === 0 ? L.fieldLeft + 8 : L.fieldRight - 8;
     }
-    y += (delayOffset || 0) * (sideIdx === 0 ? 30 : -30) * -1;
+    x -= (delayOffset || 0) * 30 * (sideIdx === 0 ? 1 : -1);
+    let hpMult = m.hpMult;
+    if (m.factionStatMult && def.faction === m.loyalFaction) hpMult *= m.factionStatMult;
     const u = {
       uid: ++B.unitSeq,
       side: sideIdx, def, lane,
-      y,
-      xJit: B.rng.range(-8, 8),
-      hp: Math.round(def.hp * m.hpMult),
-      maxHp: Math.round(def.hp * m.hpMult),
+      x,
+      yJit: B.rng.range(-L.laneH * 0.16, L.laneH * 0.16),
+      hp: Math.round(def.hp * hpMult),
+      maxHp: Math.round(def.hp * hpMult),
       armor: def.armor + m.armorAdd,
       state: def.spd === 0 ? 'hold' : 'march',
       atkCd: def.atkInt * 0.5,
@@ -216,7 +261,7 @@ window.SL = window.SL || {};
       dead: false,
     };
     B.units.push(u);
-    puff(laneX(lane) + u.xJit, u.y, '#f0e3c8', 5);
+    puff(u.x, laneY(lane) + u.yJit, '#f0e3c8', 5);
     return u;
   }
 
@@ -242,7 +287,7 @@ window.SL = window.SL || {};
       for (const u of B.units) {
         if (u.side === sideIdx && u.lane === lane && !u.dead) {
           u.hp = Math.min(u.maxHp, u.hp + e.amt);
-          puff(laneX(u.lane) + u.xJit, u.y, '#a8e0a0', 4);
+          puff(u.x, laneY(u.lane) + u.yJit, '#a8e0a0', 4);
         }
       }
     } else if (e.kind === 'hiveDamage') {
@@ -269,6 +314,8 @@ window.SL = window.SL || {};
     const m = B.sides[u.side].mods;
     let d = u.def.dmg * m.dmgMult;
     if (m.unhurtDmgMult > 1 && u.hp >= u.maxHp) d *= m.unhurtDmgMult;
+    if (m.factionStatMult && u.def.faction === m.loyalFaction) d *= m.factionStatMult;
+    if (m.flierDmgMult && u.def.fly) d *= m.flierDmgMult;
     const fx = laneEffectFor(u, 'dmg');
     d *= fx.mult;
     return d;
@@ -312,9 +359,9 @@ window.SL = window.SL || {};
     for (const u of B.units) {
       if (u.side === att.side || u.dead) continue;
       if (!canAttack(att, u)) continue;
-      const ahead = att.side === 0 ? (u.y <= att.y + 6) : (u.y >= att.y - 6);
+      const ahead = att.side === 0 ? (u.x >= att.x - 6) : (u.x <= att.x + 6);
       if (!ahead) continue;
-      const d = Math.abs(u.y - att.y);
+      const d = Math.abs(u.x - att.x);
       if (d <= r && d < bestD) { best = u; bestD = d; }
     }
     return best;
@@ -326,7 +373,7 @@ window.SL = window.SL || {};
       if (u.side !== att.side || u.dead || u === att) continue;
       if (u.lane !== att.lane) continue;
       if (u.hp >= u.maxHp) continue;
-      const d = Math.abs(u.y - att.y);
+      const d = Math.abs(u.x - att.x);
       if (d <= range && d < bestD) { best = u; bestD = d; }
     }
     return best;
@@ -334,8 +381,11 @@ window.SL = window.SL || {};
 
   function hurt(u, rawDmg, srcSide, isTrue) {
     if (u.dead) return;
-    if (u.def.traits.dodge && B.rng.chance(u.def.traits.dodge)) {
-      floater(laneX(u.lane) + u.xJit, u.y - 14, 'WHIFF', '#9fc3e8', 10);
+    const m = B.sides[u.side].mods;
+    let dodge = u.def.traits.dodge || 0;
+    if (m.factionDodge && u.def.faction === m.loyalFaction) dodge += m.factionDodge;
+    if (dodge > 0 && B.rng.chance(dodge)) {
+      floater(u.x, laneY(u.lane) + u.yJit - 14, 'WHIFF', '#9fc3e8', 10);
       return;
     }
     const dmg = Math.max(1, Math.round(rawDmg - (isTrue ? 0 : unitArmor(u))));
@@ -344,11 +394,12 @@ window.SL = window.SL || {};
       u.dead = true;
       B.stats[u.side === 0 ? 'lost' : 'killed']++;
       SL.audio.sfx('splat');
-      splat(laneX(u.lane) + u.xJit, u.y, SL.DATA.FACTIONS[u.def.faction].color);
+      splat(u.x, laneY(u.lane) + u.yJit, SL.DATA.FACTIONS[u.def.faction].color);
       if (u.def.traits.split) {
         const child = SL.DATA.CARDS[u.def.traits.split];
         const L = B.layout;
-        const frac = u.side === 0 ? (L.fieldBot - u.y) / (L.fieldBot - L.fieldTop) : (u.y - L.fieldTop) / (L.fieldBot - L.fieldTop);
+        const span = L.fieldRight - L.fieldLeft;
+        const frac = u.side === 0 ? (u.x - L.fieldLeft) / span : (L.fieldRight - u.x) / span;
         spawnUnit(u.side, child, u.lane, Math.max(0.02, frac - 0.02));
         spawnUnit(u.side, child, u.lane, Math.max(0.01, frac + 0.02));
       }
@@ -371,12 +422,13 @@ window.SL = window.SL || {};
     applyOnHit(att, tgt);
     const r = att.def.traits.splash;
     if (r) {
-      const tx = laneX(tgt.lane) + tgt.xJit;
+      const tx = tgt.x;
+      const ty = laneY(tgt.lane) + tgt.yJit;
       for (const u of B.units) {
         if (u === tgt || u.side === att.side || u.dead) continue;
         if (u.def.fly && !att.def.air && !att.def.fly) continue;
-        const dx = laneX(u.lane) + u.xJit - tx;
-        const dy = u.y - tgt.y;
+        const dx = u.x - tx;
+        const dy = laneY(u.lane) + u.yJit - ty;
         if (dx * dx + dy * dy <= r * r) hurt(u, dmg * 0.6, att.side);
       }
     }
@@ -388,7 +440,7 @@ window.SL = window.SL || {};
     s.hiveShakeT = 0.4;
     SL.audio.sfx('hiveHit');
     const L = B.layout;
-    floater(LOGICAL_W / 2, sideIdx === 1 ? L.hiveTopY + 30 : L.hiveBotY - 30, '-' + dmg, '#d84b2a', 18);
+    floater(sideIdx === 1 ? L.hiveRX - 20 : L.hiveLX + 20, L.fieldTop + 40, '-' + dmg, '#d84b2a', 18);
     if (s.hiveHp <= 0 && !B.over) endBattle(sideIdx === 1);
   }
 
@@ -461,7 +513,7 @@ window.SL = window.SL || {};
           const m = B.sides[u.side].mods;
           hurtHive(1 - u.side, Math.round(u.def.hiveDmg * m.hiveDmgMult));
           u.dead = true;
-          puff(laneX(u.lane) + u.xJit, u.y, '#8a6d4f', 8);
+          puff(u.x, laneY(u.lane) + u.yJit, '#8a6d4f', 8);
           if (B.over) break;
         }
         continue;
@@ -469,15 +521,15 @@ window.SL = window.SL || {};
 
       // healer behavior
       if (u.def.traits.healer) {
-        const h = u.def.traits.healer;
+        const hl = u.def.traits.healer;
         u.atkCd -= dt;
-        const ht = findHealTarget(u, h.range);
+        const ht = findHealTarget(u, hl.range);
         if (ht) {
           u.state = 'fight';
           if (u.atkCd <= 0) {
-            u.atkCd = h.int;
-            ht.hp = Math.min(ht.maxHp, ht.hp + h.amt);
-            puff(laneX(ht.lane) + ht.xJit, ht.y, '#a8e0a0', 3);
+            u.atkCd = hl.int;
+            ht.hp = Math.min(ht.maxHp, ht.hp + hl.amt);
+            puff(ht.x, laneY(ht.lane) + ht.yJit, '#a8e0a0', 3);
           }
           continue;
         }
@@ -492,7 +544,7 @@ window.SL = window.SL || {};
           u.atkCd = unitAtkInt(u);
           if (u.def.range > 0) {
             B.projectiles.push({
-              x: laneX(u.lane) + u.xJit, y: u.y,
+              x: u.x, y: laneY(u.lane) + u.yJit,
               tgt, side: u.side, att: u,
               spd: 340, color: SL.DATA.FACTIONS[u.def.faction].color,
             });
@@ -507,16 +559,16 @@ window.SL = window.SL || {};
 
       // march (with friendly spacing + enemy body-block)
       u.state = 'march';
-      const dir = u.side === 0 ? -1 : 1;
-      let ny = u.y + dir * unitSpd(u) * dt;
+      const dir = u.side === 0 ? 1 : -1;
+      let nx = u.x + dir * unitSpd(u) * dt;
 
       // blocked by enemy ground body we can't attack over (non-fliers only)
       if (!u.def.fly) {
         for (const o of B.units) {
           if (o.dead || o.side === u.side || o.lane !== u.lane || o.def.fly) continue;
           const gap = MELEE_RANGE * 0.9;
-          if (u.side === 0 && o.y < u.y && ny < o.y + gap) ny = o.y + gap;
-          if (u.side === 1 && o.y > u.y && ny > o.y - gap) ny = o.y - gap;
+          if (u.side === 0 && o.x > u.x && nx > o.x - gap) nx = o.x - gap;
+          if (u.side === 1 && o.x < u.x && nx < o.x + gap) nx = o.x + gap;
         }
       }
       // friendly spacing
@@ -524,25 +576,25 @@ window.SL = window.SL || {};
         if (o.dead || o === u || o.side !== u.side || o.lane !== u.lane) continue;
         if (o.def.fly !== u.def.fly) continue;
         const gap = MIN_GAP;
-        if (u.side === 0 && o.y < u.y && ny < o.y + gap) ny = o.y + gap;
-        if (u.side === 1 && o.y > u.y && ny > o.y - gap) ny = o.y - gap;
+        if (u.side === 0 && o.x > u.x && nx > o.x - gap) nx = o.x - gap;
+        if (u.side === 1 && o.x < u.x && nx < o.x + gap) nx = o.x + gap;
       }
-      u.y = ny;
+      u.x = nx;
 
       // reached far hive?
-      if (u.side === 0 && u.y <= L.fieldTop + 4) { u.state = 'chomp'; u.chompT = 0.35; SL.audio.sfx('chomp'); }
-      if (u.side === 1 && u.y >= L.fieldBot - 4) { u.state = 'chomp'; u.chompT = 0.35; SL.audio.sfx('chomp'); }
+      if (u.side === 0 && u.x >= L.fieldRight - 4) { u.state = 'chomp'; u.chompT = 0.35; SL.audio.sfx('chomp'); }
+      if (u.side === 1 && u.x <= L.fieldLeft + 4) { u.state = 'chomp'; u.chompT = 0.35; SL.audio.sfx('chomp'); }
     }
 
     // projectiles
     for (let i = B.projectiles.length - 1; i >= 0; i--) {
       const p = B.projectiles[i];
-      const tx = p.tgt.dead ? p.x : laneX(p.tgt.lane) + p.tgt.xJit;
-      const ty = p.tgt.dead ? p.y - 40 : p.tgt.y;
+      if (p.tgt.dead) { B.projectiles.splice(i, 1); continue; }
+      const tx = p.tgt.x;
+      const ty = laneY(p.tgt.lane) + p.tgt.yJit;
       const dx = tx - p.x, dy = ty - p.y;
       const d = Math.hypot(dx, dy);
       const step = p.spd * dt;
-      if (p.tgt.dead) { B.projectiles.splice(i, 1); continue; }
       if (d <= step + 8) {
         doDamageWithSplash(p.att, p.tgt);
         B.projectiles.splice(i, 1);
@@ -576,20 +628,20 @@ window.SL = window.SL || {};
     const affordable = [];
     for (let i = 0; i < ai.hand.length; i++) {
       const c = SL.DATA.CARDS[ai.hand[i]];
-      if (c && c.type === 'unit' && c.cost <= ai.energy) affordable.push(i);
+      if (c && c.type === 'unit' && effCost(ai, c) <= ai.energy) affordable.push(i);
     }
     if (!affordable.length) return;
 
-    // threat per lane: player units weighted by closeness to enemy hive (top)
+    // threat per lane: player units weighted by closeness to enemy hive (right)
     const L = B.layout;
-    const span = L.fieldBot - L.fieldTop;
+    const span = L.fieldRight - L.fieldLeft;
     const threat = [0, 0, 0, 0], def = [0, 0, 0, 0];
     const laneHasFlier = [false, false, false, false];
     const laneCrowd = [0, 0, 0, 0];
     for (const u of B.units) {
       if (u.dead) continue;
       if (u.side === 0) {
-        const prox = 1.6 - (u.y - L.fieldTop) / span; // 1.6 near top, 0.6 near bottom
+        const prox = 1.6 - (L.fieldRight - u.x) / span; // 1.6 near enemy hive
         threat[u.lane] += u.def.cost * Math.max(0.4, prox);
         if (u.def.fly) laneHasFlier[u.lane] = true;
         laneCrowd[u.lane]++;
@@ -678,8 +730,10 @@ window.SL = window.SL || {};
   function tapField(lx, ly) {
     if (B.over || B.armed < 0) return;
     const L = B.layout;
-    if (ly < L.fieldTop - 20 || ly > L.fieldBot + 30) return;
-    const lane = Math.max(0, Math.min(LANES - 1, Math.floor(lx / (LOGICAL_W / LANES))));
+    if (!L) return;
+    if (ly < L.fieldTop - 16 || ly > L.fieldBot + 16) return;
+    if (lx < L.fieldLeft - 60 || lx > L.fieldRight + 60) return;
+    const lane = Math.max(0, Math.min(LANES - 1, Math.floor((ly - L.fieldTop) / L.laneH)));
     if (playCard(0, B.armed, lane)) {
       B.armed = -1;
       renderHand();
@@ -696,10 +750,11 @@ window.SL = window.SL || {};
     side.hand.forEach((id, i) => {
       const def = SL.DATA.CARDS[id];
       if (!def) return;
+      const c = effCost(side, def);
       const el = document.createElement('button');
       el.className = 'hand-card' + (def.type === 'tactic' ? ' tactic' : '');
       if (i === B.armed) el.classList.add('armed');
-      if (def.cost > side.energy) el.classList.add('unaffordable');
+      if (c > side.energy) el.classList.add('unaffordable');
       const art = document.createElement('div');
       art.className = 'hc-art';
       art.appendChild(SL.sprites.thumb(id, 56));
@@ -708,7 +763,8 @@ window.SL = window.SL || {};
       nm.textContent = def.name;
       const cost = document.createElement('div');
       cost.className = 'hc-cost';
-      cost.textContent = def.cost;
+      cost.textContent = c;
+      if (c < def.cost) cost.style.background = '#4da05c';
       el.appendChild(art); el.appendChild(nm); el.appendChild(cost);
       el.addEventListener('pointerdown', (ev) => { ev.preventDefault(); armCard(i); });
       wrap.appendChild(el);
@@ -761,7 +817,7 @@ window.SL = window.SL || {};
     const L = layout(canvasW, canvasH);
     ctx.save();
     ctx.scale(L.scale, L.scale);
-    const W = LOGICAL_W, H = L.H;
+    const W = L.W, H = LOGICAL_H;
 
     // --- background: vintage garden paper ---
     const g = ctx.createLinearGradient(0, 0, 0, H);
@@ -779,14 +835,15 @@ window.SL = window.SL || {};
       }
     }
 
-    // lane dividers: dashed vine lines
+    // lane dividers: dashed vine lines (horizontal)
     ctx.strokeStyle = 'rgba(43,29,22,0.22)';
     ctx.lineWidth = 2;
     ctx.setLineDash([2, 10]);
     for (let l = 1; l < LANES; l++) {
+      const y = L.fieldTop + l * L.laneH;
       ctx.beginPath();
-      ctx.moveTo(l * (W / LANES), L.fieldTop - 6);
-      ctx.lineTo(l * (W / LANES), L.fieldBot + 6);
+      ctx.moveTo(L.fieldLeft - 6, y);
+      ctx.lineTo(L.fieldRight + 6, y);
       ctx.stroke();
     }
     ctx.setLineDash([]);
@@ -795,41 +852,48 @@ window.SL = window.SL || {};
     if (B.armed >= 0 && !B.over) {
       const pulse = 0.10 + Math.sin(B.t * 6) * 0.05;
       ctx.fillStyle = 'rgba(224,165,30,' + pulse + ')';
-      ctx.fillRect(0, L.fieldTop, W, L.fieldBot - L.fieldTop);
+      ctx.fillRect(L.fieldLeft, L.fieldTop, L.fieldRight - L.fieldLeft, L.fieldBot - L.fieldTop);
       ctx.strokeStyle = 'rgba(224,165,30,0.7)';
       ctx.lineWidth = 2;
       for (let l = 0; l < LANES; l++) {
-        ctx.strokeRect(l * (W / LANES) + 4, L.fieldTop + 4, W / LANES - 8, L.fieldBot - L.fieldTop - 8);
+        ctx.strokeRect(L.fieldLeft + 4, L.fieldTop + l * L.laneH + 3, L.fieldRight - L.fieldLeft - 8, L.laneH - 6);
       }
     }
 
     // lane tactic zone tints
     for (const fx of B.laneEffects) {
+      const y = L.fieldTop + fx.lane * L.laneH;
       if (fx.kind === 'slowzone') {
         ctx.fillStyle = 'rgba(143,107,184,0.13)';
-        ctx.fillRect(fx.lane * (W / LANES), L.fieldTop, W / LANES, L.fieldBot - L.fieldTop);
+        ctx.fillRect(L.fieldLeft, y, L.fieldRight - L.fieldLeft, L.laneH);
       } else if (fx.kind === 'flash') {
         ctx.fillStyle = 'rgba(224,165,30,' + (fx.tLeft * 1.8) + ')';
-        ctx.fillRect(fx.lane * (W / LANES), L.fieldTop, W / LANES, L.fieldBot - L.fieldTop);
+        ctx.fillRect(L.fieldLeft, y, L.fieldRight - L.fieldLeft, L.laneH);
       } else if (fx.kind === 'buff') {
         ctx.fillStyle = fx.side === 0 ? 'rgba(77,160,92,0.08)' : 'rgba(216,75,42,0.08)';
-        ctx.fillRect(fx.lane * (W / LANES), L.fieldTop, W / LANES, L.fieldBot - L.fieldTop);
+        ctx.fillRect(L.fieldLeft, y, L.fieldRight - L.fieldLeft, L.laneH);
       }
     }
 
-    // --- hives ---
+    // --- hives (standing at each side, on the field floor) ---
     const pf = SL.DATA.FACTIONS[B.sides[0].faction];
     const ef = SL.DATA.FACTIONS[B.sides[1].faction];
     const shake0 = B.sides[0].hiveShakeT > 0 ? Math.sin(B.t * 60) * 3 : 0;
     const shake1 = B.sides[1].hiveShakeT > 0 ? Math.sin(B.t * 60) * 3 : 0;
-    SL.sprites.drawHive(ctx, B.sides[1].faction, { x: W / 2 + shake1, y: L.hiveTopY, w: 190, h: 46, side: 1, color: ef.color });
-    SL.sprites.drawHive(ctx, B.sides[0].faction, { x: W / 2 + shake0, y: L.hiveBotY + 20, w: 190, h: 46, side: 0, color: pf.color });
+    const hiveH = Math.min(120, (L.fieldBot - L.fieldTop) * 0.62);
+    SL.sprites.drawHive(ctx, B.sides[0].faction, {
+      x: L.hiveLX + shake0, y: L.fieldBot - 2, w: hiveH * 2, side: 0,
+      color: pf.color, maxH: hiveH,
+    });
+    SL.sprites.drawHive(ctx, B.sides[1].faction, {
+      x: L.hiveRX + shake1, y: L.fieldBot - 2, w: hiveH * 2, side: 1,
+      color: ef.color, maxH: hiveH, mirror: true,
+    });
 
-    drawHiveBar(ctx, B.sides[1], W / 2, L.hiveTopY + 12, ef.color);
-    drawHiveBar(ctx, B.sides[0], W / 2, L.hiveBotY + 26, pf.color);
+    drawHiveBar(ctx, B.sides[0], L.hiveLX + 20, L.barY, pf.color);
+    drawHiveBar(ctx, B.sides[1], L.hiveRX - 20, L.barY, ef.color);
 
-    // enemy reserves counter lives in the DOM topbar (always readable
-    // regardless of what the hive art covers)
+    // enemy reserves counter lives in the DOM topbar
     const reserves = B.sides[1].draw.length + B.sides[1].hand.filter(Boolean).length;
     if (reserves !== B.lastReserves) {
       B.lastReserves = reserves;
@@ -840,17 +904,19 @@ window.SL = window.SL || {};
       }
     }
 
-    // --- units (sorted by y so lower draws over) ---
-    const sorted = B.units.filter((u) => !u.dead).sort((a, b) => a.y - b.y);
+    // --- units (sorted by lane depth so lower lanes draw over) ---
+    const sorted = B.units.filter((u) => !u.dead)
+      .sort((a, b) => (laneY(a.lane) + a.yJit) - (laneY(b.lane) + b.yJit));
+    const unitSize = Math.min(40, L.laneH * 0.78);
     for (const u of sorted) {
       SL.sprites.drawUnit(ctx, u.def, {
-        x: laneX(u.lane) + u.xJit,
-        y: u.y,
+        x: u.x,
+        y: laneY(u.lane) + u.yJit,
         side: u.side,
         t: u.t,
         state: u.state === 'hold' ? 'march' : u.state,
         color: SL.DATA.FACTIONS[u.def.faction].color,
-        size: 40,
+        size: unitSize,
         hpFrac: u.hp / u.maxHp,
         slowed: u.slowT > 0,
         poisoned: u.poisonT > 0,
@@ -892,14 +958,14 @@ window.SL = window.SL || {};
       ctx.font = '900 16px "Trebuchet MS", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#d84b2a';
-      ctx.fillText('SUDDEN DEATH — HIVES CRUMBLING', W / 2, L.fieldTop + 24);
+      ctx.fillText('SUDDEN DEATH — HIVES CRUMBLING', W / 2, L.fieldTop - 8);
     }
 
     ctx.restore();
   }
 
   function drawHiveBar(ctx, side, cx, y, color) {
-    const w = 180, h = 13;
+    const w = 170, h = 13;
     const frac = Math.max(0, side.hiveHp / side.hiveMax);
     ctx.fillStyle = '#1b120c';
     roundRect(ctx, cx - w / 2 - 2, y - 2, w + 4, h + 4, 7); ctx.fill();
