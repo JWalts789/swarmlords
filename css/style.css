@@ -12,6 +12,8 @@
   --card-h: 96px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -27,7 +29,7 @@ html, body {
   -webkit-user-select: none;
 }
 
-#app { position: fixed; inset: 0; overflow: hidden; }
+#app { position: fixed; inset: 0; width: 100vw; height: 100dvh; overflow: hidden; }
 
 #game-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
@@ -38,7 +40,8 @@ html, body {
 .screen {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center;
-  padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bot));
+  padding: calc(16px + var(--safe-top)) calc(16px + var(--safe-right))
+    calc(16px + var(--safe-bot)) calc(16px + var(--safe-left));
   z-index: 20;
 }
 
@@ -167,7 +170,8 @@ html, body {
 
 #map-topbar {
   position: absolute; top: 0; left: 0; right: 0;
-  padding: calc(8px + var(--safe-top)) 10px 8px;
+  padding: calc(8px + var(--safe-top)) calc(10px + var(--safe-right)) 8px
+    calc(10px + var(--safe-left));
   display: flex; align-items: center; gap: 10px;
   background: var(--ink);
   color: var(--paper);
@@ -180,7 +184,8 @@ html, body {
 #map-topbar .tb-btn { background: var(--paper); }
 
 #map-panel {
-  position: absolute; left: 8px; right: 8px; bottom: 74px;
+  position: absolute; left: calc(8px + var(--safe-left));
+  right: calc(8px + var(--safe-right)); bottom: calc(74px + var(--safe-bot));
   background: var(--paper);
   border: 3px solid var(--ink); border-radius: 14px;
   box-shadow: 0 4px 0 var(--ink);
@@ -197,7 +202,8 @@ html, body {
 
 #map-actionbar {
   position: absolute; left: 0; right: 0; bottom: 0;
-  padding: 10px 10px calc(10px + var(--safe-bot));
+  padding: 10px calc(10px + var(--safe-right)) calc(10px + var(--safe-bot))
+    calc(10px + var(--safe-left));
   display: flex; gap: 10px;
   background: linear-gradient(transparent, rgba(43,29,22,.85) 40%);
 }
@@ -224,7 +230,8 @@ html, body {
 
 #battle-topbar {
   position: absolute; top: 0; left: 0; right: 0;
-  padding: calc(6px + var(--safe-top)) 10px 6px;
+  padding: calc(6px + var(--safe-top)) calc(10px + var(--safe-right)) 6px
+    calc(10px + var(--safe-left));
   display: flex; align-items: center; justify-content: space-between;
   color: var(--paper); font-weight: 900; font-size: 12px; letter-spacing: 1px;
   text-shadow: 1px 1px 0 var(--ink);
@@ -232,13 +239,15 @@ html, body {
 
 #hand-area {
   position: absolute; left: 0; right: 0; bottom: 0;
-  padding: 8px 8px calc(8px + var(--safe-bot));
+  padding: 8px calc(8px + var(--safe-right)) calc(8px + var(--safe-bot))
+    calc(8px + var(--safe-left));
   display: flex; align-items: flex-end; gap: 8px;
   background: linear-gradient(transparent, rgba(43,29,22,.92) 30%);
 }
 
 #energy-bar {
-  position: absolute; left: 10px; right: 10px; bottom: calc(112px + var(--safe-bot));
+  position: absolute; left: calc(10px + var(--safe-left));
+  right: calc(10px + var(--safe-right)); bottom: calc(112px + var(--safe-bot));
   height: 14px; border: 2px solid var(--ink); border-radius: 8px;
   background: rgba(240,227,200,.35); overflow: hidden;
 }
@@ -474,7 +483,7 @@ body.ui-art .modal-box, body.ui-art #map-panel {
   :root { --card-w: 62px; --card-h: 82px; }
   .hand-card .hc-art canvas, .hand-card .hc-art img { width: 44px; height: 44px; }
   .hand-card .hc-name { font-size: 7px; }
-  #hand-area { padding: 4px 8px calc(4px + var(--safe-bot)); }
+  #hand-area { padding: 4px calc(8px + var(--safe-right)) calc(4px + var(--safe-bot)) calc(8px + var(--safe-left)); }
   #energy-bar { bottom: calc(94px + var(--safe-bot)); height: 11px; }
   #next-thumb { width: 34px; height: 44px; }
   .screen-title { font-size: 20px; margin: 6px 0 10px; }

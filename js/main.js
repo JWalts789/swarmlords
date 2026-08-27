@@ -16,6 +16,12 @@ window.SL = window.SL || {};
     canvas.height = Math.round(canvas.clientHeight * dpr);
   }
 
+  let resizeFrame = 0;
+  function scheduleResize() {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(resize);
+  }
+
   canvas.addEventListener('pointerdown', (e) => {
     SL.audio.ensureCtx();
     const rect = canvas.getBoundingClientRect();
@@ -67,7 +73,9 @@ window.SL = window.SL || {};
     SL.sprites.init();
     SL.ui.init();
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', scheduleResize);
+    window.addEventListener('orientationchange', scheduleResize);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleResize);
     SL.ui.showScreen('title');
     requestAnimationFrame(frame);
 

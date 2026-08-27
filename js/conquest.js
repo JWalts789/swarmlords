@@ -568,6 +568,22 @@ window.SL = window.SL || {};
 
   const MAP_H = 400;
 
+  // Preserve painted backdrops instead of stretching them to each phone's
+  // landscape aspect ratio. Crop evenly from the long axis (CSS cover).
+  function drawImageCover(ctx, img, x, y, w, h) {
+    const srcRatio = img.width / img.height;
+    const dstRatio = w / h;
+    let sx = 0, sy = 0, sw = img.width, sh = img.height;
+    if (srcRatio > dstRatio) {
+      sw = img.height * dstRatio;
+      sx = (img.width - sw) / 2;
+    } else if (srcRatio < dstRatio) {
+      sh = img.width / dstRatio;
+      sy = (img.height - sh) / 2;
+    }
+    ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+  }
+
   function mapLayout(canvasW, canvasH) {
     const scale = canvasH / MAP_H;
     const W = canvasW / scale;
@@ -602,7 +618,7 @@ window.SL = window.SL || {};
     // parchment ground (delivered map art replaces the flat gradient)
     const bg = SL.sprites.sheet('map_bg');
     if (bg) {
-      ctx.drawImage(bg, 0, 0, L.W, MAP_H);
+      drawImageCover(ctx, bg, 0, 0, L.W, MAP_H);
     } else {
       const g = ctx.createLinearGradient(0, 0, 0, MAP_H);
       g.addColorStop(0, '#e7d9b4');
