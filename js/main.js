@@ -81,6 +81,12 @@ window.SL = window.SL || {};
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 
+    // activate delivered UI art once its probe loads (checked a few times)
+    [800, 2500, 6000].forEach((ms) => setTimeout(() => {
+      if (SL.sprites.hasSheet('ui_panel')) document.body.classList.add('ui-art');
+      if (SL.game.screen === 'map') SL.ui.updateTopbar();
+    }, ms));
+
     // dev boot shortcuts: ?demo=map | ?demo=battle (screenshot/testing aid)
     if (location.search.indexOf('demo=map') >= 0) {
       SL.conquest.startRun('ants');

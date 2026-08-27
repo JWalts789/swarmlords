@@ -447,6 +447,27 @@ html, body {
 .rotate-text { font-size: 20px; font-weight: 900; letter-spacing: 3px; margin-top: 14px; color: var(--brass); }
 .rotate-sub { font-size: 12px; letter-spacing: 2px; color: var(--paper-dark); margin-top: 6px; }
 
+/* ---------- delivered UI art (activated when files exist) ---------- */
+
+body.ui-art .modal-box, body.ui-art #map-panel {
+  border: 14px solid transparent;
+  border-image: url("../assets/sprites/ui_panel.png") 70 fill round;
+  border-radius: 0;
+  box-shadow: 0 6px 0 rgba(27,18,12,.55), 0 12px 40px rgba(0,0,0,.5);
+}
+
+.ui-ic {
+  display: inline-block; width: 17px; height: 17px; vertical-align: -3px;
+  background-image: url("../assets/sprites/ui_icons.png");
+  background-size: 102px 17px; background-repeat: no-repeat;
+}
+.ui-ic-coin { background-position: 0 0; }
+.ui-ic-terr { background-position: -17px 0; }
+.ui-ic-shield { background-position: -34px 0; }
+.ui-ic-energy { background-position: -51px 0; }
+.ui-ic-deck { background-position: -68px 0; }
+.ui-ic-battle { background-position: -85px 0; }
+
 /* compact battle hand on short (landscape phone) screens */
 @media (max-height: 500px) {
   :root { --card-w: 62px; --card-h: 82px; }

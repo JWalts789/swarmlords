@@ -323,9 +323,9 @@ Delivery table addendum:
 
 | Batch | Assets | Status |
 |---|---|---|
-| P4a spells | 9 icons | PENDING |
-| P4b map | map_bg, map_node, map_node_capital, map_crown | PENDING |
-| P4c UI | ui_panel, ui_icons | PENDING |
+| P4a spells | 9 icons | **ALL ACCEPTED** 2026-08-26 (QA resized 1254→256; style note: icons render a touch more polished than pure cel — future prompts push harder toward flat hand-inked, per the north-star reminder) |
+| P4b map | map_bg, map_node, map_node_capital, map_crown | **ALL ACCEPTED** 2026-08-26 (bg optimized to 1400×700; crown content-cropped to 128) |
+| P4c UI | ui_panel, ui_icons | **ALL ACCEPTED** 2026-08-26 (panel 9-slices modals + map panel; glyph strip extracted to 1536×256, live in topbar + map yields) |
 
 Total: 48 unit sheets + 7 hives + wordmark + icon. The game is fully
 playable on placeholders the whole way — deliver in priority order and the

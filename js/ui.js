@@ -112,8 +112,14 @@ window.SL = window.SL || {};
   function updateTopbar() {
     const run = SL.conquest.getRun();
     if (!run) return;
-    $('tb-gold').textContent = '◉ ' + run.gold;
-    $('tb-terr').textContent = '⬢ ' + SL.conquest.playerTerrs().length;
+    if (SL.sprites.hasSheet('ui_icons')) {
+      $('tb-gold').innerHTML = '<span class="ui-ic ui-ic-coin"></span> ' + run.gold;
+      $('tb-terr').innerHTML = '<span class="ui-ic ui-ic-terr"></span> ' + SL.conquest.playerTerrs().length;
+      $('btn-deck').innerHTML = '<span class="ui-ic ui-ic-deck"></span> DECK';
+    } else {
+      $('tb-gold').textContent = '◉ ' + run.gold;
+      $('tb-terr').textContent = '⬢ ' + SL.conquest.playerTerrs().length;
+    }
     $('tb-turn').textContent = 'TURN ' + run.turn;
   }
 

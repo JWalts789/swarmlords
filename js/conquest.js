@@ -706,14 +706,23 @@ window.SL = window.SL || {};
         ctx.fill();
       }
 
-      // yield
-      ctx.font = '900 10px "Trebuchet MS", sans-serif';
+      // yield (delivered coin glyph when available)
+      ctx.font = '900 11px "Trebuchet MS", sans-serif';
       ctx.fillStyle = '#f0e3c8';
       ctx.strokeStyle = '#1b120c';
       ctx.lineWidth = 2.5;
+      const uiIcons = SL.sprites.sheet('ui_icons');
+      if (uiIcons) {
+        ctx.drawImage(uiIcons, 0, 0, 256, 256, p.x - 14, p.y - 7, 13, 13);
+        ctx.textAlign = 'left';
+        ctx.strokeText(t.yield, p.x + 2, p.y + 4);
+        ctx.fillText(t.yield, p.x + 2, p.y + 4);
+      } else {
+        ctx.textAlign = 'center';
+        ctx.strokeText('◉' + t.yield, p.x, p.y + 4);
+        ctx.fillText('◉' + t.yield, p.x, p.y + 4);
+      }
       ctx.textAlign = 'center';
-      ctx.strokeText('◉' + t.yield, p.x, p.y + 4);
-      ctx.fillText('◉' + t.yield, p.x, p.y + 4);
 
       // boon icon
       if (t.boon) {
