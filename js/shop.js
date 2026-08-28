@@ -99,7 +99,7 @@ window.SL = window.SL || {};
     const loy = SL.conquest.loyaltyInfo();
 
     $('shop-stats').innerHTML =
-      'Treasury <b>◉ ' + run.gold + '</b> · Tier <b>' + tierCapFor(run) +
+      'Treasury <b>' + SL.ui.coinHTML(run.gold, run.gold >= 20) + '</b> · Tier <b>' + tierCapFor(run) +
       '</b> unlocked (' + SL.conquest.playerTerrs().length + ' territories)' +
       (loy ? ' · Loyalty <b>' + Math.round(loy.frac * 100) + '% ' + loy.label + '</b>' : '');
 
@@ -117,7 +117,7 @@ window.SL = window.SL || {};
       const el = SL.ui.cardEl(cardId);
       const tag = document.createElement('div');
       tag.className = 'shop-item-price' + (run.gold < price ? ' cant' : '');
-      tag.textContent = '◉ ' + price;
+      tag.innerHTML = SL.ui.coinHTML(price);
       el.appendChild(tag);
       el.addEventListener('click', () => {
         if (run.gold < price) { SL.ui.toast('Not enough gold.', true); return; }
@@ -133,7 +133,7 @@ window.SL = window.SL || {};
     });
 
     const rrBtn = $('btn-shop-reroll');
-    rrBtn.textContent = 'REROLL ◉' + rerollPrice(run);
+    rrBtn.innerHTML = 'REROLL ' + SL.ui.coinHTML(rerollPrice(run));
     rrBtn.disabled = run.gold < rerollPrice(run);
 
     // --- upgrades ---
@@ -153,7 +153,7 @@ window.SL = window.SL || {};
       el.innerHTML = '<div class="upg-name">' + u.name + '</div><div class="upg-desc">' + u.desc + '</div>';
       const tag = document.createElement('div');
       tag.className = 'shop-item-price' + (run.gold < price ? ' cant' : '');
-      tag.textContent = '◉ ' + price;
+      tag.innerHTML = SL.ui.coinHTML(price, price >= 12);
       el.appendChild(tag);
       el.addEventListener('click', () => {
         if (run.gold < price) { SL.ui.toast('Not enough gold.', true); return; }
@@ -169,7 +169,7 @@ window.SL = window.SL || {};
     });
 
     const remBtn = $('btn-shop-remove');
-    remBtn.textContent = 'REMOVE A CARD ◉' + removalPrice(run);
+    remBtn.innerHTML = 'REMOVE A CARD ' + SL.ui.coinHTML(removalPrice(run));
     remBtn.disabled = run.gold < removalPrice(run) || run.deck.length <= 8;
   }
 

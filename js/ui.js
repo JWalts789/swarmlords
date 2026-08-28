@@ -126,15 +126,23 @@ window.SL = window.SL || {};
 
   // ---------------- map topbar / panel ----------------
 
+  // Gold readout: the painted coin when available, else the text glyph.
+  // big=true swaps in the coin stack for larger sums.
+  function coinHTML(n, big) {
+    if (big && SL.sprites.hasSheet('ui_coin_stack')) return '<span class="ui-coin stack"></span> ' + n;
+    if (SL.sprites.hasSheet('ui_coin')) return '<span class="ui-coin"></span> ' + n;
+    return '◉ ' + n;
+  }
+
   function updateTopbar() {
     const run = SL.conquest.getRun();
     if (!run) return;
+    $('btn-endturn').innerHTML = 'WAIT ' + coinHTML(2);
+    $('tb-gold').innerHTML = coinHTML(run.gold, run.gold >= 20);
     if (SL.sprites.hasSheet('ui_icons')) {
-      $('tb-gold').innerHTML = '<span class="ui-ic ui-ic-coin"></span> ' + run.gold;
       $('tb-terr').innerHTML = '<span class="ui-ic ui-ic-terr"></span> ' + SL.conquest.playerTerrs().length;
       $('btn-deck').innerHTML = '<span class="ui-ic ui-ic-deck"></span> DECK';
     } else {
-      $('tb-gold').textContent = '◉ ' + run.gold;
       $('tb-terr').textContent = '⬢ ' + SL.conquest.playerTerrs().length;
     }
     $('tb-turn').textContent = 'TURN ' + run.turn;
@@ -152,7 +160,7 @@ window.SL = window.SL || {};
     $('mp-owner').style.color = t.owner === 'player' ? '#4da05c' : t.owner === 'neutral' ? '#5a4432' : SL.DATA.FACTIONS[t.owner].dark;
 
     const bits = [];
-    bits.push('Yield ◉' + t.yield + '/turn');
+    bits.push('Yield ' + t.yield + '/turn');
     bits.push('Garrison ' + t.garrison);
     if (t.boon) {
       const b = SL.DATA.BOONS[t.boon];
@@ -179,7 +187,7 @@ window.SL = window.SL || {};
       const maxed = t.garrison >= 6;
       const f = document.createElement('button');
       f.className = 'action-btn';
-      f.textContent = maxed ? 'GARRISON FULL' : 'FORTIFY ◉' + cost;
+      f.innerHTML = maxed ? 'GARRISON FULL' : 'FORTIFY ' + coinHTML(cost);
       f.disabled = maxed || run.gold < cost;
       if (!f.disabled) {
         f.addEventListener('click', () => confirmModal(
@@ -581,6 +589,6 @@ window.SL = window.SL || {};
     updateTopbar, showTerritoryPanel, hideTerritoryPanel,
     turnBanner, titleCard, toast,
     modal, customModal, closeModal, closeAllModals, confirmModal,
-    cardEl, draftModal, defenseModal, deckViewer, resultsScreen,
+    cardEl, draftModal, defenseModal, deckViewer, resultsScreen, coinHTML,
   };
 })();

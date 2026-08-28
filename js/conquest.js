@@ -839,9 +839,11 @@ window.SL = window.SL || {};
       }
     }
 
-    // capital crown
+    // capital crown — toppled once the kingdom that raised it is gone
     if (t.capitalOf) {
-      const crown = SL.sprites.sheet('map_crown');
+      const fallen = !factionAlive(t.capitalOf);
+      const crown = (fallen && SL.sprites.sheet('map_crown_fallen'))
+        || SL.sprites.sheet('map_crown');
       if (crown) {
         const cd = r * 1.25;
         ctx.drawImage(crown, p.x - cd / 2, p.y - ringR - cd + 6, cd, cd);
