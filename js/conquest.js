@@ -653,6 +653,24 @@ window.SL = window.SL || {};
     neutral: 'neu_pillbug',
   };
 
+  // A kingdom's mark: its own emblem when delivered, otherwise a
+  // representative bug stands in.
+  function factionMark(fid) {
+    const em = SL.sprites.sheet('emblem_' + fid);
+    if (em) return { img: em, sheet: false };
+    const bug = LEGEND_BUG[fid];
+    const b = bug ? SL.sprites.sheet(bug + '_sheet') : null;
+    return b ? { img: b, sheet: true } : null;
+  }
+
+  function drawMark(ctx, fid, x, y, size) {
+    const m = factionMark(fid);
+    if (!m) return false;
+    if (m.sheet) ctx.drawImage(m.img, 0, 0, 256, 256, x, y, size, size);
+    else ctx.drawImage(m.img, x, y, size, size);
+    return true;
+  }
+
   // each kingdom marks its ground differently, so ownership reads at a glance
   const NODE_STYLE = {
     ants:     { ring: 'solid',  dash: null,    lw: 5 },
@@ -794,16 +812,12 @@ window.SL = window.SL || {};
     // kingdom emblem badge — only when there is no settlement art to speak
     // for the faction already
     if (!townImg) {
-      const bug = LEGEND_BUG[fid];
-      const bimg = bug ? SL.sprites.sheet(bug + '_sheet') : null;
       const bx = p.x - r * 0.72, by = p.y - r * 0.72;
       ctx.fillStyle = 'rgba(240,227,200,0.94)';
       ctx.strokeStyle = '#1b120c';
       ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(bx, by, 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      if (bimg) {
-        ctx.drawImage(bimg, 0, 0, 256, 256, bx - 12, by - 12, 24, 24);
-      } else {
+      if (!drawMark(ctx, fid, bx - 12, by - 12, 24)) {
         ctx.fillStyle = col;
         ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI * 2); ctx.fill();
       }
@@ -919,21 +933,33 @@ window.SL = window.SL || {};
       const w = widths[i];
       ctx.globalAlpha = alive ? 1 : 0.4;
 
-      ctx.fillStyle = 'rgba(240,227,200,0.92)';
-      ctx.strokeStyle = '#1b120c';
-      ctx.lineWidth = 2;
-      roundRect(ctx, lx, cy - h / 2, w, h, 9);
-      ctx.fill(); ctx.stroke();
-      ctx.fillStyle = fac.color;
-      roundRect(ctx, lx, cy - h / 2, 5, h, 3); ctx.fill();
-
-      const bug = LEGEND_BUG[fid];
-      const img = bug ? SL.sprites.sheet(bug + '_sheet') : null;
-      const ix = lx + PAD2;
-      if (img) {
-        ctx.drawImage(img, 0, 0, 256, 256, ix, cy - ICON / 2, ICON, ICON);
+      // plate: the kingdom's own nameplate art, else a generic plate, else drawn
+      const plate = SL.sprites.sheet('nameplate_' + fid) || SL.sprites.sheet('ui_nameplate');
+      if (plate) {
+        // 3-slice: fixed decorative caps, stretched plain middle, so the
+        // ornament never distorts however long the kingdom's name is
+        const px = lx - 7, py = cy - h / 2 - 6, pw = w + 14, ph = h + 12;
+        const sw = plate.width, sh = plate.height;
+        const capS = Math.floor(sw * 0.25);              // source cap width
+        const capD = Math.min(ph * (capS / sh), pw / 2); // drawn cap width
+        ctx.drawImage(plate, 0, 0, capS, sh, px, py, capD, ph);
+        ctx.drawImage(plate, capS, 0, sw - capS * 2, sh,
+          px + capD, py, Math.max(0, pw - capD * 2), ph);
+        ctx.drawImage(plate, sw - capS, 0, capS, sh, px + pw - capD, py, capD, ph);
       } else {
+        ctx.fillStyle = 'rgba(240,227,200,0.92)';
+        ctx.strokeStyle = '#1b120c';
+        ctx.lineWidth = 2;
+        roundRect(ctx, lx, cy - h / 2, w, h, 9);
+        ctx.fill(); ctx.stroke();
         ctx.fillStyle = fac.color;
+        roundRect(ctx, lx, cy - h / 2, 5, h, 3); ctx.fill();
+      }
+
+      const ix = lx + PAD2;
+      if (!drawMark(ctx, fid, ix, cy - ICON / 2, ICON)) {
+        ctx.fillStyle = fac.color;
+        ctx.strokeStyle = '#1b120c';
         ctx.beginPath(); ctx.arc(ix + ICON / 2, cy, 7, 0, Math.PI * 2);
         ctx.fill(); ctx.stroke();
       }

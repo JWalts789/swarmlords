@@ -38,6 +38,9 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  // Music is large and served with Range requests; a cache-first full
+  // response can break seeking, so let it go straight to the network.
+  if (e.request.url.includes('/assets/music/')) return;
   e.respondWith(
     caches.match(e.request).then((hit) => {
       if (hit) return hit;

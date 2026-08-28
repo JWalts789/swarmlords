@@ -473,3 +473,95 @@ background, RGBA transparency.
 | Batch | Assets | Status |
 |---|---|---|
 | P6 card frames | 7 × card_frame_*.png | PENDING |
+
+---
+
+# PRIORITY 7 — FACTION EMBLEMS & NAMEPLATES (added 2026-08-28)
+
+Right now the map legend draws a plain parchment pill with a **reused unit
+sprite** standing in for each kingdom's identity, and the node badges do the
+same. These give every kingdom a real heraldic mark and a real signboard.
+
+Same flat-cel discipline as P5/P6: **no gradients, no gloss, no metallic
+sheen.** Flat tones, wobbly sepia ink of uneven weight, muted aged palette,
+a 1936 cartoon cel — not a game UI asset.
+
+## P7a — EMBLEMS (7 files)
+
+`emblem_<faction>.png` — `256×256` RGBA, transparent background, the mark
+centred and filling most of the canvas.
+
+These are **heraldry, not portraits.** Do not simply draw the bug again —
+draw the sign a kingdom would paint on its banners. They appear at **24px**
+on territory badges and **26px** on legend plates, so they must be one bold
+silhouette that survives shrinking. One dominant faction colour plus cream
+and sepia ink; no more than three tones.
+
+To read as a set, every emblem is a **single mark on a simple ground shape**
+(roundel, shield, or diamond) with a heavy sepia outline.
+
+| File | The mark |
+|---|---|
+| `emblem_ants.png` | Two crossed ant mandibles over a glowing ember, on a pebbled roundel. Ember red. |
+| `emblem_wasps.png` | A single honeycomb hexagon with a stinger driven down through its centre, on a paper-torn roundel. Brass gold. |
+| `emblem_beetles.png` | A riveted shield split by one upcurved rhino horn, on a square-cornered plate. Steel blue. |
+| `emblem_mantids.png` | Two scythe forearms crossed in a praying X above a small crown, on a leaf-shaped ground. Jade green. |
+| `emblem_termites.png` | A cracked arch of mud with a pair of blunt jaws set into the keystone, on a diamond ground. Bone white. |
+| `emblem_moths.png` | A crescent moon with a moth's antennae rising from its horns, on a silk-draped roundel. Dusk violet. |
+| `emblem_neutral.png` | A thorned bramble ring with one wide unblinking eye in the middle, on a rough bark roundel. Olive drab. |
+
+### Prompt template
+```
+A heraldic faction emblem in vintage 1930s rubber-hose cartoon style:
+<MARK>, drawn as one bold flat symbol with a heavy wobbly dark-sepia
+outline, FLAT cel paint with no gradients and no gloss, dominant colour
+<HEX> with cream and sepia only, centred on a transparent 256x256 canvas
+and filling most of it. Simple enough to read clearly at 24 pixels. No
+text, no background, RGBA transparency.
+```
+
+## P7b — NAMEPLATES (7 files)
+
+`nameplate_<faction>.png` — `512×160` RGBA, transparent outside the plate.
+Optionally also `ui_nameplate.png` in the same format as a generic fallback.
+
+These are the signboards behind each kingdom's name in the map legend, and
+the engine **3-slices** them: the left 128px and right 128px are drawn at a
+fixed size as decorative end caps, and **the middle 256px is stretched** to
+fit however long the name is.
+
+That means:
+- Put all ornament in the **outer 128px at each end** — end caps, brackets,
+  bolts, leaf tips, hanging cords.
+- Keep the **middle 256px plain and horizontally uniform** — a flat board
+  with no motif that would smear when stretched. Horizontal grain is fine;
+  anything vertical or centred is not.
+- Keep the middle light enough for dark text to sit on it.
+
+| File | The board is made of |
+|---|---|
+| `nameplate_ants.png` | a flat slab of packed red earth, pebbles clustered at both ends like cairns |
+| `nameplate_wasps.png` | a strip of layered paper comb, torn ragged ends, a hexagon punched at each end |
+| `nameplate_beetles.png` | a riveted steel-blue plate, four fat rivets at each end, one dent |
+| `nameplate_mantids.png` | a long trimmed leaf blade, pointed tips at both ends, fine veins running lengthwise |
+| `nameplate_termites.png` | a slab of cracked bone-pale mud, small drip-spires rising at each end |
+| `nameplate_moths.png` | a hanging silk banner, threads and a small cocoon knot at each end |
+| `nameplate_neutral.png` | a weathered bark plank, tangled weeds curling round both ends |
+
+### Prompt template
+```
+A horizontal signboard in vintage 1930s rubber-hose cartoon style, made of
+<MATERIAL>, hand-inked wobbly dark-sepia outlines, FLAT cel paint with no
+gradients or gloss, muted palette dominated by <HEX>, on a transparent
+512x160 canvas. ALL ornament must sit within the left 128 pixels and the
+right 128 pixels; the middle 256 pixels must be a plain flat board with no
+motif and no centred detail, light enough for dark text to be legible on
+it. No text. RGBA transparency.
+```
+
+## Delivery table
+
+| Batch | Assets | Status |
+|---|---|---|
+| P7a emblems | 7 × emblem_*.png | PENDING |
+| P7b nameplates | 7 × nameplate_*.png (+ optional ui_nameplate) | PENDING |

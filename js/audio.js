@@ -9,6 +9,7 @@ window.SL = window.SL || {};
   let sfxOn = true;
   let musicOn = true;
   let currentTrack = null; // {name, el}
+  const MUSIC_VOL = 0.5;
   const trackCache = {};   // name -> HTMLAudioElement | 'missing'
 
   function ensureCtx() {
@@ -83,39 +84,162 @@ window.SL = window.SL || {};
   }
 
   // ---------- music ----------
+  // Each cue can have several interchangeable tracks; the engine picks one
+  // per cue and avoids playing the same variant twice running. Missing
+  // files are dropped from the pool the first time they fail to load, so a
+  // partial delivery still works.
+  const VARIANTS = {
+    title:   ['title'],
+    map:     ['map1', 'map2', 'map'],
+    battle:  ['battle1', 'battle2', 'battle'],
+    victory: ['victory'],
+    defeat:  ['defeat'],
+  };
+  const lastPick = {};
+  let currentCue = null;
+  let probed = false;
+
+  // Ask the server which tracks are actually present, so a cue never picks
+  // a file that was not delivered. Names are tried in VARIANTS order, so
+  // numbered variants win and the bare legacy name is only a fallback.
+  function probeTracks() {
+    const names = [];
+    Object.keys(VARIANTS).forEach((cue) => {
+      VARIANTS[cue].forEach((n) => { if (names.indexOf(n) < 0) names.push(n); });
+    });
+    let pending = names.length;
+    if (!pending || typeof fetch !== 'function') { probed = true; return; }
+    const settle = () => {
+      if (--pending > 0) return;
+      probed = true;
+      // if the cue that is meant to be playing never started, start it now
+      if (currentCue && (!currentTrack || !currentTrack.el)) {
+        const cue = currentCue; currentCue = null; music(cue);
+      }
+    };
+    names.forEach((n) => {
+      fetch('assets/music/' + n + '.mp3', { method: 'HEAD' })
+        .then((r) => { if (!r.ok) trackCache[n] = 'missing'; })
+        .catch(() => {}) // offline or file://: leave unknown, onerror still covers it
+        .then(settle, settle);
+    });
+  }
+
   function getTrack(name) {
     if (trackCache[name] === 'missing') return null;
     if (trackCache[name]) return trackCache[name];
     const el = new Audio();
     el.loop = true;
-    el.volume = 0.55;
+    el.preload = 'none';
+    el.volume = 0;
     el.src = 'assets/music/' + name + '.mp3';
-    el.onerror = () => { trackCache[name] = 'missing'; if (currentTrack && currentTrack.name === name) currentTrack = null; };
+    el.onerror = () => {
+      trackCache[name] = 'missing';
+      // a cue whose chosen track turns out to be absent falls to the next
+      if (currentTrack && currentTrack.name === name) {
+        currentTrack = null;
+        const cue = currentCue;
+        currentCue = null;
+        if (cue) music(cue);
+      }
+    };
     trackCache[name] = el;
     return el;
   }
 
-  function music(name) {
-    if (currentTrack && currentTrack.name === name) return;
-    stopMusic();
-    if (!musicOn) { currentTrack = { name, el: null }; return; }
+  function pickVariant(cue) {
+    const cands = (VARIANTS[cue] || [cue]).filter((n) => trackCache[n] !== 'missing');
+    if (!cands.length) return null;
+    // Before probing settles, take the first declared name rather than
+    // gambling on one that may not exist.
+    if (!probed) return cands[0];
+    if (cands.length === 1) return cands[0];
+    const pool = cands.filter((n) => n !== lastPick[cue]);
+    const from = pool.length ? pool : cands;
+    const chosen = from[Math.floor(Math.random() * from.length)];
+    lastPick[cue] = chosen;
+    return chosen;
+  }
+
+  // Each element owns its fade timer. A single shared timer would let the
+  // incoming fade cancel the outgoing one, stranding the old track audible.
+  function rampTo(el, target, ms, done) {
+    if (!el) { if (done) done(); return; }
+    if (el._fade) clearInterval(el._fade);
+    const from = el.volume;
+    const t0 = Date.now();
+    el._fade = setInterval(() => {
+      const k = Math.min(1, (Date.now() - t0) / ms);
+      try { el.volume = Math.max(0, Math.min(1, from + (target - from) * k)); } catch (e) {}
+      if (k >= 1) { clearInterval(el._fade); el._fade = null; if (done) done(); }
+    }, 40);
+  }
+
+  function music(cue) {
+    if (currentCue === cue && currentTrack && currentTrack.el) return;
+    currentCue = cue;
+    const prev = currentTrack && currentTrack.el;
+
+    if (!musicOn) { stopEl(prev); currentTrack = { name: null, el: null }; return; }
+
+    const name = pickVariant(cue);
+    if (!name) { stopEl(prev); currentTrack = null; return; }
     const el = getTrack(name);
+    if (!el) { stopEl(prev); currentTrack = null; return; }
+
     currentTrack = { name, el };
-    if (el) { el.currentTime = 0; el.play().catch(() => {}); }
+    // fade the outgoing cue down, bring the new one up
+    if (prev && prev !== el) rampTo(prev, 0, 380, () => { try { prev.pause(); } catch (e) {} });
+    else if (prev === el && !el.paused) return;
+
+    try { el.currentTime = 0; } catch (e) {}
+    el.volume = 0;
+    const play = el.play();
+    if (play && play.catch) play.catch(() => {});
+    setTimeout(() => {
+      if (currentTrack && currentTrack.el === el) rampTo(el, MUSIC_VOL, 520);
+    }, prev && prev !== el ? 300 : 0);
+  }
+
+  function stopEl(el) {
+    if (!el) return;
+    if (el._fade) { clearInterval(el._fade); el._fade = null; }
+    try { el.pause(); } catch (e) {}
   }
 
   function stopMusic() {
-    if (currentTrack && currentTrack.el) { currentTrack.el.pause(); }
+    Object.keys(trackCache).forEach((k) => {
+      const t = trackCache[k];
+      if (t && t !== 'missing') stopEl(t);
+    });
+    if (currentTrack && currentTrack.el) stopEl(currentTrack.el);
     currentTrack = null;
+    currentCue = null;
   }
 
   function setSfx(on) { sfxOn = on; }
+
   function setMusic(on) {
     musicOn = on;
-    if (!on) { if (currentTrack && currentTrack.el) currentTrack.el.pause(); }
-    else if (currentTrack) { const n = currentTrack.name; currentTrack = null; music(n); }
+    if (!on) {
+      Object.keys(trackCache).forEach((k) => {
+        const t = trackCache[k];
+        if (t && t !== 'missing') stopEl(t);
+      });
+    } else if (currentCue) {
+      const cue = currentCue;
+      currentCue = null;
+      music(cue);
+    }
   }
 
+  probeTracks();
+
   SL.audio = { sfx, music, stopMusic, setSfx, setMusic, ensureCtx,
-    get sfxOn() { return sfxOn; }, get musicOn() { return musicOn; } };
+    get sfxOn() { return sfxOn; }, get musicOn() { return musicOn; },
+    // QA: which track is actually sounding, and which were found on disk
+    get nowPlaying() { return currentTrack && currentTrack.name; },
+    get missingTracks() {
+      return Object.keys(trackCache).filter((k) => trackCache[k] === 'missing');
+    } };
 })();

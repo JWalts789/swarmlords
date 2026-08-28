@@ -90,8 +90,16 @@ window.SL = window.SL || {};
       const sw = document.createElement('div');
       sw.className = 'faction-swatch';
       sw.style.background = fac.color;
-      const starter = { ants: 'ant_soldier', wasps: 'wasp_drone', beetles: 'btl_ladybird', mantids: 'man_orchid', termites: 'ter_snapjaw', moths: 'mot_deathshead' }[fid];
-      sw.appendChild(SL.sprites.makeMarchingBug(starter, 46));
+      const emblem = SL.sprites.sheet('emblem_' + fid);
+      if (emblem) {
+        const em = document.createElement('img');
+        em.src = emblem.src;
+        em.width = 46; em.height = 46;
+        sw.appendChild(em);
+      } else {
+        const starter = { ants: 'ant_soldier', wasps: 'wasp_drone', beetles: 'btl_ladybird', mantids: 'man_orchid', termites: 'ter_snapjaw', moths: 'mot_deathshead' }[fid];
+        sw.appendChild(SL.sprites.makeMarchingBug(starter, 46));
+      }
       const info = document.createElement('div');
       info.className = 'faction-info';
       const loy = SL.DATA.LOYALTY[fid];

@@ -29,12 +29,14 @@ window.SL = window.SL || {};
     probe('logo_wordmark');
     // conquest map + UI kit art (all optional, auto-swapped when delivered)
     ['map_bg', 'map_node', 'map_node_capital', 'map_crown',
-     'ui_panel', 'ui_icons', 'ui_coin', 'ui_boons'].forEach(probe);
+     'ui_panel', 'ui_icons', 'ui_coin', 'ui_boons', 'ui_nameplate'].forEach(probe);
     // per-faction territory art, falls back to the generic node when absent
     Object.keys(SL.DATA.FACTIONS).forEach((f) => {
       probe('map_node_' + f);
       probe('map_node_capital_' + f);
       probe('card_frame_' + f);
+      probe('emblem_' + f);
+      probe('nameplate_' + f);
     });
   }
 

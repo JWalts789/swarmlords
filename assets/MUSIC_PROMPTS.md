@@ -1,13 +1,26 @@
 # SWARMLORDS — Suno Music Prompts
 
-Drop MP3s into `assets/music/` with these EXACT filenames — the engine
-auto-loads whatever exists and stays silent for anything missing. All
-tracks loop in-engine, so ask Suno for seamless/loopable endings where
-possible. Target a consistent band across all five: **1930s hot jazz /
-big-band swing, slightly scratchy 78rpm character** — the Cuphead sound.
-Instrumental only, no vocals (scat is fine if it stays wordless).
+**DELIVERED 2026-08-28** — seven tracks are in `assets/music/`, 16:07 total:
+`title` (1:24), `map1` (2:23), `map2` (1:39), `battle1` (2:45),
+`battle2` (3:01), `victory` (2:48), `defeat` (2:03).
 
-Bump `CACHE` in `sw.js` after adding files so installed players get them.
+The engine supports **multiple variants per cue**: it picks one of the
+`map*` tracks each time you return to the map and one of the `battle*`
+tracks each battle, never repeating the same variant twice running, and
+crossfades between cues. To add more variety later, just drop in
+`map3.mp3` / `battle3.mp3` and add the name to `VARIANTS` in `js/audio.js`.
+
+Filenames must be **lowercase** — GitHub Pages is case-sensitive, so
+`Title.mp3` will 404 on the live site even though it works on Windows.
+
+Music is deliberately excluded from the service-worker cache: media uses
+HTTP Range requests, which a cache-first full response can break, and it
+keeps ~22MB out of the offline quota. The game stays fully playable
+offline, just silent.
+
+All tracks loop in-engine. Instrumental only, no vocals. Target one band
+across the set: **1930s hot jazz / big-band swing with 78rpm grit** — the
+Cuphead sound.
 
 ## `title.mp3` — the front porch of the war
 ```
