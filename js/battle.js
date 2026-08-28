@@ -6,7 +6,7 @@
 window.SL = window.SL || {};
 
 (function () {
-  const LANES = 4;
+  const LANES = 3;
   const LOGICAL_H = 400;          // logical height; width derives from aspect
   const MELEE_RANGE = 30;
   const MIN_GAP = 30;
@@ -639,9 +639,9 @@ window.SL = window.SL || {};
     // threat per lane: player units weighted by closeness to enemy hive (right)
     const L = B.layout;
     const span = L.fieldRight - L.fieldLeft;
-    const threat = [0, 0, 0, 0], def = [0, 0, 0, 0];
-    const laneHasFlier = [false, false, false, false];
-    const laneCrowd = [0, 0, 0, 0];
+    const threat = new Array(LANES).fill(0), def = new Array(LANES).fill(0);
+    const laneHasFlier = new Array(LANES).fill(false);
+    const laneCrowd = new Array(LANES).fill(0);
     for (const u of B.units) {
       if (u.dead) continue;
       if (u.side === 0) {
@@ -678,7 +678,7 @@ window.SL = window.SL || {};
 
     // offense: wait for a decent bank, then push weakest player lane
     if (ai.energy < 6 && B.rng.chance(0.6)) return;
-    const playerDef = [0, 0, 0, 0];
+    const playerDef = new Array(LANES).fill(0);
     for (const u of B.units) {
       if (!u.dead && u.side === 0) playerDef[u.lane] += u.def.cost;
     }
@@ -748,6 +748,12 @@ window.SL = window.SL || {};
 
   // ---------------- DOM: hand + energy ----------------
 
+  function hexA(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+
   function renderHand() {
     if (!B.sides) return;
     const side = B.sides[0];
@@ -757,21 +763,35 @@ window.SL = window.SL || {};
       const def = SL.DATA.CARDS[id];
       if (!def) return;
       const c = effCost(side, def);
+      const fac = SL.DATA.FACTIONS[def.faction] || SL.DATA.FACTIONS.neutral;
       const el = document.createElement('button');
       el.className = 'hand-card' + (def.type === 'tactic' ? ' tactic' : '');
+      el.style.setProperty('--fc', fac.color);
+      el.style.setProperty('--fc-soft', hexA(fac.color, 0.3));
       if (i === B.armed) el.classList.add('armed');
       if (c > side.energy) el.classList.add('unaffordable');
+      else el.classList.add('ready');
+
       const art = document.createElement('div');
       art.className = 'hc-art';
-      art.appendChild(SL.sprites.thumb(id, 56));
+      art.appendChild(SL.sprites.thumb(id, 58));
+
+      const plate = document.createElement('div');
+      plate.className = 'hc-plate';
       const nm = document.createElement('div');
       nm.className = 'hc-name';
       nm.textContent = def.name;
+      plate.appendChild(nm);
+
       const cost = document.createElement('div');
-      cost.className = 'hc-cost';
+      cost.className = 'hc-cost' + (c < def.cost ? ' discount' : '');
       cost.textContent = c;
-      if (c < def.cost) cost.style.background = '#4da05c';
-      el.appendChild(art); el.appendChild(nm); el.appendChild(cost);
+
+      const pips = document.createElement('div');
+      pips.className = 'hc-pips';
+      pips.textContent = def.type === 'tactic' ? '◆' : '★'.repeat(def.tier);
+
+      el.appendChild(art); el.appendChild(pips); el.appendChild(plate); el.appendChild(cost);
       // tap arms the card; press-and-hold inspects it instead
       let holdT = null, held = false;
       const clearHold = () => { clearTimeout(holdT); holdT = null; };
@@ -947,28 +967,51 @@ window.SL = window.SL || {};
       }
     }
 
+    // lane bands: alternating tint so the lanes read at a glance
+    for (let l = 0; l < LANES; l++) {
+      ctx.fillStyle = l % 2 ? 'rgba(43,29,22,0.055)' : 'rgba(240,227,200,0.16)';
+      ctx.fillRect(0, L.fieldTop + l * L.laneH, W, L.laneH);
+    }
     // lane dividers: dashed vine lines (horizontal)
-    ctx.strokeStyle = 'rgba(43,29,22,0.22)';
+    ctx.strokeStyle = 'rgba(43,29,22,0.28)';
     ctx.lineWidth = 2;
     ctx.setLineDash([2, 10]);
     for (let l = 1; l < LANES; l++) {
       const y = L.fieldTop + l * L.laneH;
       ctx.beginPath();
-      ctx.moveTo(L.fieldLeft - 6, y);
-      ctx.lineTo(L.fieldRight + 6, y);
+      ctx.moveTo(8, y);
+      ctx.lineTo(W - 8, y);
       ctx.stroke();
     }
     ctx.setLineDash([]);
+    // field edges
+    ctx.strokeStyle = 'rgba(43,29,22,0.35)';
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(8, L.fieldTop); ctx.lineTo(W - 8, L.fieldTop);
+    ctx.moveTo(8, L.fieldBot); ctx.lineTo(W - 8, L.fieldBot);
+    ctx.stroke();
 
     // armed-card lane highlight
     if (B.armed >= 0 && !B.over) {
-      const pulse = 0.10 + Math.sin(B.t * 6) * 0.05;
-      ctx.fillStyle = 'rgba(224,165,30,' + pulse + ')';
-      ctx.fillRect(L.fieldLeft, L.fieldTop, L.fieldRight - L.fieldLeft, L.fieldBot - L.fieldTop);
-      ctx.strokeStyle = 'rgba(224,165,30,0.7)';
-      ctx.lineWidth = 2;
+      const pulse = 0.12 + Math.sin(B.t * 6) * 0.06;
       for (let l = 0; l < LANES; l++) {
-        ctx.strokeRect(L.fieldLeft + 4, L.fieldTop + l * L.laneH + 3, L.fieldRight - L.fieldLeft - 8, L.laneH - 6);
+        const y = L.fieldTop + l * L.laneH;
+        ctx.fillStyle = 'rgba(224,165,30,' + pulse + ')';
+        ctx.fillRect(8, y + 2, W - 16, L.laneH - 4);
+        ctx.strokeStyle = 'rgba(224,165,30,0.75)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([7, 6]);
+        ctx.strokeRect(9, y + 3, W - 18, L.laneH - 6);
+        ctx.setLineDash([]);
+        // deploy chevron at the player's edge of each lane
+        const cx = L.fieldLeft - 16, cy = y + L.laneH / 2;
+        ctx.fillStyle = 'rgba(224,165,30,0.9)';
+        ctx.strokeStyle = '#1b120c';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - 7, cy - 8); ctx.lineTo(cx + 6, cy); ctx.lineTo(cx - 7, cy + 8);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
       }
     }
 
@@ -1019,7 +1062,8 @@ window.SL = window.SL || {};
     // --- units (sorted by lane depth so lower lanes draw over) ---
     const sorted = B.units.filter((u) => !u.dead)
       .sort((a, b) => (laneY(a.lane) + a.yJit) - (laneY(b.lane) + b.yJit));
-    const unitSize = Math.min(40, L.laneH * 0.78);
+    const unitSize = Math.min(52, L.laneH * 0.62);
+    const unitMaxH = L.laneH * 1.02;
     for (const u of sorted) {
       SL.sprites.drawUnit(ctx, u.def, {
         x: u.x,
@@ -1029,6 +1073,7 @@ window.SL = window.SL || {};
         state: u.state === 'hold' ? 'march' : u.state,
         color: SL.DATA.FACTIONS[u.def.faction].color,
         size: unitSize,
+        maxH: unitMaxH,
         hpFrac: u.hp / u.maxHp,
         slowed: u.slowT > 0,
         poisoned: u.poisonT > 0,
@@ -1105,6 +1150,7 @@ window.SL = window.SL || {};
     start, stop, update, render, tapField, forfeit,
     cycleSpeed, setSpeed,
     get speed() { return B.speed; },
+    get lanes() { return LANES; },
     debugSpawn: (sideIdx, cardId, lane, atFrac) => {
       const def = SL.DATA.CARDS[cardId];
       if (def && B.active && B.layout) spawnUnit(sideIdx, def, lane, atFrac);

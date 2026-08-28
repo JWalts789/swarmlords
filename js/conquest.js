@@ -564,43 +564,68 @@ window.SL = window.SL || {};
     });
   }
 
-  // ---------------- map rendering (landscape) ----------------
+  // ---------------- map rendering (landscape, pannable world) ----------------
 
-  const MAP_H = 400;
-
-  // Preserve painted backdrops instead of stretching them to each phone's
-  // landscape aspect ratio. Crop evenly from the long axis (CSS cover).
-  function drawImageCover(ctx, img, x, y, w, h) {
-    const srcRatio = img.width / img.height;
-    const dstRatio = w / h;
-    let sx = 0, sy = 0, sw = img.width, sh = img.height;
-    if (srcRatio > dstRatio) {
-      sw = img.height * dstRatio;
-      sx = (img.width - sw) / 2;
-    } else if (srcRatio < dstRatio) {
-      sh = img.width / dstRatio;
-      sy = (img.height - sh) / 2;
-    }
-    ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-  }
+  const MAP_H = 400;                   // logical viewport height
+  const WORLD_W = 1440, WORLD_H = 560; // the garden is bigger than the screen
+  const PAD = 78;
+  const cam = { x: 0, y: 0 };
 
   function mapLayout(canvasW, canvasH) {
     const scale = canvasH / MAP_H;
     const W = canvasW / scale;
     return {
       scale, W,
-      top: Math.min(112, 44 / scale + 58), // room for the legend strip
-      bot: MAP_H - Math.min(120, 66 / scale + 44),
-      left: 60, right: W - 60,
+      // chrome floats over the map, so the field can breathe
+      top: Math.min(96, 34 / scale + 52), // room for the legend strip
+      bot: MAP_H - Math.min(92, 52 / scale + 26),
     };
   }
 
   // grid is generated 4 cols x 5 rows (portrait); transpose for landscape
-  function nodePos(t, L) {
+  function nodePos(t) {
     return {
-      x: L.left + t.y * (L.right - L.left),
-      y: L.top + t.x * (L.bot - L.top),
+      x: PAD + t.y * (WORLD_W - PAD * 2),
+      y: PAD + t.x * (WORLD_H - PAD * 2),
     };
+  }
+
+  function clampCam(L) {
+    // a single NaN here would poison ctx.translate and silently blank the
+    // whole map, and Math.max(0, NaN) is NaN — so scrub before clamping
+    if (!isFinite(cam.x)) cam.x = 0;
+    if (!isFinite(cam.y)) cam.y = 0;
+    if (!isFinite(L.W) || !isFinite(L.top) || !isFinite(L.bot)) return;
+    // clamp against the FULL logical canvas, not just the field band —
+    // the world is painted edge to edge, so this stops empty gaps at the ends
+    cam.x = WORLD_W <= L.W ? (WORLD_W - L.W) / 2
+      : Math.max(0, Math.min(WORLD_W - L.W, cam.x));
+    cam.y = WORLD_H <= MAP_H ? (WORLD_H - MAP_H) / 2
+      : Math.max(0, Math.min(WORLD_H - MAP_H, cam.y));
+  }
+
+  function panBy(dxCss, dyCss, canvasW, canvasH) {
+    const L = mapLayout(canvasW, canvasH);
+    cam.x -= dxCss / L.scale;
+    cam.y -= dyCss / L.scale;
+    clampCam(L);
+  }
+
+  function centerOn(tid, canvasW, canvasH) {
+    if (!run || !(canvasW > 0) || !(canvasH > 0)) return;
+    const L = mapLayout(canvasW, canvasH);
+    const p = nodePos(terr(tid));
+    cam.x = p.x - L.W / 2;
+    cam.y = p.y - (L.top + (L.bot - L.top) / 2);
+    clampCam(L);
+  }
+
+  function centerOnCapital(canvasW, canvasH) {
+    if (!run) return;
+    const cap = run.territories[run.capitalId];
+    const own = playerTerrs();
+    const id = (cap && cap.owner === 'player') ? run.capitalId : (own[0] ? own[0].id : 0);
+    centerOn(id, canvasW, canvasH);
   }
 
   function ownerColor(t) {
@@ -609,199 +634,287 @@ window.SL = window.SL || {};
     return SL.DATA.FACTIONS[t.owner].color;
   }
 
+  function hexA(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+  // the faction whose ground-art and emblem a territory wears
+  function ownerFaction(t) {
+    if (t.owner === 'player') return run.faction;
+    if (t.owner === 'neutral') return 'neutral';
+    return t.owner;
+  }
+
+  // one representative bug per kingdom, for legend chips and node emblems
+  const LEGEND_BUG = {
+    ants: 'ant_soldier', wasps: 'wasp_drone', beetles: 'btl_ladybird',
+    mantids: 'man_stalker', termites: 'ter_snapjaw', moths: 'mot_hawk',
+    neutral: 'neu_pillbug',
+  };
+
+  // each kingdom marks its ground differently, so ownership reads at a glance
+  const NODE_STYLE = {
+    ants:     { ring: 'solid',  dash: null,    lw: 5 },
+    wasps:    { ring: 'double', dash: null,    lw: 4 },
+    beetles:  { ring: 'solid',  dash: null,    lw: 7 },
+    mantids:  { ring: 'dash',   dash: [10, 6], lw: 5 },
+    termites: { ring: 'dash',   dash: [3, 4],  lw: 5 },
+    moths:    { ring: 'double', dash: [14, 7], lw: 4 },
+    neutral:  { ring: 'dash',   dash: [2, 7],  lw: 3 },
+  };
+
   function renderMap(ctx, canvasW, canvasH, time) {
     if (!run) return;
     const L = mapLayout(canvasW, canvasH);
+    clampCam(L);
     ctx.save();
     ctx.scale(L.scale, L.scale);
 
-    // parchment ground (delivered map art replaces the flat gradient)
+    // --- world layer (panned) ---
+    ctx.save();
+    ctx.translate(-cam.x, -cam.y);
+
     const bg = SL.sprites.sheet('map_bg');
     if (bg) {
-      drawImageCover(ctx, bg, 0, 0, L.W, MAP_H);
+      ctx.drawImage(bg, 0, 0, WORLD_W, WORLD_H);
     } else {
-      const g = ctx.createLinearGradient(0, 0, 0, MAP_H);
+      const g = ctx.createLinearGradient(0, 0, 0, WORLD_H);
       g.addColorStop(0, '#e7d9b4');
       g.addColorStop(1, '#cdbd92');
       ctx.fillStyle = g;
-      ctx.fillRect(0, 0, L.W, MAP_H);
-      ctx.fillStyle = 'rgba(43,29,22,0.05)';
-      for (let yy = 0; yy < MAP_H; yy += 16) {
-        for (let xx = (yy / 16) % 2 ? 8 : 0; xx < L.W; xx += 16) ctx.fillRect(xx, yy, 2, 2);
-      }
+      ctx.fillRect(0, 0, WORLD_W, WORLD_H);
     }
-    ctx.font = '900 13px "Trebuchet MS", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(43,29,22,0.45)';
-    ctx.fillText('— THE GARDEN —', L.W / 2, L.top - 16);
 
-    // edges
-    ctx.strokeStyle = 'rgba(43,29,22,0.4)';
-    ctx.lineWidth = 2.5;
-    ctx.setLineDash([1, 7]);
+    // territory halos: a soft wash of the owner's colour over the ground,
+    // kept light so the painted garden still reads underneath
+    for (const t of run.territories) {
+      const p = nodePos(t);
+      const rad = (t.capitalOf ? 30 : 24) * 3.1;
+      const g2 = ctx.createRadialGradient(p.x, p.y, rad * 0.15, p.x, p.y, rad);
+      g2.addColorStop(0, hexA(ownerColor(t), t.owner === 'neutral' ? 0.13 : 0.3));
+      g2.addColorStop(1, hexA(ownerColor(t), 0));
+      ctx.fillStyle = g2;
+      ctx.beginPath(); ctx.arc(p.x, p.y, rad, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // roads: tinted from one owner's colour to the other's, so borders and
+    // supply lines are legible without hiding the background
     ctx.lineCap = 'round';
     const drawn = new Set();
     for (const t of run.territories) {
-      const p1 = nodePos(t, L);
+      const p1 = nodePos(t);
       for (const n of t.adj) {
         const key = Math.min(t.id, n) + '-' + Math.max(t.id, n);
         if (drawn.has(key)) continue;
         drawn.add(key);
-        const p2 = nodePos(terr(n), L);
+        const o = terr(n);
+        const p2 = nodePos(o);
+        const grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+        grad.addColorStop(0, hexA(ownerColor(t), 0.62));
+        grad.addColorStop(1, hexA(ownerColor(o), 0.62));
+        // colour band underneath
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 7;
+        ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        // inked dashes on top keep the hand-drawn character
+        ctx.strokeStyle = 'rgba(43,29,22,0.5)';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([2, 9]);
         ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
       }
     }
     ctx.setLineDash([]);
 
-    // nodes
-    for (const t of run.territories) {
-      const p = nodePos(t, L);
-      const col = ownerColor(t);
-      const r = t.capitalOf ? 24 : 19;
-      const canHit = attackableByPlayer(t);
+    for (const t of run.territories) drawNode(ctx, t, time);
 
-      // attackable pulse ring
-      if (canHit) {
-        const pulse = 3 + Math.sin(time * 4 + t.id) * 2;
-        ctx.strokeStyle = 'rgba(224,165,30,0.85)';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath(); ctx.arc(p.x, p.y, r + pulse, 0, Math.PI * 2); ctx.stroke();
-      }
-
-      // node: delivered territory art under an owner-color ring, else blob
-      const nodeImg = SL.sprites.sheet(t.capitalOf ? 'map_node_capital' : 'map_node') ||
-                      SL.sprites.sheet('map_node');
-      ctx.strokeStyle = '#1b120c';
-      ctx.lineWidth = 3;
-      if (nodeImg) {
-        const d = r * 2.5;
-        ctx.drawImage(nodeImg, p.x - d / 2, p.y - d / 2, d, d);
-        ctx.strokeStyle = col;
-        ctx.lineWidth = 4.5;
-        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.stroke();
-        ctx.strokeStyle = '#1b120c';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(p.x, p.y, r + 2.6, 0, Math.PI * 2); ctx.stroke();
-      } else {
-        ctx.fillStyle = col;
-        ctx.beginPath();
-        for (let a = 0; a <= 8; a++) {
-          const ang = (a / 8) * Math.PI * 2;
-          const rr = r * (1 + 0.09 * Math.sin(ang * 3 + t.id * 2.1));
-          const px = p.x + Math.cos(ang) * rr;
-          const py = p.y + Math.sin(ang) * rr;
-          if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-        }
-        ctx.closePath(); ctx.fill(); ctx.stroke();
-      }
-
-      // capital crown
-      if (t.capitalOf) {
-        const crown = SL.sprites.sheet('map_crown');
-        if (crown) {
-          const cd = r * 1.2;
-          ctx.drawImage(crown, p.x - cd / 2, p.y - r - cd + 2, cd, cd);
-        } else {
-          ctx.fillStyle = '#e0a51e';
-          ctx.strokeStyle = '#1b120c';
-          ctx.lineWidth = 1.6;
-          ctx.beginPath();
-          ctx.moveTo(p.x - 9, p.y - r - 2);
-          ctx.lineTo(p.x - 8, p.y - r - 11); ctx.lineTo(p.x - 4, p.y - r - 5);
-          ctx.lineTo(p.x, p.y - r - 12); ctx.lineTo(p.x + 4, p.y - r - 5);
-          ctx.lineTo(p.x + 8, p.y - r - 11); ctx.lineTo(p.x + 9, p.y - r - 2);
-          ctx.closePath(); ctx.fill(); ctx.stroke();
-        }
-      }
-
-      // garrison pips
-      ctx.fillStyle = '#1b120c';
-      for (let i = 0; i < Math.min(6, t.garrison); i++) {
-        ctx.beginPath();
-        ctx.arc(p.x - (Math.min(6, t.garrison) - 1) * 3 + i * 6, p.y + r + 7, 2.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // yield (delivered coin glyph when available)
-      ctx.font = '900 11px "Trebuchet MS", sans-serif';
-      ctx.fillStyle = '#f0e3c8';
-      ctx.strokeStyle = '#1b120c';
-      ctx.lineWidth = 2.5;
-      const uiIcons = SL.sprites.sheet('ui_icons');
-      if (uiIcons) {
-        ctx.drawImage(uiIcons, 0, 0, 256, 256, p.x - 14, p.y - 7, 13, 13);
-        ctx.textAlign = 'left';
-        ctx.strokeText(t.yield, p.x + 2, p.y + 4);
-        ctx.fillText(t.yield, p.x + 2, p.y + 4);
-      } else {
-        ctx.textAlign = 'center';
-        ctx.strokeText('◉' + t.yield, p.x, p.y + 4);
-        ctx.fillText('◉' + t.yield, p.x, p.y + 4);
-      }
-      ctx.textAlign = 'center';
-
-      // boon icon
-      if (t.boon) {
-        ctx.font = '10px sans-serif';
-        ctx.strokeText(SL.DATA.BOONS[t.boon].icon, p.x + r - 3, p.y - r + 5);
-        ctx.fillText(SL.DATA.BOONS[t.boon].icon, p.x + r - 3, p.y - r + 5);
-      }
-
-      // selection ring
-      if (t.id === selectedId) {
-        ctx.strokeStyle = '#e0a51e';
-        ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.arc(p.x, p.y, r + 7, 0, Math.PI * 2); ctx.stroke();
-      }
-    }
+    ctx.restore(); // end world layer
 
     drawLegend(ctx, L);
     ctx.restore();
   }
 
-  // one representative bug per kingdom for the legend
-  const LEGEND_BUG = {
-    ants: 'ant_soldier', wasps: 'wasp_drone', beetles: 'btl_ladybird',
-    mantids: 'man_stalker', termites: 'ter_snapjaw', moths: 'mot_hawk',
-  };
+  function drawNode(ctx, t, time) {
+    const p = nodePos(t);
+    const col = ownerColor(t);
+    const fid = ownerFaction(t);
+    const style = NODE_STYLE[fid] || NODE_STYLE.neutral;
+    const r = t.capitalOf ? 30 : 24;
+
+    // attackable pulse ring
+    if (attackableByPlayer(t)) {
+      const pulse = 3 + Math.sin(time * 4 + t.id) * 2;
+      ctx.strokeStyle = 'rgba(224,165,30,0.85)';
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(p.x, p.y, r + pulse + 3, 0, Math.PI * 2); ctx.stroke();
+    }
+
+    // ground art: per-faction sheet if delivered, else generic, else a blob
+    const img = SL.sprites.sheet((t.capitalOf ? 'map_node_capital_' : 'map_node_') + fid)
+      || SL.sprites.sheet(t.capitalOf ? 'map_node_capital' : 'map_node')
+      || SL.sprites.sheet('map_node');
+    ctx.strokeStyle = '#1b120c';
+    ctx.lineWidth = 3;
+    if (img) {
+      const d = r * 2.5;
+      ctx.drawImage(img, p.x - d / 2, p.y - d / 2, d, d);
+    } else {
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      for (let a = 0; a <= 8; a++) {
+        const ang = (a / 8) * Math.PI * 2;
+        const rr = r * (1 + 0.09 * Math.sin(ang * 3 + t.id * 2.1));
+        const px = p.x + Math.cos(ang) * rr;
+        const py = p.y + Math.sin(ang) * rr;
+        if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+
+    // owner ring, styled per kingdom
+    ctx.strokeStyle = col;
+    ctx.lineWidth = style.lw;
+    ctx.setLineDash(style.dash || []);
+    ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.stroke();
+    if (style.ring === 'double') {
+      ctx.lineWidth = Math.max(2, style.lw - 2);
+      ctx.beginPath(); ctx.arc(p.x, p.y, r - style.lw - 2, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.strokeStyle = '#1b120c';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(p.x, p.y, r + style.lw / 2 + 1, 0, Math.PI * 2); ctx.stroke();
+
+    // kingdom emblem badge
+    const bug = LEGEND_BUG[fid];
+    const bimg = bug ? SL.sprites.sheet(bug + '_sheet') : null;
+    const bx = p.x - r * 0.72, by = p.y - r * 0.72;
+    ctx.fillStyle = 'rgba(240,227,200,0.94)';
+    ctx.strokeStyle = '#1b120c';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(bx, by, 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    if (bimg) {
+      ctx.drawImage(bimg, 0, 0, 256, 256, bx - 12, by - 12, 24, 24);
+    } else {
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // capital crown
+    if (t.capitalOf) {
+      const crown = SL.sprites.sheet('map_crown');
+      if (crown) {
+        const cd = r * 1.15;
+        ctx.drawImage(crown, p.x - cd / 2, p.y - r - cd + 4, cd, cd);
+      } else {
+        ctx.fillStyle = '#e0a51e';
+        ctx.strokeStyle = '#1b120c';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(p.x - 9, p.y - r - 2);
+        ctx.lineTo(p.x - 8, p.y - r - 11); ctx.lineTo(p.x - 4, p.y - r - 5);
+        ctx.lineTo(p.x, p.y - r - 12); ctx.lineTo(p.x + 4, p.y - r - 5);
+        ctx.lineTo(p.x + 8, p.y - r - 11); ctx.lineTo(p.x + 9, p.y - r - 2);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+      }
+    }
+
+    // garrison pips
+    ctx.fillStyle = '#1b120c';
+    const gp = Math.min(6, t.garrison);
+    for (let i = 0; i < gp; i++) {
+      ctx.beginPath();
+      ctx.arc(p.x - (gp - 1) * 3.5 + i * 7, p.y + r + 9, 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // yield, with the delivered coin glyph when present
+    ctx.font = '900 12px "Trebuchet MS", sans-serif';
+    ctx.fillStyle = '#f0e3c8';
+    ctx.strokeStyle = '#1b120c';
+    ctx.lineWidth = 3;
+    const coin = SL.sprites.sheet('ui_coin');
+    const uiIcons = SL.sprites.sheet('ui_icons');
+    if (coin || uiIcons) {
+      if (coin) ctx.drawImage(coin, p.x - 15, p.y - 7, 14, 14);
+      else ctx.drawImage(uiIcons, 0, 0, 256, 256, p.x - 15, p.y - 7, 14, 14);
+      ctx.textAlign = 'left';
+      ctx.strokeText(t.yield, p.x + 2, p.y + 5);
+      ctx.fillText(t.yield, p.x + 2, p.y + 5);
+    } else {
+      ctx.textAlign = 'center';
+      ctx.strokeText('\u25c9' + t.yield, p.x, p.y + 5);
+      ctx.fillText('\u25c9' + t.yield, p.x, p.y + 5);
+    }
+    ctx.textAlign = 'center';
+
+    // boon marker: delivered glyph strip if present, else the text icon
+    if (t.boon) {
+      const bx2 = p.x + r - 6, by2 = p.y - r + 4;
+      const boons = SL.sprites.sheet('ui_boons');
+      if (boons) {
+        const order = ['b_energy', 'b_hp', 'b_dmg', 'b_card', 'b_hive', 'b_shop'];
+        const idx = Math.max(0, order.indexOf(t.boon));
+        ctx.fillStyle = 'rgba(240,227,200,0.94)';
+        ctx.strokeStyle = '#1b120c';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(bx2, by2, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.drawImage(boons, idx * 256, 0, 256, 256, bx2 - 10, by2 - 10, 20, 20);
+      } else {
+        ctx.font = '11px sans-serif';
+        ctx.fillStyle = '#f0e3c8';
+        ctx.strokeStyle = '#1b120c';
+        ctx.lineWidth = 3;
+        ctx.strokeText(SL.DATA.BOONS[t.boon].icon, bx2, by2 + 4);
+        ctx.fillText(SL.DATA.BOONS[t.boon].icon, bx2, by2 + 4);
+      }
+    }
+
+    // selection ring
+    if (t.id === selectedId) {
+      ctx.strokeStyle = '#e0a51e';
+      ctx.lineWidth = 4;
+      ctx.setLineDash([9, 5]);
+      ctx.beginPath(); ctx.arc(p.x, p.y, r + 10, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
 
   function drawLegend(ctx, L) {
     const chips = [['player', run.faction]].concat(run.rivals.map((f) => [f, f]));
-    const ICON = 26, PAD = 7, GAP = 12;
+    const ICON = 26, PAD2 = 7, GAP = 12;
     ctx.font = '900 10px "Trebuchet MS", sans-serif';
     ctx.textAlign = 'left';
 
-    // measure
-    const widths = chips.map(([owner, fid]) => {
-      const label = owner === 'player' ? 'YOU' : SL.DATA.FACTIONS[fid].name;
-      return ICON + 4 + ctx.measureText(label).width + PAD * 2;
+    const widths = chips.map(function (c) {
+      const label = c[0] === 'player' ? 'YOU' : SL.DATA.FACTIONS[c[1]].name;
+      return ICON + 4 + ctx.measureText(label).width + PAD2 * 2;
     });
     const total = widths.reduce((a, b) => a + b, 0) + GAP * (chips.length - 1);
     let lx = Math.max(8, (L.W - total) / 2);
     const cy = L.top - 34;
-    const h = ICON + PAD;
+    const h = ICON + PAD2;
 
-    chips.forEach(([owner, fid], i) => {
+    chips.forEach(function (c, i) {
+      const owner = c[0], fid = c[1];
       const alive = factionAlive(owner === 'player' ? 'player' : fid);
       const fac = SL.DATA.FACTIONS[fid];
       const label = owner === 'player' ? 'YOU' : fac.name;
       const w = widths[i];
       ctx.globalAlpha = alive ? 1 : 0.4;
 
-      // parchment chip
       ctx.fillStyle = 'rgba(240,227,200,0.92)';
       ctx.strokeStyle = '#1b120c';
       ctx.lineWidth = 2;
       roundRect(ctx, lx, cy - h / 2, w, h, 9);
       ctx.fill(); ctx.stroke();
-      // faction color tab
       ctx.fillStyle = fac.color;
       roundRect(ctx, lx, cy - h / 2, 5, h, 3); ctx.fill();
 
-      // bug portrait (delivered walk frame; colored dot fallback)
       const bug = LEGEND_BUG[fid];
       const img = bug ? SL.sprites.sheet(bug + '_sheet') : null;
-      const ix = lx + PAD;
+      const ix = lx + PAD2;
       if (img) {
         ctx.drawImage(img, 0, 0, 256, 256, ix, cy - ICON / 2, ICON, ICON);
       } else {
@@ -811,9 +924,9 @@ window.SL = window.SL || {};
       }
 
       ctx.fillStyle = '#2b1d16';
-      ctx.fillText(alive ? label : label + ' ☠', ix + ICON + 4, cy + 4);
+      ctx.fillText(alive ? label : label + ' \u2620', ix + ICON + 4, cy + 4);
 
-      if (!alive) { // struck through
+      if (!alive) {
         ctx.strokeStyle = '#d84b2a';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -837,12 +950,13 @@ window.SL = window.SL || {};
   function tapMap(cssX, cssY, canvasW, canvasH) {
     if (!run) return;
     const L = mapLayout(canvasW, canvasH);
-    const lx = cssX / L.scale, ly = cssY / L.scale;
+    const lx = cssX / L.scale + cam.x;
+    const ly = cssY / L.scale + cam.y;
     let hit = null, hitD = Infinity;
     for (const t of run.territories) {
-      const p = nodePos(t, L);
+      const p = nodePos(t);
       const d = Math.hypot(lx - p.x, ly - p.y);
-      if (d < 28 && d < hitD) { hit = t; hitD = d; }
+      if (d < 34 && d < hitD) { hit = t; hitD = d; }
     }
     if (hit) {
       selectedId = hit.id;
@@ -859,7 +973,7 @@ window.SL = window.SL || {};
     playerAttack, playerFortify, playerWait, fortifyCost,
     attackableByPlayer, playerTerrs, deckPower, playerBoons, factionAlive,
     loyaltyInfo,
-    renderMap, tapMap,
+    renderMap, tapMap, panBy, centerOn, centerOnCapital,
     terr: (id) => terr(id),
     abandonRun: () => { endRunCleanup(); SL.ui.showScreen('title'); },
   };

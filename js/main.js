@@ -22,6 +22,11 @@ window.SL = window.SL || {};
     resizeFrame = requestAnimationFrame(resize);
   }
 
+  // Pointer handling: battles deploy on tap; the map pans on drag and
+  // selects on a tap that never moved.
+  const drag = { active: false, moved: false, x: 0, y: 0, id: -1 };
+  const DRAG_SLOP = 7; // px before a press becomes a pan
+
   canvas.addEventListener('pointerdown', (e) => {
     SL.audio.ensureCtx();
     const rect = canvas.getBoundingClientRect();
@@ -30,10 +35,39 @@ window.SL = window.SL || {};
     if (SL.game.screen === 'battle' && SL.battle.active) {
       const s = rect.height / 400; // battle logical height is 400
       SL.battle.tapField(cssX / s, cssY / s);
-    } else if (SL.game.screen === 'map') {
-      SL.conquest.tapMap(cssX, cssY, rect.width, rect.height);
+      return;
+    }
+    if (SL.game.screen === 'map') {
+      drag.active = true; drag.moved = false;
+      drag.x = e.clientX; drag.y = e.clientY; drag.id = e.pointerId;
+      if (canvas.setPointerCapture) { try { canvas.setPointerCapture(e.pointerId); } catch (err) {} }
     }
   });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (!drag.active || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x;
+    const dy = e.clientY - drag.y;
+    if (!drag.moved && Math.hypot(dx, dy) < DRAG_SLOP) return;
+    drag.moved = true;
+    const rect = canvas.getBoundingClientRect();
+    SL.conquest.panBy(dx, dy, rect.width, rect.height);
+    drag.x = e.clientX; drag.y = e.clientY;
+  });
+
+  function endDrag(e) {
+    if (!drag.active || (e && e.pointerId !== drag.id)) return;
+    drag.active = false;
+    if (canvas.releasePointerCapture && e) {
+      try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+    if (!drag.moved && e && SL.game.screen === 'map') {
+      const rect = canvas.getBoundingClientRect();
+      SL.conquest.tapMap(e.clientX - rect.left, e.clientY - rect.top, rect.width, rect.height);
+    }
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
 
   // first interaction anywhere: wake audio + start title music
   let audioWoken = false;
@@ -162,7 +196,7 @@ window.SL = window.SL || {};
               const d = SL.DATA.CARDS[B.sides[0].hand[i]];
               if (d && d.cost <= B.sides[0].energy) {
                 B.armed = i;
-                const lane = (s / 30) % 4;
+                const lane = (s / 30) % (SL.battle.lanes || 3);
                 SL.battle.tapField(B.layout.W / 2,
                   B.layout.fieldTop + (lane + 0.5) * B.layout.laneH);
                 break;

@@ -107,11 +107,16 @@
   <!-- ============ CONQUEST MAP UI ============ -->
   <div id="map-ui" class="hidden">
     <div id="map-topbar">
-      <span id="tb-gold" class="tb-item">◉ 0</span>
-      <span id="tb-terr" class="tb-item">⬢ 0</span>
+      <div class="tb-group">
+        <span id="tb-gold" class="tb-item">◉ 0</span>
+        <span id="tb-terr" class="tb-item">⬢ 0</span>
+      </div>
       <span id="tb-turn" class="tb-item">TURN 1</span>
-      <button id="btn-deck" class="tb-btn">DECK</button>
-      <button id="btn-menu" class="tb-btn">≡</button>
+      <div class="tb-group">
+        <button id="btn-home" class="tb-btn" title="Centre on your capital">⌂</button>
+        <button id="btn-deck" class="tb-btn">DECK</button>
+        <button id="btn-menu" class="tb-btn">≡</button>
+      </div>
     </div>
     <div id="map-panel" class="hidden">
       <div id="mp-info">

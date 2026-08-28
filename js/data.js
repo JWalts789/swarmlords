@@ -175,13 +175,13 @@ window.SL = window.SL || {};
     { hp: 40, dmg: 12, atkInt: 1.1, spd: 60, hiveDmg: 2 },
     { shape: 'mantis', size: 1.0 }, 'Fast blades in the green.'));
   add(U('man_sickle', 'mantids', 2, 4, 'Sickle Guard',
-    { hp: 75, dmg: 17, atkInt: 1.2, spd: 45, air: true, hiveDmg: 3 },
+    { hp: 75, dmg: 14, atkInt: 1.25, spd: 45, air: true, hiveDmg: 3 },
     { shape: 'mantis', size: 1.2, sheetScale: 1.4 }, 'Snatches fliers out of the air.'));
   add(U('man_ghost', 'mantids', 2, 4, 'Ghost Mantis',
-    { hp: 50, dmg: 14, atkInt: 1.1, spd: 55, hiveDmg: 2, traits: { dodge: 0.25 } },
+    { hp: 50, dmg: 12, atkInt: 1.15, spd: 55, hiveDmg: 2, traits: { dodge: 0.25 } },
     { shape: 'mantis', size: 1.0, ghost: true }, '25% of hits pass right through.'));
   add(U('man_orchid', 'mantids', 3, 5, 'Orchid Mantis',
-    { hp: 60, dmg: 20, atkInt: 1.3, spd: 40, air: true, hiveDmg: 3 },
+    { hp: 60, dmg: 17, atkInt: 1.35, spd: 40, air: true, hiveDmg: 3 },
     { shape: 'mantis', size: 1.15, flower: true }, 'Beautiful. Then it isn’t.'));
   add(U('man_empress', 'mantids', 4, 8, 'The Empress',
     { hp: 190, dmg: 28, atkInt: 1.3, spd: 40, air: true, hiveDmg: 6 },

@@ -29,7 +29,12 @@ window.SL = window.SL || {};
     probe('logo_wordmark');
     // conquest map + UI kit art (all optional, auto-swapped when delivered)
     ['map_bg', 'map_node', 'map_node_capital', 'map_crown',
-     'ui_panel', 'ui_icons'].forEach(probe);
+     'ui_panel', 'ui_icons', 'ui_coin', 'ui_boons'].forEach(probe);
+    // per-faction territory art, falls back to the generic node when absent
+    Object.keys(SL.DATA.FACTIONS).forEach((f) => {
+      probe('map_node_' + f);
+      probe('map_node_capital_' + f);
+    });
   }
 
   function sheet(name) {
@@ -300,7 +305,9 @@ window.SL = window.SL || {};
       else frame = Math.floor(o.t * 8) % 4;
       // sheetScale compensates sheets whose subject is drawn small in-cell
       // (e.g. sluglet: already drawn half-size AND stat-scaled — see data.js)
-      const d = S * 1.6 * ((def.art && def.art.sheetScale) || 1);
+      // maxH keeps champions and other big art inside their lane band
+      let d = S * 1.6 * ((def.art && def.art.sheetScale) || 1);
+      if (o.maxH) d = Math.min(d, o.maxH);
       ctx.drawImage(img, frame * fw, 0, fw, fw, -d / 2, -d / 2, d, d);
     } else {
       drawBugLocal(ctx, def, o);

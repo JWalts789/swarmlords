@@ -330,3 +330,90 @@ Delivery table addendum:
 Total: 48 unit sheets + 7 hives + wordmark + icon. The game is fully
 playable on placeholders the whole way — deliver in priority order and the
 engine upgrades itself sheet by sheet.
+
+---
+
+# PRIORITY 5 — FACTION TERRITORIES, CURRENCY & MAP GLYPHS (added 2026-08-27)
+
+**STYLE CORRECTION — read this first.** The P4 icons drifted toward polished
+modern game-icon rendering: gradient metal, glossy highlights, airbrushed
+volume. P5 must swing back hard to the 1930s cel look:
+
+- **Flat cel paint only** — no gradients, no gloss, no metallic sheen, no
+  rim-light. Two or three flat tones per object plus ONE hard-edged shadow
+  shape.
+- **Wobbly dark-sepia ink outlines** (`#1b120c`) of visibly uneven weight,
+  as if brushed by hand at speed.
+- **Muted, aged palette.** No saturated gold or emerald — brass should look
+  like tarnished tin, greens like old bottle glass.
+- Slight paper/cel grain is welcome. It should look like a frame from a
+  1936 cartoon, **not** a mobile game asset.
+- Everything below is small on screen (14–70px). Bold shapes, no fine detail.
+
+All P5 files are auto-probed by the engine — exact filenames, drop into
+`assets/sprites/`, no code changes.
+
+## P5a — FACTION TERRITORY GROUND (12 files)
+
+Each kingdom paints its land differently. The engine draws an owner-coloured
+ring and a bug emblem ON TOP, so keep the rim clean and the centre calm — a
+yield number and garrison pips sit in the middle.
+
+`256×256` RGBA, top-down view of a small patch of ground, transparent
+outside the roughly circular patch. Muted so ink and numbers read over it.
+
+| File | The land looks like |
+|---|---|
+| `map_node_ants.png` | trampled red-earth clearing, scattered pebbles and crumb-piles, faint trail grooves radiating out |
+| `map_node_capital_ants.png` | same earth, ringed with pebble cairns and a few chewed leaf-standards |
+| `map_node_wasps.png` | dry papery ground, torn grey-gold paper scraps and hexagon fragments half-buried |
+| `map_node_capital_wasps.png` | same, ringed with little paper-comb walls |
+| `map_node_beetles.png` | packed slate-grey gravel with embedded flat stones, tidy and rectangular |
+| `map_node_capital_beetles.png` | same, ringed with riveted iron plates driven into the soil |
+| `map_node_mantids.png` | clipped green turf, neat leaf-blades arranged in careful rows |
+| `map_node_capital_mantids.png` | same, ringed with a low trimmed hedge and two topiary spires |
+| `map_node_termites.png` | pale cracked mud flat, hairline fissures, small bone-white mound stubs |
+| `map_node_capital_termites.png` | same, ringed with drip-spire mud turrets |
+| `map_node_moths.png` | dusky violet moss with a scatter of pale wing-scales catching moonlight |
+| `map_node_capital_moths.png` | same, ringed with hanging silk threads and two tiny lantern posts |
+
+Also useful (optional): `map_node_neutral.png` — wild tangled weeds and
+mushrooms on plain dirt, the look of ground nobody has claimed.
+
+## P5b — CURRENCY (2 files)
+
+The shop, topbar, and every territory yield draw these.
+
+| File | Size | Subject |
+|---|---|---|
+| `ui_coin.png` | 256×256 | A single tarnished brass coin seen face-on, hand-inked, a grinning bug face stamped in relief on it, one flat highlight shape and one flat shadow shape — NOT shiny. Slightly out of round, like it was struck badly. |
+| `ui_coin_stack.png` | 256×256 | Three of the same coins in a leaning stack, used for larger prices. |
+
+## P5c — MAP GLYPHS, replacing the emoji (7 files)
+
+These currently render as OS emoji on territories and read wrong against the
+hand-painted map. One `256×256` RGBA each, flat cel, bold at 20px.
+
+`ui_boons.png` — deliver as ONE `1536×256` strip of six `256×256` cells, in
+this exact order (the engine indexes them positionally):
+
+1. **Sugar Spring** (+battle energy) — a dripping sugar-drop with two tiny motion ticks
+2. **Rich Soil** (+unit HP) — a fat heart-shaped seed sprouting one leaf
+3. **Thorn Grove** (+unit damage) — two crossed thorn-branches
+4. **Waystation** (+starting card) — a rolled leaf-scroll tied with twine
+5. **Deep Roots** (+hive HP) — a small hive dome with roots forking beneath it
+6. **Trade Trail** (shop discount) — a coin with a winding trail behind it
+
+Plus, standalone:
+
+| File | Subject |
+|---|---|
+| `map_crown_fallen.png` | 128×128 — a toppled, dented brass crown lying on its side, marking an eliminated kingdom's former capital |
+
+## Delivery table
+
+| Batch | Assets | Status |
+|---|---|---|
+| P5a faction ground | 12 node files (+ optional neutral) | PENDING |
+| P5b currency | ui_coin, ui_coin_stack | PENDING |
+| P5c map glyphs | ui_boons strip, map_crown_fallen | PENDING |

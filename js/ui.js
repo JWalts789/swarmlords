@@ -19,7 +19,14 @@ window.SL = window.SL || {};
     $('map-ui').classList.toggle('hidden', name !== 'map');
     $('battle-ui').classList.toggle('hidden', name !== 'battle');
     if (name === 'title') refreshTitle();
-    if (name === 'map') { updateTopbar(); hideTerritoryPanel(); }
+    if (name === 'map') {
+      updateTopbar(); hideTerritoryPanel();
+      const cv = document.getElementById('game-canvas');
+      if (cv && SL.conquest.getRun()) {
+        const r = cv.getBoundingClientRect();
+        if (r.width) SL.conquest.centerOnCapital(r.width, r.height);
+      }
+    }
   }
 
   // ---------------- title screen ----------------
@@ -531,6 +538,12 @@ window.SL = window.SL || {};
       SL.conquest.startRun(selectedFaction);
     });
 
+    $('btn-home').addEventListener('click', () => {
+      SL.audio.sfx('click');
+      const cv = $('game-canvas');
+      const r = cv.getBoundingClientRect();
+      SL.conquest.centerOnCapital(r.width, r.height);
+    });
     $('btn-deck').addEventListener('click', () => { SL.audio.sfx('click'); deckViewer(false); });
     $('btn-menu').addEventListener('click', () => { SL.audio.sfx('click'); openMenu(); });
     $('btn-shop').addEventListener('click', () => { SL.audio.sfx('click'); SL.shop.open(); });
