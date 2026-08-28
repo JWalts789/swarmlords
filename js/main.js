@@ -67,6 +67,7 @@ window.SL = window.SL || {};
   }
 
   function boot() {
+    if (location.search.indexOf('noanim') >= 0) document.body.classList.add('no-anim');
     SL.game.meta = SL.save.loadMeta();
     SL.audio.setSfx(SL.game.meta.sfx);
     SL.audio.setMusic(SL.game.meta.music);
@@ -95,6 +96,21 @@ window.SL = window.SL || {};
       if (SL.game.screen === 'map') SL.ui.updateTopbar();
     }, ms));
 
+    // dev boot shortcuts: ?demo=map | ?demo=battle | ?demo=shop|deck|draft|results
+    const dm = /demo=(shop|deck|draft|results)/.exec(location.search);
+    if (dm) {
+      SL.conquest.startRun('ants');
+      setTimeout(() => {
+        if (dm[1] === 'shop') SL.shop.open();
+        else if (dm[1] === 'deck') SL.ui.deckViewer(false);
+        else if (dm[1] === 'draft') SL.ui.draftModal(['ant_bullet', 'neu_wolf', 'btl_stag'],
+          { title: 'RECRUITMENT', sub: 'The defeated bend the knee. Enlist one:', skippable: true, skipLabel: 'SKIP (+2 gold)' }, () => {});
+        else if (dm[1] === 'results') SL.ui.resultsScreen({ won: true, faction: 'ants', turns: 24,
+          stats: { battlesWon: 12, battlesLost: 3, territoriesTaken: 14, factionsEliminated: 3, goldEarned: 420 },
+          unlockedThisRun: ['wasps'] });
+      }, 350);
+      return;
+    }
     // dev boot shortcuts: ?demo=map | ?demo=battle (screenshot/testing aid)
     if (location.search.indexOf('demo=map') >= 0) {
       SL.conquest.startRun('ants');

@@ -499,3 +499,88 @@ body.ui-art .modal-box, body.ui-art #map-panel {
   .title-footer { display: none; }
   .faction-list { max-width: 640px; }
 }
+
+/* ---------- THE CAPITAL SHOP (dedicated screen) ---------- */
+
+#screen-shop { padding: 0; }
+#screen-shop .shop-header {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  padding: calc(8px + var(--safe-top)) calc(12px + var(--safe-right)) 8px
+           calc(12px + var(--safe-left));
+  background: var(--ink);
+  border-bottom: 3px solid var(--brass);
+  position: relative; z-index: 2; flex-shrink: 0;
+}
+.shop-heading { flex: 1; min-width: 0; }
+.shop-title {
+  font-size: 19px; font-weight: 900; letter-spacing: 2px;
+  color: var(--paper); text-shadow: 2px 2px 0 var(--blood);
+}
+.shop-stats { font-size: 11px; font-weight: 700; color: var(--paper-dark); margin-top: 2px; }
+.shop-stats b { color: var(--brass); }
+#screen-shop .shop-header .big-btn { min-width: 120px; padding: 10px 20px; flex-shrink: 0; }
+
+.shop-body {
+  flex: 1; width: 100%; min-height: 0;
+  display: flex; gap: 12px;
+  padding: 10px calc(12px + var(--safe-right)) calc(10px + var(--safe-bot))
+           calc(12px + var(--safe-left));
+  position: relative; z-index: 2;
+}
+.shop-col {
+  display: flex; flex-direction: column; gap: 6px; min-height: 0;
+  background: rgba(240,227,200,.55);
+  border: 3px solid var(--ink); border-radius: 14px;
+  padding: 8px 10px;
+}
+.shop-col-market { flex: 3; }
+.shop-col-side { flex: 2; overflow-y: auto; }
+.shop-col-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-size: 11px; font-weight: 900; letter-spacing: 2px; color: var(--ink-soft);
+  border-bottom: 2px solid var(--ink-soft); padding-bottom: 3px; flex-shrink: 0;
+}
+.shop-col-head .small-btn { padding: 4px 10px; font-size: 10px; }
+.shop-cards {
+  flex: 1; min-height: 0;
+  display: flex; gap: 8px; align-items: center; justify-content: center;
+  flex-wrap: wrap; overflow-y: auto;
+}
+.shop-upgrades { display: flex; flex-direction: column; gap: 6px; }
+.shop-upgrades .upg-card { max-width: none; flex: none; }
+.small-btn.wide { width: 100%; }
+.shop-empty { font-size: 12px; color: var(--ink-soft); text-align: center; padding: 12px; }
+
+@media (max-height: 500px) {
+  .shop-title { font-size: 16px; }
+  #screen-shop .shop-header { padding-top: calc(5px + var(--safe-top)); padding-bottom: 5px; }
+  #screen-shop .shop-header .big-btn { padding: 8px 16px; font-size: 14px; min-width: 96px; }
+  .shop-body { gap: 8px; padding-top: 7px; }
+  .shop-col { padding: 6px 8px; }
+  .draft-card { width: 96px; padding: 6px 4px; }
+  .draft-card .dc-art canvas, .draft-card .dc-art img { width: 52px; height: 52px; }
+  .upg-card { padding: 6px; }
+  .upg-card .upg-desc { margin: 3px 0 5px; }
+}
+
+/* delivered parchment panel needs an opaque bed or the map bleeds through */
+body.ui-art .modal-box, body.ui-art #map-panel { background-color: var(--paper); }
+body.ui-art .shop-col { background-color: rgba(240,227,200,.9); }
+
+/* shop market cards get room to breathe on their own screen */
+.shop-cards .draft-card { width: 136px; padding: 10px 8px; gap: 5px; }
+.shop-cards .draft-card .dc-art canvas, .shop-cards .draft-card .dc-art img { width: 88px; height: 88px; }
+.shop-cards .draft-card .dc-name { font-size: 13px; }
+.shop-cards .draft-card .dc-stats { font-size: 10px; }
+.shop-cards .draft-card .dc-cost { width: 28px; height: 28px; font-size: 14px; }
+@media (max-height: 500px) {
+  .shop-cards .draft-card { width: 118px; padding: 7px 6px; }
+  .shop-cards .draft-card .dc-art canvas, .shop-cards .draft-card .dc-art img { width: 68px; height: 68px; }
+  .shop-cards .draft-card .dc-name { font-size: 11px; }
+}
+
+/* QA: ?noanim=1 freezes intro animations so headless capture is truthful */
+body.no-anim *, body.no-anim *::after, body.no-anim *::before {
+  animation: none !important; transition: none !important;
+}

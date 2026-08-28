@@ -76,170 +76,134 @@ window.SL = window.SL || {};
     return 2 + (run.shopStock.rerolls || 0);
   }
 
-  // ---------------- shop UI ----------------
+  // ---------------- shop UI (dedicated screen) ----------------
+
+  const $ = (id) => document.getElementById(id);
 
   function open() {
     const run = SL.conquest.getRun();
     if (!run) return;
     if (!run.shopStock) restock(run, SL.makeRng(run.seed ^ run.turn));
-
-    const box = document.createElement('div');
-
-    function rebuild() {
-      box.innerHTML = '';
-
-      const title = document.createElement('div');
-      title.className = 'modal-title';
-      title.textContent = 'THE CAPITAL SHOP';
-      box.appendChild(title);
-
-      const loy = SL.conquest.loyaltyInfo();
-      const goldLine = document.createElement('div');
-      goldLine.className = 'modal-sub';
-      goldLine.innerHTML = 'Your treasury: <b>◉ ' + run.gold + '</b> · Species tier ' + tierCapFor(run) + ' available (' + SL.conquest.playerTerrs().length + ' territories held)' +
-        (loy ? ' · Loyalty <b>' + Math.round(loy.frac * 100) + '% ' + loy.label + '</b>' : '');
-      box.appendChild(goldLine);
-
-      // --- species market ---
-      const st1 = document.createElement('div');
-      st1.className = 'shop-section-title';
-      st1.textContent = 'SPECIES MARKET';
-      box.appendChild(st1);
-
-      const row = document.createElement('div');
-      row.className = 'draft-row';
-      if (!run.shopStock.units.length) {
-        const empty = document.createElement('div');
-        empty.className = 'modal-sub';
-        empty.textContent = 'Sold out this turn.';
-        row.appendChild(empty);
-      }
-      run.shopStock.units.forEach((cardId) => {
-        const price = cardPrice(run, cardId);
-        const el = SL.ui.cardEl(cardId);
-        const priceTag = document.createElement('div');
-        priceTag.className = 'shop-item-price' + (run.gold < price ? ' cant' : '');
-        priceTag.textContent = '◉ ' + price;
-        el.appendChild(priceTag);
-        el.addEventListener('click', () => {
-          if (run.gold < price) { SL.ui.toast('Not enough gold.', true); return; }
-          run.gold -= price;
-          run.deck.push(cardId);
-          run.shopStock.units = run.shopStock.units.filter((id2, i2) =>
-            !(id2 === cardId && i2 === run.shopStock.units.indexOf(cardId)));
-          SL.audio.sfx('coin');
-          SL.ui.toast(SL.DATA.CARDS[cardId].name + ' joins your army.');
-          SL.save.saveRun(run);
-          SL.ui.updateTopbar();
-          rebuild();
-        });
-        row.appendChild(el);
-      });
-      box.appendChild(row);
-
-      const rr = document.createElement('div');
-      rr.className = 'modal-buttons';
-      const rrBtn = document.createElement('button');
-      rrBtn.className = 'small-btn';
-      rrBtn.textContent = 'REROLL STOCK ◉ ' + rerollPrice(run);
-      rrBtn.addEventListener('click', () => {
-        const p = rerollPrice(run);
-        if (run.gold < p) { SL.ui.toast('Not enough gold.', true); return; }
-        run.gold -= p;
-        const prevRerolls = (run.shopStock.rerolls || 0) + 1;
-        restock(run, SL.makeRng((run.seed ^ (run.turn * 31) ^ (prevRerolls * 977)) >>> 0));
-        run.shopStock.rerolls = prevRerolls;
-        SL.audio.sfx('click');
-        SL.save.saveRun(run);
-        SL.ui.updateTopbar();
-        rebuild();
-      });
-      rr.appendChild(rrBtn);
-      box.appendChild(rr);
-
-      // --- upgrades ---
-      const st2 = document.createElement('div');
-      st2.className = 'shop-section-title';
-      st2.textContent = 'COLONY UPGRADES';
-      box.appendChild(st2);
-
-      const urow = document.createElement('div');
-      urow.className = 'shop-row';
-      if (!run.shopStock.upgrades.length) {
-        const empty = document.createElement('div');
-        empty.className = 'modal-sub';
-        empty.textContent = 'Nothing on offer this turn.';
-        urow.appendChild(empty);
-      }
-      run.shopStock.upgrades.forEach((upgId) => {
-        const u = SL.DATA.UPGRADES.find((x) => x.id === upgId);
-        const price = upgradePrice(run, upgId);
-        const el = document.createElement('div');
-        el.className = 'upg-card';
-        el.innerHTML = '<div class="upg-name">' + u.name + '</div><div class="upg-desc">' + u.desc + '</div>';
-        const priceTag = document.createElement('div');
-        priceTag.className = 'shop-item-price' + (run.gold < price ? ' cant' : '');
-        priceTag.textContent = '◉ ' + price;
-        el.appendChild(priceTag);
-        el.addEventListener('click', () => {
-          if (run.gold < price) { SL.ui.toast('Not enough gold.', true); return; }
-          run.gold -= price;
-          run.upgrades.push(upgId);
-          run.shopStock.upgrades = run.shopStock.upgrades.filter((id2) => id2 !== upgId);
-          SL.audio.sfx('fanfare');
-          SL.ui.toast(u.name + ' — active for the whole campaign!');
-          SL.save.saveRun(run);
-          SL.ui.updateTopbar();
-          rebuild();
-        });
-        urow.appendChild(el);
-      });
-      box.appendChild(urow);
-
-      // --- removal ---
-      const st3 = document.createElement('div');
-      st3.className = 'shop-section-title';
-      st3.textContent = 'MUSTER OUT';
-      box.appendChild(st3);
-
-      const remRow = document.createElement('div');
-      remRow.className = 'modal-buttons';
-      const remBtn = document.createElement('button');
-      remBtn.className = 'small-btn';
-      remBtn.textContent = 'REMOVE A CARD ◉ ' + removalPrice(run);
-      remBtn.addEventListener('click', () => {
-        const p = removalPrice(run);
-        if (run.gold < p) { SL.ui.toast('Not enough gold.', true); return; }
-        if (run.deck.length <= 8) { SL.ui.toast('Your army is already at minimum size (8).', true); return; }
-        SL.ui.deckViewer(true, (removedId) => {
-          if (removedId) {
-            run.gold -= p;
-            run.shopRemovals = (run.shopRemovals || 0) + 1;
-            SL.audio.sfx('splat');
-            SL.ui.toast(SL.DATA.CARDS[removedId].name + ' mustered out.');
-            SL.save.saveRun(run);
-            SL.ui.updateTopbar();
-          }
-          rebuild();
-        });
-      });
-      remRow.appendChild(remBtn);
-      box.appendChild(remRow);
-
-      // --- close ---
-      const closeRow = document.createElement('div');
-      closeRow.className = 'modal-buttons';
-      const closeBtn = document.createElement('button');
-      closeBtn.className = 'big-btn';
-      closeBtn.textContent = 'DONE';
-      closeBtn.addEventListener('click', () => SL.ui.closeModal());
-      closeRow.appendChild(closeBtn);
-      box.appendChild(closeRow);
-    }
-
-    rebuild();
-    SL.ui.customModal(box);
+    SL.ui.showScreen('shop');
+    render();
   }
 
-  SL.shop = { restock, halveStock, open, cardPrice, removalPrice };
+  function close() {
+    SL.ui.showScreen('map');
+    SL.ui.updateTopbar();
+  }
+
+  function render() {
+    const run = SL.conquest.getRun();
+    if (!run) return;
+    const loy = SL.conquest.loyaltyInfo();
+
+    $('shop-stats').innerHTML =
+      'Treasury <b>◉ ' + run.gold + '</b> · Tier <b>' + tierCapFor(run) +
+      '</b> unlocked (' + SL.conquest.playerTerrs().length + ' territories)' +
+      (loy ? ' · Loyalty <b>' + Math.round(loy.frac * 100) + '% ' + loy.label + '</b>' : '');
+
+    // --- species market ---
+    const market = $('shop-market');
+    market.innerHTML = '';
+    if (!run.shopStock.units.length) {
+      const e = document.createElement('div');
+      e.className = 'shop-empty';
+      e.textContent = 'Sold out this turn. Reroll or come back next turn.';
+      market.appendChild(e);
+    }
+    run.shopStock.units.forEach((cardId, slot) => {
+      const price = cardPrice(run, cardId);
+      const el = SL.ui.cardEl(cardId);
+      const tag = document.createElement('div');
+      tag.className = 'shop-item-price' + (run.gold < price ? ' cant' : '');
+      tag.textContent = '◉ ' + price;
+      el.appendChild(tag);
+      el.addEventListener('click', () => {
+        if (run.gold < price) { SL.ui.toast('Not enough gold.', true); return; }
+        run.gold -= price;
+        run.deck.push(cardId);
+        run.shopStock.units.splice(slot, 1);
+        SL.audio.sfx('coin');
+        SL.ui.toast(SL.DATA.CARDS[cardId].name + ' joins your army.');
+        SL.save.saveRun(run);
+        render();
+      });
+      market.appendChild(el);
+    });
+
+    const rrBtn = $('btn-shop-reroll');
+    rrBtn.textContent = 'REROLL ◉' + rerollPrice(run);
+    rrBtn.disabled = run.gold < rerollPrice(run);
+
+    // --- upgrades ---
+    const urow = $('shop-upgrades');
+    urow.innerHTML = '';
+    if (!run.shopStock.upgrades.length) {
+      const e = document.createElement('div');
+      e.className = 'shop-empty';
+      e.textContent = 'Nothing on offer this turn.';
+      urow.appendChild(e);
+    }
+    run.shopStock.upgrades.forEach((upgId) => {
+      const u = SL.DATA.UPGRADES.find((x) => x.id === upgId);
+      const price = upgradePrice(run, upgId);
+      const el = document.createElement('div');
+      el.className = 'upg-card';
+      el.innerHTML = '<div class="upg-name">' + u.name + '</div><div class="upg-desc">' + u.desc + '</div>';
+      const tag = document.createElement('div');
+      tag.className = 'shop-item-price' + (run.gold < price ? ' cant' : '');
+      tag.textContent = '◉ ' + price;
+      el.appendChild(tag);
+      el.addEventListener('click', () => {
+        if (run.gold < price) { SL.ui.toast('Not enough gold.', true); return; }
+        run.gold -= price;
+        run.upgrades.push(upgId);
+        run.shopStock.upgrades = run.shopStock.upgrades.filter((id2) => id2 !== upgId);
+        SL.audio.sfx('fanfare');
+        SL.ui.toast(u.name + ' — active for the whole campaign!');
+        SL.save.saveRun(run);
+        render();
+      });
+      urow.appendChild(el);
+    });
+
+    const remBtn = $('btn-shop-remove');
+    remBtn.textContent = 'REMOVE A CARD ◉' + removalPrice(run);
+    remBtn.disabled = run.gold < removalPrice(run) || run.deck.length <= 8;
+  }
+
+  function init() {
+    $('btn-shop-close').addEventListener('click', () => { SL.audio.sfx('click'); close(); });
+    $('btn-shop-reroll').addEventListener('click', () => {
+      const run = SL.conquest.getRun();
+      const p = rerollPrice(run);
+      if (run.gold < p) { SL.ui.toast('Not enough gold.', true); return; }
+      run.gold -= p;
+      const n = (run.shopStock.rerolls || 0) + 1;
+      restock(run, SL.makeRng((run.seed ^ (run.turn * 31) ^ (n * 977)) >>> 0));
+      run.shopStock.rerolls = n;
+      SL.audio.sfx('click');
+      SL.save.saveRun(run);
+      render();
+    });
+    $('btn-shop-remove').addEventListener('click', () => {
+      const run = SL.conquest.getRun();
+      const p = removalPrice(run);
+      if (run.gold < p) { SL.ui.toast('Not enough gold.', true); return; }
+      if (run.deck.length <= 8) { SL.ui.toast('Your army is already at minimum size (8).', true); return; }
+      SL.ui.deckViewer(true, (removedId) => {
+        if (removedId) {
+          run.gold -= p;
+          run.shopRemovals = (run.shopRemovals || 0) + 1;
+          SL.audio.sfx('splat');
+          SL.ui.toast(SL.DATA.CARDS[removedId].name + ' mustered out.');
+          SL.save.saveRun(run);
+        }
+        render();
+      });
+    });
+  }
+
+  SL.shop = { restock, halveStock, open, close, init, render, cardPrice, removalPrice };
 })();

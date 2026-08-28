@@ -9,7 +9,7 @@ window.SL = window.SL || {};
 
   // ---------------- screens ----------------
 
-  const DOM_SCREENS = { title: 'screen-title', faction: 'screen-faction', howto: 'screen-howto' };
+  const DOM_SCREENS = { title: 'screen-title', faction: 'screen-faction', howto: 'screen-howto', shop: 'screen-shop' };
 
   function showScreen(name) {
     SL.game.screen = name;
@@ -515,6 +515,7 @@ window.SL = window.SL || {};
     $('btn-deck').addEventListener('click', () => { SL.audio.sfx('click'); deckViewer(false); });
     $('btn-menu').addEventListener('click', () => { SL.audio.sfx('click'); openMenu(); });
     $('btn-shop').addEventListener('click', () => { SL.audio.sfx('click'); SL.shop.open(); });
+    SL.shop.init();
     $('btn-endturn').addEventListener('click', () => {
       confirmModal('WAIT THIS TURN?', 'Take no action and pocket +2 gold. Your rivals will still move.', 'WAIT', () => SL.conquest.playerWait());
     });
