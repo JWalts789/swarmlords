@@ -118,6 +118,12 @@ window.SL = window.SL || {};
     // dev boot shortcuts: ?demo=map | ?demo=battle (screenshot/testing aid)
     if (location.search.indexOf('demo=map') >= 0) {
       SL.conquest.startRun('ants');
+      // ?demo=map&sel=N opens the territory panel for QA
+      const sm = /sel=(\d+)/.exec(location.search);
+      if (sm) setTimeout(() => {
+        const t = SL.conquest.terr(parseInt(sm[1], 10));
+        if (t) SL.ui.showTerritoryPanel(t);
+      }, 300);
     } else if (location.search.indexOf('demo=battle') >= 0) {
       SL.ui.showScreen('battle');
       // ?enemy=wasps etc. overrides the demo opponent (art QA for hives/rosters)

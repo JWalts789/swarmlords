@@ -161,14 +161,33 @@ window.SL = window.SL || {};
     }
     if (t.owner === 'player') {
       const cost = SL.conquest.fortifyCost(t);
+      const maxed = t.garrison >= 6;
       const f = document.createElement('button');
       f.className = 'action-btn';
-      f.textContent = 'FORTIFY ◉' + cost;
-      f.addEventListener('click', () => confirmModal(
-        'FORTIFY ' + t.name.toUpperCase() + '?',
-        'Garrison ' + t.garrison + ' → ' + (t.garrison + 1) + ' for ◉' + cost + '. This is your action for the turn.',
-        'FORTIFY', () => SL.conquest.playerFortify(t.id)));
+      f.textContent = maxed ? 'GARRISON FULL' : 'FORTIFY ◉' + cost;
+      f.disabled = maxed || run.gold < cost;
+      if (!f.disabled) {
+        f.addEventListener('click', () => confirmModal(
+          'FORTIFY ' + t.name.toUpperCase() + '?',
+          'Garrison ' + t.garrison + ' → ' + (t.garrison + 1) + ' for ◉' + cost + '. This is your action for the turn.',
+          'FORTIFY', () => SL.conquest.playerFortify(t.id)));
+      }
       actions.appendChild(f);
+    }
+
+    // explain why nothing is on offer, so the map's reach stays legible
+    if (!actions.children.length) {
+      const why = document.createElement('div');
+      why.className = 'mp-why';
+      why.textContent = t.owner === 'player'
+        ? 'Held and quiet. Nothing to do here this turn.'
+        : 'Out of reach — you can only attack territories bordering your own.';
+      actions.appendChild(why);
+    } else if (t.owner === 'player' && actions.firstChild.disabled) {
+      const why = document.createElement('div');
+      why.className = 'mp-why';
+      why.textContent = t.garrison >= 6 ? 'This garrison is at its maximum.' : 'Not enough gold to fortify.';
+      actions.appendChild(why);
     }
   }
 

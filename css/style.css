@@ -623,3 +623,8 @@ body.no-anim *, body.no-anim *::after, body.no-anim *::before {
 }
 @keyframes hintPulse { 0%,100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.06); } }
 @media (max-height: 500px) { #battle-hint { bottom: calc(104px + var(--safe-bot)); font-size: 11px; padding: 6px 14px; } }
+
+.mp-why {
+  font-size: 10px; font-weight: 700; color: var(--ink-soft);
+  max-width: 190px; text-align: right; line-height: 1.35;
+}
