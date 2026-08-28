@@ -414,7 +414,7 @@ Plus, standalone:
 
 | Batch | Assets | Status |
 |---|---|---|
-| P5a faction ground | 12 node files (+ optional neutral) | **map_node_ants, map_node_capital_ants ACCEPTED** 2026-08-27 — delivered as full settlements (huts, awnings, banners, a lit forge on the capital) rather than bare ground, which is BETTER: keep this town treatment for the rest. Central plaza left open exactly as needed for the yield readout. 10 pending |
+| P5a faction ground | 13 node files | **ALL ACCEPTED** 2026-08-28 — delivered as full settlements (huts, awnings, banners, forges) rather than bare ground, which is better than spec'd; central plazas left open for the yield readout. `map_node_capital_neutral` is correctly absent: the wilds never hold a capital. |
 | P5b currency | ui_coin, ui_coin_stack | PENDING |
 | P5c map glyphs | ui_boons strip, map_crown_fallen | PENDING |
 

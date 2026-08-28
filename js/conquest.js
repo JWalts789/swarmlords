@@ -682,6 +682,18 @@ window.SL = window.SL || {};
     neutral:  { ring: 'dash',   dash: [2, 7],  lw: 3 },
   };
 
+  // Single source of truth for a territory's drawn size. drawNode and
+  // tapMap both read this, so the hit target always matches the art.
+  function nodeRadii(t) {
+    const fid = ownerFaction(t);
+    const style = NODE_STYLE[fid] || NODE_STYLE.neutral;
+    const r = t.capitalOf ? 34 : 27;
+    const townImg = SL.sprites.sheet((t.capitalOf ? 'map_node_capital_' : 'map_node_') + fid);
+    const artR = townImg ? r * 1.62 : r * 1.25;
+    const ringR = townImg ? artR + style.lw / 2 + 3 : r;
+    return { r, artR, ringR, style, townImg };
+  }
+
   function renderMap(ctx, canvasW, canvasH, time) {
     if (!run) return;
     const L = mapLayout(canvasW, canvasH);
@@ -695,7 +707,11 @@ window.SL = window.SL || {};
 
     const bg = SL.sprites.sheet('map_bg');
     if (bg) {
-      ctx.drawImage(bg, 0, 0, WORLD_W, WORLD_H);
+      // cover-fit: scale uniformly to fill the world and centre the overflow,
+      // rather than squashing the painting to the world's aspect
+      const k = Math.max(WORLD_W / bg.width, WORLD_H / bg.height);
+      const dw = bg.width * k, dh = bg.height * k;
+      ctx.drawImage(bg, (WORLD_W - dw) / 2, (WORLD_H - dh) / 2, dw, dh);
     } else {
       const g = ctx.createLinearGradient(0, 0, 0, WORLD_H);
       g.addColorStop(0, '#e7d9b4');
@@ -744,6 +760,9 @@ window.SL = window.SL || {};
       }
     }
     ctx.setLineDash([]);
+    // roads wanted round caps; rings must not inherit them or every dashed
+    // ring paints an extra half-width at each end and closes its own gaps
+    ctx.lineCap = 'butt';
 
     for (const t of run.territories) drawNode(ctx, t, time);
 
@@ -757,16 +776,13 @@ window.SL = window.SL || {};
     const p = nodePos(t);
     const col = ownerColor(t);
     const fid = ownerFaction(t);
-    const style = NODE_STYLE[fid] || NODE_STYLE.neutral;
-    const r = t.capitalOf ? 34 : 27;
+    const rad = nodeRadii(t);
+    const style = rad.style, r = rad.r, artR = rad.artR, townImg = rad.townImg;
 
     // per-faction settlement art wins; otherwise generic ground, else a blob
-    const townImg = SL.sprites.sheet((t.capitalOf ? 'map_node_capital_' : 'map_node_') + fid);
     const img = townImg
       || SL.sprites.sheet(t.capitalOf ? 'map_node_capital' : 'map_node')
       || SL.sprites.sheet('map_node');
-    // a settlement is drawn big; the owner ring then sits outside it
-    const artR = townImg ? r * 1.62 : r * 1.25;
 
     // attackable pulse ring
     if (attackableByPlayer(t)) {
@@ -795,7 +811,7 @@ window.SL = window.SL || {};
     }
 
     // owner ring, styled per kingdom — outside the settlement, never across it
-    const ringR = townImg ? artR + style.lw / 2 + 3 : r;
+    const ringR = rad.ringR;
     ctx.strokeStyle = col;
     ctx.lineWidth = style.lw;
     ctx.setLineDash(style.dash || []);
@@ -997,7 +1013,9 @@ window.SL = window.SL || {};
     for (const t of run.territories) {
       const p = nodePos(t);
       const d = Math.hypot(lx - p.x, ly - p.y);
-      if (d < 44 && d < hitD) { hit = t; hitD = d; }
+      // tap anywhere on the settlement, its ring, or a little beyond
+      const reach = Math.max(nodeRadii(t).ringR + 10, 34);
+      if (d < reach && d < hitD) { hit = t; hitD = d; }
     }
     if (hit) {
       selectedId = hit.id;
