@@ -134,13 +134,23 @@ window.SL = window.SL || {};
     el.volume = 0;
     el.src = 'assets/music/' + name + '.mp3';
     el.onerror = () => {
-      trackCache[name] = 'missing';
-      // a cue whose chosen track turns out to be absent falls to the next
+      // MEDIA_ERR_SRC_NOT_SUPPORTED (4) is the only code that means "this
+      // file is not usable". NETWORK (2) and DECODE (3) fire for files that
+      // are present — blacklisting on those would retire real tracks for the
+      // whole session the first time a phone loses signal.
+      const code = el.error && el.error.code;
+      const gone = code === 4;
+      if (gone) trackCache[name] = 'missing';
       if (currentTrack && currentTrack.name === name) {
         currentTrack = null;
-        const cue = currentCue;
-        currentCue = null;
-        if (cue) music(cue);
+        if (gone) {
+          // absent source: fall straight to a sibling
+          const cue = currentCue;
+          currentCue = null;
+          if (cue) music(cue);
+        }
+        // transient: keep the track in the pool and simply stop claiming it
+        // is playing, so the next music(cue) call retries it cleanly
       }
     };
     trackCache[name] = el;
@@ -176,7 +186,19 @@ window.SL = window.SL || {};
   }
 
   function music(cue) {
-    if (currentCue === cue && currentTrack && currentTrack.el) return;
+    // Holding an element for a cue is not the same as that cue sounding:
+    // play() can be rejected (autoplay policy) or the OS can pause us on an
+    // app switch. If the current cue is merely paused, resume it in place
+    // rather than treating the call as redundant.
+    if (currentCue === cue && currentTrack && currentTrack.el) {
+      const cur = currentTrack.el;
+      if (!cur.paused) return;
+      if (!musicOn) return;
+      const again = cur.play();
+      if (again && again.catch) again.catch(() => {});
+      rampTo(cur, MUSIC_VOL, 300);
+      return;
+    }
     currentCue = cue;
     const prev = currentTrack && currentTrack.el;
 
@@ -231,6 +253,17 @@ window.SL = window.SL || {};
       currentCue = null;
       music(cue);
     }
+  }
+
+  // Coming back from an app switch or screen lock leaves the element paused;
+  // nudge the current cue so music returns without waiting for a cue change.
+  if (typeof document !== 'undefined' && document.addEventListener) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!musicOn || !currentCue) return;
+      const cue = currentCue;
+      if (currentTrack && currentTrack.el && currentTrack.el.paused) music(cue);
+    });
   }
 
   probeTracks();
