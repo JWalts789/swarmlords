@@ -584,3 +584,42 @@ body.ui-art .shop-col { background-color: rgba(240,227,200,.9); }
 body.no-anim *, body.no-anim *::after, body.no-anim *::before {
   animation: none !important; transition: none !important;
 }
+
+/* battle topbar right cluster: loyalty badge + speed + forfeit */
+.bt-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.bt-badge {
+  font-size: 10px; font-weight: 900; letter-spacing: 1px;
+  border: 2px solid var(--ink); border-radius: 8px;
+  padding: 4px 8px; background: var(--paper); color: var(--ink);
+  white-space: nowrap;
+}
+.bt-badge.devoted { background: var(--brass); }
+.bt-badge.kindred { background: var(--good); color: var(--paper); }
+.bt-badge.mongrel { background: var(--paper-dark); color: var(--ink-soft); }
+#btn-speed { min-width: 42px; }
+#btn-speed.fast { background: var(--brass); }
+
+/* long-press card inspector */
+#card-inspect {
+  position: absolute; z-index: 45; pointer-events: none;
+  background: var(--paper); border: 3px solid var(--ink); border-radius: 12px;
+  box-shadow: 0 4px 0 var(--ink), 0 8px 24px rgba(0,0,0,.45);
+  padding: 8px 10px; width: 190px;
+}
+#card-inspect .ci-name { font-weight: 900; font-size: 13px; letter-spacing: .5px; }
+#card-inspect .ci-tier { font-size: 9px; font-weight: 900; color: var(--brass); letter-spacing: 2px; }
+#card-inspect .ci-stats { font-size: 10px; color: var(--ink-soft); margin-top: 4px; line-height: 1.4; }
+#card-inspect .ci-desc { font-size: 10px; font-style: italic; margin-top: 5px; color: var(--ink); }
+
+/* first-battle onboarding hint */
+#battle-hint {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: calc(140px + var(--safe-bot));
+  background: var(--ink); color: var(--brass);
+  border: 3px solid var(--brass); border-radius: 12px;
+  padding: 8px 18px; font-size: 13px; font-weight: 900; letter-spacing: 1.5px;
+  white-space: nowrap; z-index: 12; pointer-events: none;
+  animation: hintPulse 1.4s ease-in-out infinite;
+}
+@keyframes hintPulse { 0%,100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.06); } }
+@media (max-height: 500px) { #battle-hint { bottom: calc(104px + var(--safe-bot)); font-size: 11px; padding: 6px 14px; } }

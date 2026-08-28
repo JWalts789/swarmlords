@@ -54,7 +54,10 @@ window.SL = window.SL || {};
     const chh = canvas.height / dpr;
 
     if (SL.game.screen === 'battle' && SL.battle.active) {
-      SL.battle.update(dt);
+      // higher speeds run extra fixed steps rather than a bigger dt,
+      // so collision and spacing stay stable
+      const steps = SL.battle.speed || 1;
+      for (let i = 0; i < steps && SL.battle.active; i++) SL.battle.update(dt);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, cw, chh);
       SL.battle.render(ctx, cw, chh);
@@ -71,6 +74,7 @@ window.SL = window.SL || {};
     SL.game.meta = SL.save.loadMeta();
     SL.audio.setSfx(SL.game.meta.sfx);
     SL.audio.setMusic(SL.game.meta.music);
+    if (SL.game.meta.battleSpeed) SL.battle.setSpeed(SL.game.meta.battleSpeed);
     SL.sprites.init();
     SL.ui.init();
     resize();

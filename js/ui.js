@@ -520,6 +520,8 @@ window.SL = window.SL || {};
       confirmModal('WAIT THIS TURN?', 'Take no action and pocket +2 gold. Your rivals will still move.', 'WAIT', () => SL.conquest.playerWait());
     });
 
+    $('btn-speed').addEventListener('click', () => SL.battle.cycleSpeed());
+
     $('btn-forfeit').addEventListener('click', () => {
       confirmModal('FORFEIT THE BATTLE?', 'Your forces retreat. This counts as a loss.', 'FORFEIT', () => SL.battle.forfeit());
     });

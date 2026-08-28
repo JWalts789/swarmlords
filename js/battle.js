@@ -33,6 +33,7 @@ window.SL = window.SL || {};
     unitSeq: 0,
     stats: null,
     lastReserves: -1,
+    speed: 1,
   };
 
   // ---------------- setup ----------------
@@ -155,9 +156,12 @@ window.SL = window.SL || {};
     renderHand();
     updateEnergyUI();
     document.getElementById('bt-stakes').textContent = cfg.stakes || '';
+    updateLoyaltyBadge();
+    updateSpeedBtn();
+    initHint();
   }
 
-  function stop() { B.active = false; }
+  function stop() { B.active = false; hideInspect(); const h = hintEl(); if (h) h.classList.add('hidden'); }
 
   // ---------------- layout (landscape) ----------------
 
@@ -725,6 +729,7 @@ window.SL = window.SL || {};
     if (B.armed === idx) B.armed = -1;
     else if (cardPlayable(B.sides[0], idx)) { B.armed = idx; SL.audio.sfx('click'); }
     renderHand();
+    updateHint();
   }
 
   function tapField(lx, ly) {
@@ -737,6 +742,7 @@ window.SL = window.SL || {};
     if (playCard(0, B.armed, lane)) {
       B.armed = -1;
       renderHand();
+      retireHint();
     }
   }
 
@@ -766,12 +772,84 @@ window.SL = window.SL || {};
       cost.textContent = c;
       if (c < def.cost) cost.style.background = '#4da05c';
       el.appendChild(art); el.appendChild(nm); el.appendChild(cost);
-      el.addEventListener('pointerdown', (ev) => { ev.preventDefault(); armCard(i); });
+      // tap arms the card; press-and-hold inspects it instead
+      let holdT = null, held = false;
+      const clearHold = () => { clearTimeout(holdT); holdT = null; };
+      el.addEventListener('pointerdown', (ev) => {
+        ev.preventDefault();
+        held = false;
+        holdT = setTimeout(() => { held = true; showInspect(el, id); }, 380);
+      });
+      el.addEventListener('pointerup', (ev) => {
+        ev.preventDefault();
+        clearHold();
+        if (held) { hideInspect(); return; }
+        armCard(i);
+      });
+      el.addEventListener('pointerleave', () => { clearHold(); if (held) hideInspect(); });
+      el.addEventListener('pointercancel', () => { clearHold(); hideInspect(); });
       wrap.appendChild(el);
     });
     const nx = document.getElementById('next-thumb');
     nx.innerHTML = '';
     if (side.draw.length) nx.appendChild(SL.sprites.thumb(side.draw[0], 36));
+  }
+
+  // first-battle onboarding hint
+  function hintEl() { return document.getElementById('battle-hint'); }
+  function initHint() {
+    const el = hintEl();
+    if (!el) return;
+    const meta = SL.game && SL.game.meta;
+    B.showHint = !!(meta && !meta.seenBattleHint);
+    if (!B.showHint) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    el.textContent = '①  TAP A CARD BELOW';
+  }
+  function updateHint() {
+    if (!B.showHint) return;
+    const el = hintEl();
+    if (!el) return;
+    el.textContent = B.armed >= 0 ? '②  NOW TAP A LANE TO DEPLOY' : '①  TAP A CARD BELOW';
+  }
+  function retireHint() {
+    if (!B.showHint) return;
+    B.showHint = false;
+    const el = hintEl();
+    if (el) el.classList.add('hidden');
+    const meta = SL.game && SL.game.meta;
+    if (meta) { meta.seenBattleHint = true; SL.save.saveMeta(meta); }
+  }
+
+  // press-and-hold card inspector
+  let inspectEl = null;
+  function showInspect(anchorEl, cardId) {
+    hideInspect();
+    const def = SL.DATA.CARDS[cardId];
+    if (!def) return;
+    const side = B.sides && B.sides[0];
+    const c = side ? effCost(side, def) : def.cost;
+    const box = document.createElement('div');
+    box.id = 'card-inspect';
+    box.innerHTML =
+      '<div class="ci-name">' + def.name + '</div>' +
+      '<div class="ci-tier">' + (def.type === 'tactic' ? 'TACTIC' : '★'.repeat(def.tier)) +
+      ' · COST ' + c + (c < def.cost ? ' (LOYAL)' : '') + '</div>' +
+      '<div class="ci-stats">' + SL.DATA.statLine(def) + '</div>' +
+      (def.desc ? '<div class="ci-desc">“' + def.desc + '”</div>' : '');
+    document.getElementById('app').appendChild(box);
+    const r = anchorEl.getBoundingClientRect();
+    const w = box.offsetWidth, h = box.offsetHeight;
+    let x = r.left + r.width / 2 - w / 2;
+    x = Math.max(6, Math.min(window.innerWidth - w - 6, x));
+    box.style.left = x + 'px';
+    box.style.top = Math.max(6, r.top - h - 8) + 'px';
+    inspectEl = box;
+    SL.audio.sfx('click');
+  }
+  function hideInspect() {
+    if (inspectEl && inspectEl.parentNode) inspectEl.parentNode.removeChild(inspectEl);
+    inspectEl = null;
   }
 
   function updateEnergyUI() {
@@ -782,6 +860,40 @@ window.SL = window.SL || {};
     if (fill) fill.style.width = (100 * s.energy / s.energyMax) + '%';
     if (num) num.textContent = Math.floor(s.energy) + '/' + s.energyMax;
   }
+
+  // ---------------- topbar badges ----------------
+
+  function updateLoyaltyBadge() {
+    const el = document.getElementById('bt-loyalty');
+    if (!el || !B.sides) return;
+    const m = B.sides[0].mods;
+    if (!m.loyalFaction || m.loyalTier === undefined) { el.classList.add('hidden'); return; }
+    const names = ['MONGREL', 'KINDRED', 'DEVOTED'];
+    const cls = ['mongrel', 'kindred', 'devoted'];
+    el.className = 'bt-badge ' + cls[m.loyalTier];
+    const pct = Math.round((m.loyalFrac || 0) * 100);
+    const power = SL.DATA.LOYALTY[m.loyalFaction];
+    el.textContent = names[m.loyalTier] + ' ' + pct + '%' +
+      (m.loyalTier === 2 && power ? ' · ' + power.name : '');
+    el.title = m.loyalTier === 2 && power ? power.desc : 'Raise your deck’s faction share for combat bonuses.';
+  }
+
+  function updateSpeedBtn() {
+    const b = document.getElementById('btn-speed');
+    if (!b) return;
+    b.textContent = B.speed + '×';
+    b.classList.toggle('fast', B.speed > 1);
+  }
+
+  function cycleSpeed() {
+    B.speed = B.speed >= 3 ? 1 : B.speed + 1;
+    updateSpeedBtn();
+    const meta = SL.game && SL.game.meta;
+    if (meta) { meta.battleSpeed = B.speed; SL.save.saveMeta(meta); }
+    SL.audio.sfx('click');
+  }
+
+  function setSpeed(n) { B.speed = Math.max(1, Math.min(3, n | 0)); updateSpeedBtn(); }
 
   // ---------------- fx ----------------
 
@@ -991,6 +1103,8 @@ window.SL = window.SL || {};
 
   SL.battle = {
     start, stop, update, render, tapField, forfeit,
+    cycleSpeed, setSpeed,
+    get speed() { return B.speed; },
     debugSpawn: (sideIdx, cardId, lane, atFrac) => {
       const def = SL.DATA.CARDS[cardId];
       if (def && B.active && B.layout) spawnUnit(sideIdx, def, lane, atFrac);
