@@ -28,11 +28,15 @@ vintage big-band recording character, seamless loop, no vocals.
 
 ## `battle.mp3` — the lanes are burning
 ```
-Instrumental hot jazz battle stomp, fast 2-beat swing, blazing brass
-section stabs, wailing clarinet runs, driving tom-heavy drums, frantic
-joyful mayhem like a 1930s cartoon brawl, builds intensity in waves
-without stopping, vintage recording grit, seamless loop, no vocals.
-2 minutes.
+Instrumental 1930s cartoon brawl music, frantic hot-jazz ragtime at
+breakneck tempo, hammering stride piano and slap upright bass driving
+underneath, screaming plunger-muted trumpet and squealing clarinet
+trading frantic licks over the top, honking tuba accents, xylophone runs
+tumbling down like falling anvils, snare rolls and crash cymbals landing
+on every impact, sudden stop-time breaks then straight back into the
+chaos, the sound of a cartoon fistfight in a jazz club — reckless,
+comedic and relentless, building in waves without ever resolving.
+Vintage 78rpm recording grit, no vocals, seamless loop. 2 minutes.
 ```
 
 ## `victory.mp3` — king of the garden

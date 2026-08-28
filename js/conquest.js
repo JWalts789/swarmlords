@@ -567,7 +567,7 @@ window.SL = window.SL || {};
   // ---------------- map rendering (landscape, pannable world) ----------------
 
   const MAP_H = 400;                   // logical viewport height
-  const WORLD_W = 1440, WORLD_H = 560; // the garden is bigger than the screen
+  const WORLD_W = 1260, WORLD_H = 880; // the garden is bigger than the screen
   const PAD = 78;
   const cam = { x: 0, y: 0 };
 
@@ -690,7 +690,7 @@ window.SL = window.SL || {};
     // kept light so the painted garden still reads underneath
     for (const t of run.territories) {
       const p = nodePos(t);
-      const rad = (t.capitalOf ? 30 : 24) * 3.1;
+      const rad = (t.capitalOf ? 34 : 27) * 2.9;
       const g2 = ctx.createRadialGradient(p.x, p.y, rad * 0.15, p.x, p.y, rad);
       g2.addColorStop(0, hexA(ownerColor(t), t.owner === 'neutral' ? 0.13 : 0.3));
       g2.addColorStop(1, hexA(ownerColor(t), 0));
@@ -740,24 +740,28 @@ window.SL = window.SL || {};
     const col = ownerColor(t);
     const fid = ownerFaction(t);
     const style = NODE_STYLE[fid] || NODE_STYLE.neutral;
-    const r = t.capitalOf ? 30 : 24;
+    const r = t.capitalOf ? 34 : 27;
+
+    // per-faction settlement art wins; otherwise generic ground, else a blob
+    const townImg = SL.sprites.sheet((t.capitalOf ? 'map_node_capital_' : 'map_node_') + fid);
+    const img = townImg
+      || SL.sprites.sheet(t.capitalOf ? 'map_node_capital' : 'map_node')
+      || SL.sprites.sheet('map_node');
+    // a settlement is drawn big; the owner ring then sits outside it
+    const artR = townImg ? r * 1.62 : r * 1.25;
 
     // attackable pulse ring
     if (attackableByPlayer(t)) {
       const pulse = 3 + Math.sin(time * 4 + t.id) * 2;
       ctx.strokeStyle = 'rgba(224,165,30,0.85)';
       ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(p.x, p.y, r + pulse + 3, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(p.x, p.y, artR + pulse + 3, 0, Math.PI * 2); ctx.stroke();
     }
 
-    // ground art: per-faction sheet if delivered, else generic, else a blob
-    const img = SL.sprites.sheet((t.capitalOf ? 'map_node_capital_' : 'map_node_') + fid)
-      || SL.sprites.sheet(t.capitalOf ? 'map_node_capital' : 'map_node')
-      || SL.sprites.sheet('map_node');
     ctx.strokeStyle = '#1b120c';
     ctx.lineWidth = 3;
     if (img) {
-      const d = r * 2.5;
+      const d = artR * 2;
       ctx.drawImage(img, p.x - d / 2, p.y - d / 2, d, d);
     } else {
       ctx.fillStyle = col;
@@ -772,41 +776,45 @@ window.SL = window.SL || {};
       ctx.closePath(); ctx.fill(); ctx.stroke();
     }
 
-    // owner ring, styled per kingdom
+    // owner ring, styled per kingdom — outside the settlement, never across it
+    const ringR = townImg ? artR + style.lw / 2 + 3 : r;
     ctx.strokeStyle = col;
     ctx.lineWidth = style.lw;
     ctx.setLineDash(style.dash || []);
-    ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(p.x, p.y, ringR, 0, Math.PI * 2); ctx.stroke();
     if (style.ring === 'double') {
       ctx.lineWidth = Math.max(2, style.lw - 2);
-      ctx.beginPath(); ctx.arc(p.x, p.y, r - style.lw - 2, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(p.x, p.y, ringR - style.lw - 2, 0, Math.PI * 2); ctx.stroke();
     }
     ctx.setLineDash([]);
-    ctx.strokeStyle = '#1b120c';
+    ctx.strokeStyle = 'rgba(27,18,12,0.75)';
     ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(p.x, p.y, r + style.lw / 2 + 1, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(p.x, p.y, ringR + style.lw / 2 + 1, 0, Math.PI * 2); ctx.stroke();
 
-    // kingdom emblem badge
-    const bug = LEGEND_BUG[fid];
-    const bimg = bug ? SL.sprites.sheet(bug + '_sheet') : null;
-    const bx = p.x - r * 0.72, by = p.y - r * 0.72;
-    ctx.fillStyle = 'rgba(240,227,200,0.94)';
-    ctx.strokeStyle = '#1b120c';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(bx, by, 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    if (bimg) {
-      ctx.drawImage(bimg, 0, 0, 256, 256, bx - 12, by - 12, 24, 24);
-    } else {
-      ctx.fillStyle = col;
-      ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI * 2); ctx.fill();
+    // kingdom emblem badge — only when there is no settlement art to speak
+    // for the faction already
+    if (!townImg) {
+      const bug = LEGEND_BUG[fid];
+      const bimg = bug ? SL.sprites.sheet(bug + '_sheet') : null;
+      const bx = p.x - r * 0.72, by = p.y - r * 0.72;
+      ctx.fillStyle = 'rgba(240,227,200,0.94)';
+      ctx.strokeStyle = '#1b120c';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(bx, by, 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      if (bimg) {
+        ctx.drawImage(bimg, 0, 0, 256, 256, bx - 12, by - 12, 24, 24);
+      } else {
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI * 2); ctx.fill();
+      }
     }
 
     // capital crown
     if (t.capitalOf) {
       const crown = SL.sprites.sheet('map_crown');
       if (crown) {
-        const cd = r * 1.15;
-        ctx.drawImage(crown, p.x - cd / 2, p.y - r - cd + 4, cd, cd);
+        const cd = r * 1.25;
+        ctx.drawImage(crown, p.x - cd / 2, p.y - ringR - cd + 6, cd, cd);
       } else {
         ctx.fillStyle = '#e0a51e';
         ctx.strokeStyle = '#1b120c';
@@ -825,11 +833,18 @@ window.SL = window.SL || {};
     const gp = Math.min(6, t.garrison);
     for (let i = 0; i < gp; i++) {
       ctx.beginPath();
-      ctx.arc(p.x - (gp - 1) * 3.5 + i * 7, p.y + r + 9, 2.6, 0, Math.PI * 2);
+      ctx.arc(p.x - (gp - 1) * 3.5 + i * 7, p.y + ringR + 10, 2.6, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // yield, with the delivered coin glyph when present
+    // yield — a settlement plaza is busy, so give the number a plate to sit on
+    if (townImg) {
+      ctx.fillStyle = 'rgba(27,18,12,0.62)';
+      ctx.strokeStyle = 'rgba(240,227,200,0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, 21, 13, 0, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+    }
     ctx.font = '900 12px "Trebuchet MS", sans-serif';
     ctx.fillStyle = '#f0e3c8';
     ctx.strokeStyle = '#1b120c';
@@ -851,7 +866,7 @@ window.SL = window.SL || {};
 
     // boon marker: delivered glyph strip if present, else the text icon
     if (t.boon) {
-      const bx2 = p.x + r - 6, by2 = p.y - r + 4;
+      const bx2 = p.x + ringR * 0.72, by2 = p.y - ringR * 0.72;
       const boons = SL.sprites.sheet('ui_boons');
       if (boons) {
         const order = ['b_energy', 'b_hp', 'b_dmg', 'b_card', 'b_hive', 'b_shop'];
@@ -876,7 +891,7 @@ window.SL = window.SL || {};
       ctx.strokeStyle = '#e0a51e';
       ctx.lineWidth = 4;
       ctx.setLineDash([9, 5]);
-      ctx.beginPath(); ctx.arc(p.x, p.y, r + 10, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(p.x, p.y, ringR + 9, 0, Math.PI * 2); ctx.stroke();
       ctx.setLineDash([]);
     }
   }
@@ -956,7 +971,7 @@ window.SL = window.SL || {};
     for (const t of run.territories) {
       const p = nodePos(t);
       const d = Math.hypot(lx - p.x, ly - p.y);
-      if (d < 34 && d < hitD) { hit = t; hitD = d; }
+      if (d < 44 && d < hitD) { hit = t; hitD = d; }
     }
     if (hit) {
       selectedId = hit.id;
