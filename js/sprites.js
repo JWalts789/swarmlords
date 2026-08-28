@@ -34,6 +34,7 @@ window.SL = window.SL || {};
     Object.keys(SL.DATA.FACTIONS).forEach((f) => {
       probe('map_node_' + f);
       probe('map_node_capital_' + f);
+      probe('card_frame_' + f);
     });
   }
 

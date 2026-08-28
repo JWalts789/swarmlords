@@ -302,10 +302,19 @@ window.SL = window.SL || {};
 
   // ---------------- cards ----------------
 
+  function hexA(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+
   function cardEl(cardId) {
     const def = SL.DATA.CARDS[cardId];
+    const fac = SL.DATA.FACTIONS[def.faction] || SL.DATA.FACTIONS.neutral;
     const el = document.createElement('div');
-    el.className = 'draft-card' + (def.type === 'tactic' ? ' tactic' : '');
+    el.className = 'draft-card f-' + def.faction + (def.type === 'tactic' ? ' tactic' : '');
+    el.style.setProperty('--fc', fac.color);
+    el.style.setProperty('--fc-soft', hexA(fac.color, 0.28));
     const cost = document.createElement('div');
     cost.className = 'dc-cost'; cost.textContent = def.cost;
     const art = document.createElement('div');

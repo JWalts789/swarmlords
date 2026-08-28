@@ -765,7 +765,7 @@ window.SL = window.SL || {};
       const c = effCost(side, def);
       const fac = SL.DATA.FACTIONS[def.faction] || SL.DATA.FACTIONS.neutral;
       const el = document.createElement('button');
-      el.className = 'hand-card' + (def.type === 'tactic' ? ' tactic' : '');
+      el.className = 'hand-card f-' + def.faction + (def.type === 'tactic' ? ' tactic' : '');
       el.style.setProperty('--fc', fac.color);
       el.style.setProperty('--fc-soft', hexA(fac.color, 0.3));
       if (i === B.armed) el.classList.add('armed');

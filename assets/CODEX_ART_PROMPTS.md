@@ -417,3 +417,59 @@ Plus, standalone:
 | P5a faction ground | 12 node files (+ optional neutral) | PENDING |
 | P5b currency | ui_coin, ui_coin_stack | PENDING |
 | P5c map glyphs | ui_boons strip, map_crown_fallen | PENDING |
+
+---
+
+# PRIORITY 6 — PAINTED CARD FRAMES (added 2026-08-27)
+
+Every card in the game (battle hand, recruitment draft, shop market) is
+already framed per kingdom — right now with drawn CSS borders. These
+replace them with painted frames. The engine swaps each faction's frame in
+independently the moment its file appears, so partial deliveries are fine.
+
+**Same flat-cel style correction as P5** — no gradients, no gloss, no
+metallic sheen. Flat tones, wobbly sepia ink, muted aged palette, 1936
+cartoon cel rather than a game UI asset.
+
+## Format (identical for all seven)
+
+- `384×512` RGBA PNG, portrait 3:4.
+- **The centre must be fully transparent.** This is a frame, not a card —
+  the game paints the parchment, the bug art, the name plate and the cost
+  coin underneath and through it.
+- Keep the decorative border within roughly 34px of the edge. Anything
+  thicker eats the art window.
+- The top ~14% and bottom ~22% sit behind a faction ribbon and a name
+  plate, so avoid fine detail there — corners and the long edges are where
+  the character should live.
+- It gets drawn as small as **72×96**, so shapes must be bold. No hairlines.
+
+## The seven frames
+
+| File | The frame is made of |
+|---|---|
+| `card_frame_ants.png` | packed red earth and pebbles, the border built from small round stones with grit between them; two crossed leaf-standards at the top corners |
+| `card_frame_wasps.png` | torn paper comb — the border is layered papery strips with hexagon cells punched along it, corners clipped at 45° like cut card |
+| `card_frame_beetles.png` | riveted steel-blue plate armour, thick and square, a fat rivet at each corner and along the mid-edges, one dent for wear |
+| `card_frame_mantids.png` | trimmed green stems and folded leaf-blades, elegant and thin, the top-left and bottom-right corners drawn out into long pointed leaf tips |
+| `card_frame_termites.png` | cracked bone-pale mud, the border split by hairline fissures into irregular segments, a couple of tiny drip-spires on the top edge |
+| `card_frame_moths.png` | wound silk thread and soft wing-scales, very rounded corners, two thin threads running parallel with a small cocoon knot at the bottom centre |
+| `card_frame_neutral.png` | wild tangled weed stems and thorns, uneven and overgrown, one small mushroom sprouting at a bottom corner |
+
+### Prompt template
+
+```
+A decorative card frame border in vintage 1930s rubber-hose cartoon style,
+made of <MATERIAL>, hand-inked wobbly dark-sepia outlines of uneven weight,
+FLAT cel paint with no gradients and no gloss, muted aged palette dominated
+by <HEX>, drawn as a border around the outer edge of a 384x512 portrait
+canvas with the ENTIRE CENTRE FULLY TRANSPARENT. Border no thicker than
+34px. Bold simple shapes readable when shrunk to 72x96. No text, no
+background, RGBA transparency.
+```
+
+## Delivery table
+
+| Batch | Assets | Status |
+|---|---|---|
+| P6 card frames | 7 × card_frame_*.png | PENDING |

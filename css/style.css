@@ -716,3 +716,77 @@ body.no-anim *, body.no-anim *::after, body.no-anim *::before {
   #map-panel { padding: 7px 11px; bottom: calc(46px + var(--safe-bot)); }
   #mp-name { font-size: 14px; }
 }
+
+/* ---------- per-faction card frames ---------- */
+/* Each kingdom frames its cards differently, so faction reads before the
+   art does. The ::after layer is the decorative inner frame; painted
+   frames from Codex replace it per faction via the body.cf-* classes. */
+
+.hand-card::after, .draft-card::after {
+  content: ""; position: absolute; inset: 3px;
+  pointer-events: none; border-radius: inherit;
+}
+
+/* ANTS — pebbled earthworks: studded ring, rounded corners */
+.f-ants { border-radius: 13px; }
+.f-ants::after { border: 2px dotted var(--fc); border-radius: 10px; }
+
+/* WASPS — paper comb: angular, clipped corners, crisp rule */
+.f-wasps { border-radius: 4px; }
+.f-wasps::after {
+  border: 2px solid var(--fc); border-radius: 2px;
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+}
+
+/* BEETLES — riveted plate: heavy square frame with corner rivets */
+.f-beetles { border-radius: 3px; }
+.f-beetles::after {
+  border: 3px solid var(--fc); border-radius: 1px;
+  background:
+    radial-gradient(circle at 5px 5px, var(--fc) 1.7px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 5px) 5px, var(--fc) 1.7px, transparent 2.2px),
+    radial-gradient(circle at 5px calc(100% - 5px), var(--fc) 1.7px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - 5px) calc(100% - 5px), var(--fc) 1.7px, transparent 2.2px);
+}
+
+/* MANTIDS — court elegance: fine double rule, opposing pointed corners */
+.f-mantids { border-radius: 17px 4px 17px 4px; }
+.f-mantids::after {
+  border: 1px solid var(--fc); border-radius: 14px 2px 14px 2px;
+  box-shadow: inset 0 0 0 3px rgba(253,246,227,.45), inset 0 0 0 4px var(--fc);
+}
+
+/* TERMITES — cracked mud: broken frame */
+.f-termites { border-radius: 7px; }
+.f-termites::after { border: 2px dashed var(--fc); border-radius: 5px; }
+
+/* MOTHS — silk: very soft corners, thread-thin double ring */
+.f-moths { border-radius: 21px; }
+.f-moths::after {
+  border: 1px solid var(--fc); border-radius: 18px;
+  box-shadow: inset 0 0 0 2px rgba(253,246,227,.5), inset 0 0 0 3px var(--fc);
+}
+
+/* WILDS — untamed: ragged groove */
+.f-neutral { border-radius: 9px; }
+.f-neutral::after { border: 4px double var(--fc); border-radius: 7px; }
+
+/* painted frames, swapped in per faction as Codex delivers them */
+body.cf-ants .f-ants::after,
+body.cf-wasps .f-wasps::after,
+body.cf-beetles .f-beetles::after,
+body.cf-mantids .f-mantids::after,
+body.cf-termites .f-termites::after,
+body.cf-moths .f-moths::after,
+body.cf-neutral .f-neutral::after {
+  border: none; box-shadow: none; clip-path: none;
+  background-repeat: no-repeat; background-position: center; background-size: 100% 100%;
+  inset: 0;
+}
+body.cf-ants .f-ants::after { background-image: url("../assets/sprites/card_frame_ants.png"); }
+body.cf-wasps .f-wasps::after { background-image: url("../assets/sprites/card_frame_wasps.png"); }
+body.cf-beetles .f-beetles::after { background-image: url("../assets/sprites/card_frame_beetles.png"); }
+body.cf-mantids .f-mantids::after { background-image: url("../assets/sprites/card_frame_mantids.png"); }
+body.cf-termites .f-termites::after { background-image: url("../assets/sprites/card_frame_termites.png"); }
+body.cf-moths .f-moths::after { background-image: url("../assets/sprites/card_frame_moths.png"); }
+body.cf-neutral .f-neutral::after { background-image: url("../assets/sprites/card_frame_neutral.png"); }

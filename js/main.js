@@ -131,6 +131,10 @@ window.SL = window.SL || {};
     // activate delivered UI art once its probe loads (checked a few times)
     [800, 2500, 6000].forEach((ms) => setTimeout(() => {
       if (SL.sprites.hasSheet('ui_panel')) document.body.classList.add('ui-art');
+      // painted card frames replace the drawn ones per faction, as they land
+      Object.keys(SL.DATA.FACTIONS).forEach((f) => {
+        if (SL.sprites.hasSheet('card_frame_' + f)) document.body.classList.add('cf-' + f);
+      });
       if (SL.game.screen === 'map') SL.ui.updateTopbar();
     }, ms));
 
