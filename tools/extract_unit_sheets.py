@@ -28,7 +28,6 @@ CELL, FRAMES = 256, 11
 def keyed_rgba(image: Image.Image) -> np.ndarray:
     rgba = np.asarray(image.convert("RGBA"), dtype=np.uint8).copy()
     rgb = rgba[..., :3].astype(np.float32)
-    old_alpha = rgba[..., 3].astype(np.float32) / 255.0
     corner = np.concatenate((
         rgb[:32, :32].reshape(-1, 3), rgb[:32, -32:].reshape(-1, 3),
         rgb[-32:, :32].reshape(-1, 3), rgb[-32:, -32:].reshape(-1, 3),
@@ -37,16 +36,18 @@ def keyed_rgba(image: Image.Image) -> np.ndarray:
     high, low = rgb.max(axis=2), rgb.min(axis=2)
     chroma = high - low
     if dark_matte:
-        # House ink is sepia, so neutral near-zero pixels are background.
-        signal = np.maximum((high - 9.0) / 24.0, (chroma - 4.0) / 16.0)
+        candidate = (high < 20.0) & (chroma < 12.0)
     else:
-        # Checker squares are bright neutral; warm cream paint is not.
-        # Tiny 1-3 level RGB differences are checker compression noise, not
-        # colour. Give chroma a dead-zone before it contributes coverage.
-        signal = np.maximum((235.0 - low) / 28.0, (chroma - 4.0) / 18.0)
-    alpha = np.clip(signal, 0.0, 1.0) * old_alpha
-    alpha[alpha < 0.10] = 0.0
-    rgba[..., 3] = np.round(alpha * 255.0).astype(np.uint8)
+        candidate = (low > 215.0) & (chroma < 18.0)
+
+    # Only matte-coloured pixels connected to an outer edge are background.
+    # Enclosed white/cream paint (eyes, gloves, highlights, pale bodies)
+    # remains opaque even when its RGB matches the checker.
+    _, labels = cv2.connectedComponents(candidate.astype(np.uint8), connectivity=8)
+    edge_labels = np.unique(np.concatenate((labels[0], labels[-1], labels[:, 0], labels[:, -1])))
+    edge_labels = edge_labels[edge_labels != 0]
+    background = np.isin(labels, edge_labels)
+    rgba[background, 3] = 0
     rgba[rgba[..., 3] == 0, :3] = 0
     return rgba
 
