@@ -617,3 +617,53 @@ was 21.8MB against 2.2MB as quality-86 JPEG. The engine picks the extension
 automatically, so deliver whichever is convenient and QA converts.
 Everything with transparency (sheets, frames, emblems, plates, glyphs)
 stays PNG.
+
+---
+
+# PRIORITY 9 — KINGDOM WORDMARKS (added 2026-08-29)
+
+The map legend still sets each kingdom's name in the system UI font, which
+looks pasted onto the hand-painted nameplate banners. These replace it with
+hand-lettered art.
+
+## Format (7 files)
+
+`wordmark_<faction>.png` — **512×128** RGBA, fully transparent background.
+
+- The lettering fills the canvas: no framing, no plaque, no background
+  shape. The banner behind it is already painted.
+- It renders **13px tall** in the legend, so keep the letterforms bold and
+  open. No hairlines, no tight counters, no long descenders.
+- Single line, all caps, drawn horizontally (no arch — it sits on a flat
+  banner middle).
+- Trim tight: the engine scales by the image's own aspect, so empty margin
+  becomes wasted width.
+
+## The seven
+
+| File | Word | The lettering is |
+|---|---|---|
+| `wordmark_ants.png` | ANTS | chunky ember-red slab capitals, edges nicked like chewed earth, a couple of pebble specks in the counters |
+| `wordmark_wasps.png` | WASPS | sharp brass-gold capitals with clipped 45° corners, thin black hazard striping across the strokes |
+| `wordmark_beetles.png` | BEETLES | heavy steel-blue block capitals, riveted at the stroke ends, one dented letter |
+| `wordmark_mantids.png` | MANTIDS | tall elegant jade capitals with fine tapered serifs curling like leaf tips |
+| `wordmark_termites.png` | TERMITES | bone-pale capitals with hairline cracks running through them, one letter part-eaten |
+| `wordmark_moths.png` | MOTHS | soft dusk-violet capitals with faint wing-scale dusting and a hairline of silk trailing off the last letter |
+| `wordmark_neutral.png` | WILDS | rough olive capitals overgrown with a few weed sprigs and thorns |
+
+### Prompt template
+```
+The single word <WORD> hand-lettered in vintage 1930s rubber-hose cartoon
+style, <DESCRIPTION>, FLAT cel paint with no gradients and no gloss, heavy
+wobbly dark-sepia outlines, muted palette dominated by <HEX>, all capitals
+on one horizontal line filling a transparent 512x128 canvas edge to edge.
+Bold open letterforms that stay legible when shrunk to 13 pixels tall. No
+background, no frame, no plaque, no extra ornament. RGBA transparency.
+```
+
+**Watch for:** anything that only reads at full size. Squint at 13px — if a
+letter closes up or a stroke disappears, thicken it.
+
+| Batch | Assets | Status |
+|---|---|---|
+| P9 wordmarks | 7 × wordmark_*.png | PENDING |

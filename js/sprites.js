@@ -44,6 +44,7 @@ window.SL = window.SL || {};
       probe('card_frame_' + f);
       probe('emblem_' + f);
       probe('nameplate_' + f);
+      probe('wordmark_' + f);
     });
   }
 

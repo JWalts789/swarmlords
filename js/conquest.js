@@ -970,8 +970,14 @@ window.SL = window.SL || {};
       const img = plateFor(fid);
       const cap = capOf(img);
       const pad = padOf(cap);
-      const w = cap * 2 + pad * 2 + ICON + 5 + ctx.measureText(label).width;
-      return { owner, fid, alive, label, img, cap, pad, w };
+      // hand-lettered kingdom name when delivered; system text is a
+      // placeholder that reads badly against a painted banner
+      const word = SL.sprites.sheet('wordmark_' + fid);
+      const wordH = 13;
+      const wordW = word ? wordH * (word.width / word.height) : 0;
+      const textW = word ? wordW : ctx.measureText(label).width;
+      const w = cap * 2 + pad * 2 + ICON + 5 + textW;
+      return { owner, fid, alive, label, img, cap, pad, w, word, wordW, wordH };
     });
 
     let total = meta.reduce((n, m) => n + m.w, 0) + GAP * (meta.length - 1);
@@ -982,6 +988,7 @@ window.SL = window.SL || {};
     if (total > budget) {
       meta.forEach(function (m) {
         m.compact = true;
+        m.word = null;
         m.w = m.cap * 2 + m.pad * 2 + ICON;
       });
       total = meta.reduce((n, m) => n + m.w, 0) + GAP * (meta.length - 1);
@@ -1027,7 +1034,9 @@ window.SL = window.SL || {};
 
       // the painted plates are saturated and dark, so the label is cream
       // with an ink stroke — legible on plate art or on the drawn fallback
-      if (!m.compact) {
+      if (!m.compact && m.word) {
+        ctx.drawImage(m.word, ix + ICON + 5, cy - m.wordH / 2, m.wordW, m.wordH);
+      } else if (!m.compact) {
         const tx = ix + ICON + 5;
         ctx.lineJoin = 'round';
         ctx.strokeStyle = 'rgba(20,13,9,0.9)';
