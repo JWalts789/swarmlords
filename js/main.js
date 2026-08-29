@@ -131,6 +131,15 @@ window.SL = window.SL || {};
     // activate delivered UI art once its probe loads (checked a few times)
     [800, 2500, 6000].forEach((ms) => setTimeout(() => {
       if (SL.sprites.hasSheet('ui_panel')) document.body.classList.add('ui-art');
+      // each art family switches on independently, so partial deliveries work
+      if (SL.sprites.hasSheet('ui_btn')) document.body.classList.add('btn-art');
+      if (SL.sprites.hasSheet('menu_bg')) document.body.classList.add('bg-menu');
+      if (SL.sprites.hasSheet('select_bg')) document.body.classList.add('bg-select');
+      if (SL.sprites.hasSheet('shop_bg')) document.body.classList.add('bg-shop');
+      if (SL.sprites.hasSheet('burst_gold')) document.body.classList.add('burst-art');
+      if (SL.sprites.hasSheet('ui_energy_frame')) document.body.classList.add('energy-art');
+      if (SL.sprites.hasSheet('ui_card_upgrade')) document.body.classList.add('upg-art');
+      if (SL.sprites.hasSheet('ui_card_kingdom')) document.body.classList.add('kingdom-art');
       // painted card frames replace the drawn ones per faction, as they land
       Object.keys(SL.DATA.FACTIONS).forEach((f) => {
         if (SL.sprites.hasSheet('card_frame_' + f)) document.body.classList.add('cf-' + f);

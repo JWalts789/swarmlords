@@ -12,7 +12,7 @@ window.SL = window.SL || {};
 
   // Opaque full-screen paintings ship as JPEG: they need no alpha, and as
   // PNG the battlefield set alone was 21MB.
-  const JPEG = /^(battle_bg|map_bg)/;
+  const JPEG = /^(battle_bg|map_bg|menu_bg|select_bg|shop_bg)/;
 
   function probe(name) {
     if (sheets[name]) return;
@@ -34,7 +34,13 @@ window.SL = window.SL || {};
     // conquest map + UI kit art (all optional, auto-swapped when delivered)
     ['map_bg', 'map_node', 'map_node_capital', 'map_crown',
      'ui_panel', 'ui_icons', 'ui_coin', 'ui_coin_stack', 'ui_boons',
-     'ui_nameplate', 'map_crown_fallen', 'battle_bg'].forEach(probe);
+          'ui_nameplate', 'map_crown_fallen', 'battle_bg',
+     // P10: screen grounds, button plates, HUD furniture, title cards
+     'menu_bg', 'select_bg', 'shop_bg',
+     'ui_btn', 'ui_btn_primary', 'ui_btn_danger', 'ui_pill',
+     'ui_energy_frame', 'ui_energy_fill', 'ui_banner', 'ui_divider',
+     'ui_card_upgrade', 'ui_card_kingdom', 'burst_gold',
+     'word_splat', 'word_victory', 'word_squashed', 'word_unlocked'].forEach(probe);
     // a battlefield per kingdom, chosen by whose ground is being fought over
     Object.keys(SL.DATA.FACTIONS).forEach((f) => probe('battle_bg_' + f));
     // per-faction territory art, falls back to the generic node when absent

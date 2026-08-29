@@ -1157,3 +1157,87 @@ body.cf-neutral .f-neutral::after { background-image: url("../assets/sprites/car
   z-index: 4; white-space: nowrap;
 }
 .shop-cards { padding-bottom: 14px; }
+
+/* ==================== P10 ART HOOKS ====================
+   Every rule here is gated on a body class that only appears once the art
+   has actually loaded, so the drawn design stays as the fallback. */
+
+/* painted screen grounds */
+body.bg-menu #screen-title,
+body.bg-select #screen-faction,
+body.bg-shop #screen-shop {
+  background-repeat: no-repeat; background-position: center; background-size: cover;
+}
+body.bg-menu #screen-title { background-image: url("../assets/sprites/menu_bg.jpg"); }
+body.bg-select #screen-faction { background-image: url("../assets/sprites/select_bg.jpg"); }
+body.bg-shop #screen-shop { background-image: url("../assets/sprites/shop_bg.jpg"); }
+/* a painted ground carries its own grain */
+body.bg-menu #screen-title::after,
+body.bg-select #screen-faction::after,
+body.bg-shop #screen-shop::after { display: none; }
+
+/* painted button plates */
+body.btn-art .big-btn,
+body.btn-art .small-btn,
+body.btn-art .action-btn {
+  border-width: 13px; border-style: solid; border-color: transparent;
+  border-image: url("../assets/sprites/ui_btn.png") 30 fill round;
+  border-radius: 0; background: none; box-shadow: none;
+  padding: 4px 16px; color: var(--ink);
+  text-shadow: 0 1px 0 rgba(253,246,227,.6);
+}
+body.btn-art .big-btn { padding: 8px 22px; }
+body.btn-art .action-btn.primary,
+body.btn-art .big-btn.primary { border-image-source: url("../assets/sprites/ui_btn_primary.png"); }
+body.btn-art .action-btn.danger,
+body.btn-art .big-btn.danger { border-image-source: url("../assets/sprites/ui_btn_danger.png"); color: var(--paper); text-shadow: 0 1px 0 rgba(27,18,12,.7); }
+body.btn-art .big-btn:active,
+body.btn-art .small-btn:active,
+body.btn-art .action-btn:active { transform: translateY(2px); }
+body.btn-art .tb-item, body.btn-art #map-topbar .tb-btn {
+  border-width: 10px; border-style: solid; border-color: transparent;
+  border-image: url("../assets/sprites/ui_pill.png") 22 fill round;
+  border-radius: 0; background: none; box-shadow: none; color: var(--paper);
+}
+
+/* painted sunburst + lettered title cards */
+body.burst-art #titlecard-burst {
+  background: url("../assets/sprites/burst_gold.png") center/contain no-repeat;
+  border: none; box-shadow: none; border-radius: 0;
+  width: 420px; height: 420px;
+}
+#titlecard-text.word-art {
+  background-repeat: no-repeat; background-position: center; background-size: contain;
+  width: min(74vw, 520px); height: clamp(70px, 20vh, 150px);
+  text-shadow: none; color: transparent;
+}
+
+/* painted energy meter */
+body.energy-art #energy-bar {
+  border: none; background: url("../assets/sprites/ui_energy_frame.png") center/100% 100% no-repeat;
+  height: 18px;
+}
+body.energy-art #energy-fill {
+  background: url("../assets/sprites/ui_energy_fill.png") left center/auto 100% repeat-x;
+  border-radius: 0;
+}
+body.energy-art #energy-bar::after { display: none; }
+
+/* painted plaques for shop upgrades and kingdom cards */
+body.upg-art .upg-card {
+  border-width: 16px; border-style: solid; border-color: transparent;
+  border-image: url("../assets/sprites/ui_card_upgrade.png") 34 fill round;
+  border-radius: 0; background: none; box-shadow: none;
+}
+body.kingdom-art .faction-card {
+  border-width: 16px; border-style: solid; border-color: transparent;
+  border-image: url("../assets/sprites/ui_card_kingdom.png") 34 fill round;
+  border-radius: 0; background: none; box-shadow: none;
+}
+
+/* vine rule under section headings */
+body.ui-art .shop-col-head, body.ui-art .shop-section-title {
+  border-bottom: none;
+  background: url("../assets/sprites/ui_divider.png") left bottom/100% 7px no-repeat;
+  padding-bottom: 8px;
+}

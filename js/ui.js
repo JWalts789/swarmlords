@@ -228,9 +228,28 @@ window.SL = window.SL || {};
     bannerTimer = setTimeout(() => el.classList.add('hidden'), 1500);
   }
 
+  // the big moments have lettered art where it exists; anything dynamic
+  // (a territory name in the stakes line) stays as type
+  const WORD_ART = {
+    'SPLAT!': 'word_splat',
+    'VICTORY!': 'word_victory',
+    'SQUASHED!': 'word_squashed',
+    'UNLOCKED!': 'word_unlocked',
+  };
+
   function titleCard(text, sub) {
     const root = $('titlecard-root');
-    $('titlecard-text').textContent = text;
+    const el = $('titlecard-text');
+    const art = WORD_ART[text] && SL.sprites.sheet(WORD_ART[text]);
+    if (art) {
+      el.textContent = '';
+      el.style.backgroundImage = 'url(' + art.src + ')';
+      el.classList.add('word-art');
+    } else {
+      el.style.backgroundImage = '';
+      el.classList.remove('word-art');
+    }
+    $('titlecard-text').textContent = art ? '' : text;
     $('titlecard-sub').textContent = sub || '';
     root.classList.remove('hidden');
     clearTimeout(titleCardTimer);

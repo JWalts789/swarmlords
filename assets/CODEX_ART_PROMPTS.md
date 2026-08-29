@@ -667,3 +667,100 @@ letter closes up or a stroke disappears, thicken it.
 | Batch | Assets | Status |
 |---|---|---|
 | P9 wordmarks | 7 × wordmark_*.png | PENDING |
+
+---
+
+# PRIORITY 10 — THE FURNITURE (added 2026-08-29)
+
+Everything the player *fights with* is painted. Everything the player
+*clicks* is still CSS: buttons, screen grounds, the sunburst behind SPLAT!,
+the energy meter, the shop plaques, the kingdom cards. This batch finishes
+the game.
+
+**Every hook is already live in the engine.** Drop a file in, refresh, it
+swaps itself in. Partial deliveries are fine — each family switches on
+independently, and anything missing keeps its current drawn version.
+
+## THE BRIEF FOR THIS BATCH
+
+Nature-inspired 1930s rubber-hose, **wacky and alive**. The difference from
+the earlier batches: this is furniture, so it must be characterful without
+being loud. Rules:
+
+- **Flat cel paint. No gradients, no gloss, no metallic sheen.** Two or
+  three flat tones plus one hard-edged shadow shape.
+- **Wobbly dark-sepia ink** (`#1b120c`) of visibly uneven weight.
+- Everything is **made of garden**: wood, bark, leaf, petal, pebble, husk,
+  chitin, silk, mud. Nothing looks manufactured or moulded.
+- **Alive** means asymmetry and imperfection — a knot in the wood, one
+  bent nail, a leaf that grew past the frame, a chewed corner. Never a
+  clean repeated pattern.
+- Muted aged palette: parchment `#f0e3c8`, ink `#2b1d16`, brass `#e0a51e`,
+  blood `#d84b2a`. Saturation stays low.
+- **These sit behind text.** Anywhere a label goes, keep it quiet and
+  light. When in doubt, plainer.
+
+## P10a — BUTTON PLATES (4 files, RGBA)
+
+`512×192` each. **9-slice with a 30px border**: the outer 30px is the
+decorated edge, the middle stretches. Keep the centre plain and light — a
+label sits on it. Transparent outside the plate.
+
+| File | It is |
+|---|---|
+| `ui_btn.png` | a plank of pale weathered wood, grain running lengthwise, one knot near a corner, two bent brass tacks at the ends |
+| `ui_btn_primary.png` | the same plank in warm brass-tinted wood, a small leaf sprig curling over one corner |
+| `ui_btn_danger.png` | the same plank in dark red-stained wood, one corner splintered and a thorn hooked over the edge |
+| `ui_pill.png` | `256×96`, 22px border — a smaller rounded bark tag for the map HUD readouts, dark so cream text reads on it |
+
+## P10b — SCREEN GROUNDS (3 files, opaque, JPEG fine)
+
+`1600×900`. These sit behind menus, so the **middle must be calm** —
+buttons and lists sit there. Put the interest at the edges.
+
+| File | The view |
+|---|---|
+| `menu_bg.jpg` | A garden at golden hour seen from insect height: soft out-of-focus grass and clover filling the lower third, tall stems and a few pale flowers framing the left and right edges, warm hazy sky above. Centre open and low-contrast. |
+| `select_bg.jpg` | The same garden at dusk, but read as a war council: a broad flat stone or tree stump surface filling the frame like a table top, faint chalk territory scratches on it, a few leaves and pebbles resting at the corners. |
+| `shop_bg.jpg` | The inside of a hollow log trading post: curved bark walls, shelves cut into the timber holding jars, seeds and folded leaves, a warm lantern glow from the left. Centre wall plain enough for cards to sit against. |
+
+## P10c — TITLE CARDS (5 files, RGBA)
+
+The loudest moment in the game and currently a CSS gradient.
+
+| File | Size | It is |
+|---|---|---|
+| `burst_gold.png` | 1024×1024 | A hand-inked cartoon sunburst: uneven wedge rays radiating from centre in brass and cream, wobbly edges, no two wedges the same width. Transparent between the outer ray tips. **Nothing in the middle third** — lettering goes there. |
+| `word_splat.png` | 1024×384 | The word **SPLAT!** hand-lettered, bulging cartoon capitals, blood-red with cream highlight and heavy sepia ink, letters at different angles as if hit. |
+| `word_victory.png` | 1024×384 | The word **VICTORY!** in triumphant brass capitals with a leaf-sprig flourish under it. |
+| `word_squashed.png` | 1024×384 | The word **SQUASHED!** with the letters compressed and drooping, one letter flattened. |
+| `word_unlocked.png` | 1024×384 | The word **UNLOCKED!** in bright cream capitals with small sparks flying off. |
+
+All four words: transparent background, no plaque, trimmed tight.
+
+## P10d — BATTLE HUD (2 files, RGBA)
+
+| File | Size | It is |
+|---|---|---|
+| `ui_energy_frame.png` | 512×48 | A long hollow trough of pale bark with inked ends, empty in the middle — the energy meter's housing. The fill is drawn inside it. |
+| `ui_energy_fill.png` | 64×48 | A short **horizontally tileable** slab of glowing amber nectar with a wobbly top edge. It repeats to fill the trough, so left and right edges must match seamlessly. |
+
+## P10e — PLAQUES (3 files, RGBA)
+
+| File | Size | It is |
+|---|---|---|
+| `ui_card_upgrade.png` | 384×256, 34px 9-slice | A pressed-leaf plaque for shop upgrades: a broad flat leaf with its stem curling round one corner, veins at the edges, plain pale centre for the upgrade name and description. |
+| `ui_card_kingdom.png` | 512×256, 34px 9-slice | A carved bark placard for the kingdom-select rows: rough bark border, plain sanded centre, a small nail at each end. |
+| `ui_divider.png` | 512×24 | A thin horizontal vine rule: a tendril with two or three tiny leaves, tapering to points at both ends, for under section headings. |
+
+## Delivery table
+
+| Batch | Assets | Status |
+|---|---|---|
+| P10a buttons | ui_btn, ui_btn_primary, ui_btn_danger, ui_pill | PENDING |
+| P10b grounds | menu_bg, select_bg, shop_bg | PENDING |
+| P10c title cards | burst_gold + 4 words | PENDING |
+| P10d battle HUD | ui_energy_frame, ui_energy_fill | PENDING |
+| P10e plaques | ui_card_upgrade, ui_card_kingdom, ui_divider | PENDING |
+
+**17 files.** With these the game has no programmer art left in it.
