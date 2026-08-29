@@ -1387,3 +1387,53 @@ body.cf-ants .f-ants::before, body.cf-wasps .f-wasps::before,
 body.cf-beetles .f-beetles::before, body.cf-mantids .f-mantids::before,
 body.cf-termites .f-termites::before, body.cf-moths .f-moths::before,
 body.cf-neutral .f-neutral::before { inset: 7% 9%; }
+
+/* ==================== P13/P14 HOOKS ====================
+   Lettered headings, HUD glyphs and rarity plaques. Each rule only bites
+   when its art exists, so the current type stays as the fallback. */
+
+/* --- shop: hand-lettered headings replace the UI font --- */
+/* the type only goes transparent once its replacement art has loaded,
+   otherwise the headings would simply vanish */
+body.head-art .shop-title.lettered,
+body.head-art .shop-col-head span.lettered {
+  color: transparent; text-shadow: none;
+  background-repeat: no-repeat; background-position: left center;
+  background-size: contain;
+  display: inline-block;
+}
+body.head-art .shop-title.lettered { width: 210px; height: 26px; }
+body.head-art .shop-col-head span.lettered { width: 128px; height: 15px; }
+body.head-art .shop-title.lettered { background-image: url("../assets/sprites/head_shop.png"); }
+body.head-art .head-market.lettered { background-image: url("../assets/sprites/head_market.png"); }
+body.head-art .head-upgrades.lettered { background-image: url("../assets/sprites/head_upgrades.png"); }
+body.head-art .head-muster.lettered { background-image: url("../assets/sprites/head_muster.png"); }
+
+/* --- map HUD: painted glyphs beside each readout --- */
+.hud-ic {
+  display: inline-block; width: 18px; height: 18px; vertical-align: -4px;
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+}
+.hud-ic-gold { background-image: url("../assets/sprites/hud_gold.png"); }
+.hud-ic-terr { background-image: url("../assets/sprites/hud_territory.png"); }
+.hud-ic-turn { background-image: url("../assets/sprites/hud_turn.png"); }
+.hud-ic-deck { background-image: url("../assets/sprites/hud_deck.png"); }
+.hud-ic-home { background-image: url("../assets/sprites/hud_home.png"); }
+.hud-ic-menu { background-image: url("../assets/sprites/hud_menu.png"); }
+body.hud-art #btn-home, body.hud-art #btn-menu { font-size: 0; padding: 5px 9px; }
+body.hud-art #btn-home .hud-ic, body.hud-art #btn-menu .hud-ic { vertical-align: middle; }
+
+/* --- shop upgrades: plaque by rarity --- */
+body.upg-art .upg-card.rarity-rare {
+  border-image-source: url("../assets/sprites/ui_card_upgrade_rare.png");
+}
+body.upg-art .upg-card.rarity-legendary {
+  border-image-source: url("../assets/sprites/ui_card_upgrade_legendary.png");
+}
+.upg-card.rarity-rare .upg-name { color: #2c5f86; }
+.upg-card.rarity-legendary .upg-name { color: #8a5a12; }
+.upg-card.upg-faction .upg-name::after {
+  content: ""; display: inline-block; width: 13px; height: 13px;
+  margin-left: 5px; vertical-align: -2px;
+  background-size: contain; background-repeat: no-repeat;
+}

@@ -752,11 +752,27 @@ window.SL = window.SL || {};
         ctx.lineWidth = 7;
         ctx.setLineDash([]);
         ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-        // inked dashes on top keep the hand-drawn character
-        ctx.strokeStyle = 'rgba(43,29,22,0.5)';
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([2, 9]);
-        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        // a painted trail is tiled along the connection; otherwise inked
+        // dashes keep the hand-drawn character
+        const road = SL.sprites.sheet('map_road');
+        if (road) {
+          const dx = p2.x - p1.x, dy = p2.y - p1.y;
+          const len = Math.hypot(dx, dy);
+          const th = 13;
+          ctx.save();
+          ctx.translate(p1.x, p1.y);
+          ctx.rotate(Math.atan2(dy, dx));
+          const step = th * (road.width / road.height);
+          for (let d0 = 0; d0 < len; d0 += step) {
+            ctx.drawImage(road, d0, -th / 2, Math.min(step, len - d0), th);
+          }
+          ctx.restore();
+        } else {
+          ctx.strokeStyle = 'rgba(43,29,22,0.5)';
+          ctx.lineWidth = 2.5;
+          ctx.setLineDash([2, 9]);
+          ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        }
       }
     }
     ctx.setLineDash([]);
@@ -812,6 +828,11 @@ window.SL = window.SL || {};
 
     // owner ring, styled per kingdom — outside the settlement, never across it
     const ringR = rad.ringR;
+    const ringArt = SL.sprites.sheet('node_ring_' + fid);
+    if (ringArt) {
+      const d = (ringR + style.lw) * 2.25;
+      ctx.drawImage(ringArt, p.x - d / 2, p.y - d / 2, d, d);
+    } else {
     ctx.strokeStyle = col;
     ctx.lineWidth = style.lw;
     ctx.setLineDash(style.dash || []);
@@ -824,6 +845,7 @@ window.SL = window.SL || {};
     ctx.strokeStyle = 'rgba(27,18,12,0.75)';
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(p.x, p.y, ringR + style.lw / 2 + 1, 0, Math.PI * 2); ctx.stroke();
+    }
 
     // A heraldic seal on every territory: the settlement shows the culture,
     // the seal shows the crown it answers to, which is what you scan for.

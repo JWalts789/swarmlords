@@ -41,7 +41,12 @@ window.SL = window.SL || {};
      'ui_btn', 'ui_btn_primary', 'ui_btn_danger', 'ui_pill',
      'ui_energy_frame', 'ui_energy_fill', 'ui_banner', 'ui_divider',
      'ui_card_upgrade', 'ui_card_kingdom', 'burst_gold',
-     'word_splat', 'word_victory', 'word_squashed', 'word_unlocked'].forEach(probe);
+          'word_splat', 'word_victory', 'word_squashed', 'word_unlocked',
+     // map furniture + shop lettering
+     'map_road', 'hud_turn', 'hud_deck', 'hud_home', 'hud_menu',
+     'hud_territory', 'hud_gold',
+     'head_shop', 'head_market', 'head_upgrades', 'head_muster',
+     'ui_card_upgrade_rare', 'ui_card_upgrade_legendary'].forEach(probe);
     // a battlefield per kingdom, chosen by whose ground is being fought over
     Object.keys(SL.DATA.FACTIONS).forEach((f) => probe('battle_bg_' + f));
     // per-faction territory art, falls back to the generic node when absent
@@ -53,6 +58,7 @@ window.SL = window.SL || {};
       probe('nameplate_' + f);
       probe('wordmark_' + f);
       probe('card_bg_' + f);
+      probe('node_ring_' + f);
     });
   }
 

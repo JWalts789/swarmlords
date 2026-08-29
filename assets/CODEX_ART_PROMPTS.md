@@ -895,3 +895,135 @@ keeps one scale and baseline per sheet, and emits the final `2816×256` strip.
 Rare ten-pose generator deliveries reuse their neutral pose as frame 11
 recovery. All 48 final sheets passed: 11 nonempty frames, transparent outer
 pixels, and no occupied pixels on a 256px cell boundary.
+
+---
+
+# PRIORITY 12 — CARD INTERIORS (7 files, added 2026-08-29)
+
+Every card currently shares one cream gradient behind its bug. The frames
+already differ per kingdom; the **interiors should too**, so a card reads as
+belonging to a faction before you register the art on it.
+
+`card_bg_<faction>.png` — **320×440** RGBA, drawn edge to edge (the engine
+insets it into the frame's opening, so no margin is needed).
+
+**Non-negotiable: these sit behind a bug, a name plate and stat text.** They
+must stay LIGHT and LOW-CONTRAST — think tinted paper, not a painting. If a
+bug silhouette would not read instantly against it, it is too busy. Keep the
+upper two-thirds especially calm; that is where the character stands.
+
+| File | The interior is |
+|---|---|
+| `card_bg_ants.png` | warm sand paper with a faint dry-earth wash and two or three pale pebble shapes ghosted low in the corners |
+| `card_bg_wasps.png` | pale straw paper with a very faint honeycomb grid, hexagons barely darker than the ground |
+| `card_bg_beetles.png` | cool grey-blue paper with a soft brushed-metal sheen and two faint rivet dots low down |
+| `card_bg_mantids.png` | pale green paper with one large soft leaf silhouette ghosted behind, veins barely visible |
+| `card_bg_termites.png` | bone paper with faint hairline cracks spreading from the lower corners |
+| `card_bg_moths.png` | dusk-lilac paper with a faint scatter of wing-scale motes and a barely-there crescent low left |
+| `card_bg_neutral.png` | mottled olive-grey paper with a soft moss bloom in one corner |
+
+Tone target: **all seven should sit within a narrow value range** — around
+80–92% luminance. They are backdrops. The frames carry the faction colour;
+these only tint it.
+
+---
+
+# PRIORITY 13 — MAP FURNITURE (14 files, added 2026-08-29)
+
+The conquest map's readouts are still UI text and its territory rings and
+roads are drawn with canvas strokes.
+
+## P13a — HUD glyphs (6 files, RGBA, 128×128)
+
+Small marks that sit beside each readout in the floating HUD. They render at
+**18px**, so: one bold shape, heavy sepia ink, no fine detail.
+
+| File | The mark |
+|---|---|
+| `hud_gold.png` | a single brass coin, three-quarter on, one bug-face stamp |
+| `hud_territory.png` | a small claimed plot: a hex of earth with a pennant staked in it |
+| `hud_turn.png` | a sundial face with a leaf as the gnomon |
+| `hud_deck.png` | three cards fanned, seen from the back, bark-patterned |
+| `hud_home.png` | a hive dome with a homeward arrow curling into its mouth |
+| `hud_menu.png` | three stacked twigs bound with a thread, reading as a menu bar |
+
+## P13b — Territory rings (7 files, RGBA, 512×512)
+
+`node_ring_<faction>.png` — the ring drawn around a settlement to show who
+holds it. Replaces the current stroked circle, so each kingdom's border is
+its own material.
+
+The centre must be **fully transparent** — the settlement art shows through.
+Keep the ring within the outer ~22% of the canvas. It renders at roughly
+110–150px.
+
+| File | The ring is made of |
+|---|---|
+| `node_ring_ants.png` | a circle of packed pebbles and crumbs, uneven, like a nest wall |
+| `node_ring_wasps.png` | a ring of layered paper comb with torn edges and a few open hexagons |
+| `node_ring_beetles.png` | a riveted iron hoop, segmented into plates, one dented |
+| `node_ring_mantids.png` | a clipped hedge ring with two leaf-blade finials opposite each other |
+| `node_ring_termites.png` | a cracked mud rampart ring with small drip-spires around it |
+| `node_ring_moths.png` | a ring of wound silk with two tiny lanterns hanging from it |
+| `node_ring_neutral.png` | a tangled bramble circle with thorns and one mushroom |
+
+## P13c — The roads (1 file)
+
+`map_road.png` — **128×32** RGBA, a short segment of a trodden garden trail:
+scuffed earth with a few pebbles and grass tufts at the edges.
+
+**It is tiled end to end along every connection**, so the **left and right
+edges must match seamlessly** — same as the nectar fill, which was perfect.
+It is also rotated to any angle, so keep it symmetrical top-to-bottom.
+
+---
+
+# PRIORITY 14 — SHOP LETTERING & RARITY (6 files, added 2026-08-29)
+
+## P14a — Hand-lettered headings (4 files, RGBA)
+
+The shop's headings are still set in the UI font against painted wood.
+
+| File | Size | Word |
+|---|---|---|
+| `head_shop.png` | 768×96 | **THE CAPITAL SHOP** — the largest, with a little brass flourish |
+| `head_market.png` | 512×64 | **SPECIES MARKET** |
+| `head_upgrades.png` | 512×64 | **COLONY UPGRADES** |
+| `head_muster.png` | 512×64 | **MUSTER OUT** |
+
+Same rules as the kingdom wordmarks: all caps, one horizontal line, trimmed
+tight, transparent, bold enough to read at **15–26px tall**. Cream lettering
+with heavy sepia ink so it sits on the dark shop header, except
+`head_market` / `head_upgrades` / `head_muster`, which sit on pale panels and
+want **dark sepia lettering** instead.
+
+## P14b — Upgrade rarity plaques (2 files, RGBA, 384×256)
+
+Everything in the shop today is a **starter** upgrade on the pressed-leaf
+plaque, and that stays. These add two tiers above it, for upgrades we add
+later — which may also be locked to a single kingdom.
+
+Both are **9-sliced with a 62/122/46 border**, so keep all ornament in the
+outer band and the centre plain and pale for the name, description and price.
+
+| File | The plaque is |
+|---|---|
+| `ui_card_upgrade_rare.png` | a lacquered leaf pressed under amber resin: deeper green, a faint amber sheen at the edges, two small brass pins holding it |
+| `ui_card_upgrade_legendary.png` | a gilded leaf skeleton: the blade mostly eaten away to veins, backed with pale gold leaf, a small crown notch at the top of the stem |
+
+Keep them recognisably the same family as the starter leaf — same silhouette
+and stem curl, richer material. Rarity should read as *value*, not as a
+different object.
+
+## Delivery table
+
+| Batch | Assets | Status |
+|---|---|---|
+| P12 card interiors | 7 × card_bg_*.png | PENDING |
+| P13a HUD glyphs | 6 files | PENDING |
+| P13b territory rings | 7 × node_ring_*.png | PENDING |
+| P13c road segment | map_road.png (seamless L/R) | PENDING |
+| P14a shop headings | 4 files | PENDING |
+| P14b rarity plaques | 2 files | PENDING |
+
+**27 files.** All hooks are already live in the engine.

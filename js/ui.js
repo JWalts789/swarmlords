@@ -145,7 +145,8 @@ window.SL = window.SL || {};
     } else {
       $('tb-terr').textContent = '⬢ ' + SL.conquest.playerTerrs().length;
     }
-    $('tb-turn').textContent = 'TURN ' + run.turn;
+    $('tb-turn').innerHTML = (SL.sprites.hasSheet('hud_turn')
+      ? '<span class="hud-ic hud-ic-turn"></span> ' : '') + 'TURN ' + run.turn;
   }
 
   function showTerritoryPanel(t) {
@@ -651,6 +652,8 @@ window.SL = window.SL || {};
       SL.conquest.startRun(selectedFaction);
     });
 
+    if (SL.sprites.hasSheet('hud_home')) $('btn-home').innerHTML = '<span class="hud-ic hud-ic-home"></span>';
+    if (SL.sprites.hasSheet('hud_menu')) $('btn-menu').innerHTML = '<span class="hud-ic hud-ic-menu"></span>';
     $('btn-home').addEventListener('click', () => {
       SL.audio.sfx('click');
       const cv = $('game-canvas');

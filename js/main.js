@@ -139,6 +139,8 @@ window.SL = window.SL || {};
       if (SL.sprites.hasSheet('burst_gold')) document.body.classList.add('burst-art');
       if (SL.sprites.hasSheet('ui_energy_frame')) document.body.classList.add('energy-art');
       if (SL.sprites.hasSheet('ui_card_upgrade')) document.body.classList.add('upg-art');
+      if (SL.sprites.hasSheet('head_shop')) document.body.classList.add('head-art');
+      if (SL.sprites.hasSheet('hud_gold')) document.body.classList.add('hud-art');
       if (SL.sprites.hasSheet('ui_card_kingdom')) document.body.classList.add('kingdom-art');
       // painted card frames replace the drawn ones per faction, as they land
       Object.keys(SL.DATA.FACTIONS).forEach((f) => {

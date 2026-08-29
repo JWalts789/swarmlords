@@ -149,7 +149,8 @@ window.SL = window.SL || {};
       const u = SL.DATA.UPGRADES.find((x) => x.id === upgId);
       const price = upgradePrice(run, upgId);
       const el = document.createElement('div');
-      el.className = 'upg-card';
+      el.className = 'upg-card rarity-' + (u.rarity || 'starter')
+        + (u.faction ? ' upg-faction f-' + u.faction : '');
       el.innerHTML = '<div class="upg-name">' + u.name + '</div><div class="upg-desc">' + u.desc + '</div>';
       const tag = document.createElement('div');
       tag.className = 'shop-item-price' + (run.gold < price ? ' cant' : '');

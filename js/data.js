@@ -288,17 +288,22 @@ window.SL = window.SL || {};
   };
 
   // ================= UPGRADES (run-persistent) =================
+  // Upgrades carry a rarity so the shop can plaque them differently, and an
+  // optional faction so later ones can be unlockable and kingdom-specific.
+  // Everything shipped so far is a 'starter': available to any kingdom.
+  const UPGRADE_RARITIES = ['starter', 'rare', 'legendary'];
+
   const UPGRADES = [
-    { id: 'royal_jelly', name: 'Royal Jelly', price: 14, desc: 'All your units +15% HP.' },
-    { id: 'mandibles', name: 'Serrated Mandibles', price: 14, desc: 'All your units +15% damage.' },
-    { id: 'rally', name: 'Rally Pheromones', price: 12, desc: 'Start battles with +1 energy.' },
-    { id: 'tunnels', name: 'Deep Tunnels', price: 16, desc: 'Battle hand holds 5 cards.' },
-    { id: 'nectar', name: 'Nectar Cache', price: 10, desc: '+2 gold every turn.' },
-    { id: 'silk', name: 'Silk Stitches', price: 12, desc: 'Your hive regenerates 1 HP / 5s.' },
-    { id: 'venom', name: 'Venom Sacs', price: 18, desc: 'Your melee attacks poison (3 dmg over 3s).' },
-    { id: 'chitin', name: 'Chitin Plating', price: 18, desc: 'All your units +1 armor.' },
-    { id: 'drums', name: 'War Drums', price: 12, desc: 'All your units +15% move speed.' },
-    { id: 'forage', name: 'Forager Caste', price: 10, desc: 'Battle gold loot +50%.' },
+    { id: 'royal_jelly', name: 'Royal Jelly', price: 14, desc: 'All your units +15% HP.', rarity: 'starter' },
+    { id: 'mandibles', name: 'Serrated Mandibles', price: 14, desc: 'All your units +15% damage.', rarity: 'starter' },
+    { id: 'rally', name: 'Rally Pheromones', price: 12, desc: 'Start battles with +1 energy.', rarity: 'starter' },
+    { id: 'tunnels', name: 'Deep Tunnels', price: 16, desc: 'Battle hand holds 5 cards.', rarity: 'starter' },
+    { id: 'nectar', name: 'Nectar Cache', price: 10, desc: '+2 gold every turn.', rarity: 'starter' },
+    { id: 'silk', name: 'Silk Stitches', price: 12, desc: 'Your hive regenerates 1 HP / 5s.', rarity: 'starter' },
+    { id: 'venom', name: 'Venom Sacs', price: 18, desc: 'Your melee attacks poison (3 dmg over 3s).', rarity: 'starter' },
+    { id: 'chitin', name: 'Chitin Plating', price: 18, desc: 'All your units +1 armor.', rarity: 'starter' },
+    { id: 'drums', name: 'War Drums', price: 12, desc: 'All your units +15% move speed.', rarity: 'starter' },
+    { id: 'forage', name: 'Forager Caste', price: 10, desc: 'Battle gold loot +50%.', rarity: 'starter' },
   ];
 
   // ================= TERRITORY BOONS =================
@@ -380,7 +385,7 @@ window.SL = window.SL || {};
 
   SL.DATA = {
     FACTIONS, FACTION_ORDER, PASSIVES, CARDS: C, START_DECKS, NEUTRAL_POOL,
-    UPGRADES, BOONS, TERR_NAMES, CAPITAL_NAMES, TIER_GATE, UNLOCKS,
+    UPGRADES, UPGRADE_RARITIES, BOONS, TERR_NAMES, CAPITAL_NAMES, TIER_GATE, UNLOCKS,
     LOYALTY, LOYALTY_KINDRED, LOYALTY_DEVOTED,
     cardsOfFaction, statLine,
   };
