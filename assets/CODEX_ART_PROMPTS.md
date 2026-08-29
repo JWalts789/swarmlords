@@ -565,3 +565,46 @@ it. No text. RGBA transparency.
 |---|---|---|
 | P7a emblems | 7 × emblem_*.png | PENDING |
 | P7b nameplates | 7 × nameplate_*.png (+ optional ui_nameplate) | PENDING |
+
+---
+
+# PRIORITY 8 — THE BATTLEFIELD (added 2026-08-29)
+
+The combat screen is the last unpainted surface in the game. Everything else
+on it is now art: units, hives, cards, frames. The ground they fight on is
+still a flat cream gradient.
+
+## Layout the art must respect
+
+Landscape. Each side's **hive stands at the vertical centre**, level with the
+middle of three horizontal lanes; troops march between them across the middle
+~50% of the width. The engine draws lane bands, dashed lane dividers, unit
+shadows and all UI on top.
+
+So the painting is **ground, not scenery**: it must stay quiet enough that
+small bugs read against it.
+
+| File | Size | Notes |
+|---|---|---|
+| `battle_bg.png` | 1600×800 | Opaque. Cover-fitted, so keep anything essential away from the outer 8%. |
+
+```
+A vintage 1930s rubber-hose cartoon garden battleground seen from a low
+side-on angle, painted in FLAT cel colours with no gradients and no gloss:
+a broad strip of bare trodden earth running left to right across the middle
+of the frame for armies to march on, bordered above by a soft band of
+out-of-focus grass, clover and a few pale flowers, and below by a darker
+foreground fringe of grass blades and a fallen leaf or two. Muted warm
+parchment and olive palette, hand-inked wobbly sepia outlines, subtle aged
+paper grain. The centre of the frame must stay OPEN, LOW-CONTRAST and
+UNCLUTTERED — no large objects, no strong shapes, nothing that would
+compete with small insect characters standing on it. No text, no
+characters, no border. Opaque 1600x800.
+```
+
+**Watch for:** anything busy or high-contrast in the middle band will fight
+the units. When in doubt, make it plainer — the drama comes from the bugs.
+
+| Batch | Assets | Status |
+|---|---|---|
+| P8 battlefield | battle_bg | PENDING |

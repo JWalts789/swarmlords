@@ -30,7 +30,7 @@ window.SL = window.SL || {};
     // conquest map + UI kit art (all optional, auto-swapped when delivered)
     ['map_bg', 'map_node', 'map_node_capital', 'map_crown',
      'ui_panel', 'ui_icons', 'ui_coin', 'ui_coin_stack', 'ui_boons',
-     'ui_nameplate', 'map_crown_fallen'].forEach(probe);
+     'ui_nameplate', 'map_crown_fallen', 'battle_bg'].forEach(probe);
     // per-faction territory art, falls back to the generic node when absent
     Object.keys(SL.DATA.FACTIONS).forEach((f) => {
       probe('map_node_' + f);
@@ -350,8 +350,10 @@ window.SL = window.SL || {};
       let dh = dw * (img.height / img.width);
       if (dh > maxH) { dh = maxH; dw = dh * (img.width / img.height); }
       if (o.mirror) ctx.scale(-1, 1);
-      ctx.drawImage(img, -dw / 2, -dh, dw, dh);
+      // anchor 'center' plants the hive on a lane line rather than the floor
+      ctx.drawImage(img, -dw / 2, o.anchor === 'center' ? -dh / 2 : -dh, dw, dh);
       ctx.restore();
+      if (o.report) o.report(dw, dh);
       return;
     }
     {

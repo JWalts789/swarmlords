@@ -174,13 +174,22 @@ window.SL = window.SL || {};
     const fieldTop = topbarL + 26;      // room for hive HP bars
     const fieldBot = LOGICAL_H - handL - 6;
     const laneH = (fieldBot - fieldTop) / LANES;
+    // The hive stands level with the middle lane. Its drawn width decides
+    // where the marching ground starts, so troops never overlap their base.
+    const fieldH = fieldBot - fieldTop;
+    const hiveH = Math.min(108, fieldH * 0.52);
+    const hiveW = hiveH * 2;              // delivered hive art is 2:1
+    // keep the whole base on screen: half its width, plus a margin
+    const hiveLX = hiveW * 0.5 + 8;
     B.layout = {
       scale, W,
       fieldTop, fieldBot, laneH,
-      fieldLeft: 150,
-      fieldRight: W - 150,
-      hiveLX: 78,
-      hiveRX: W - 78,
+      hiveH, hiveW,
+      hiveLX,
+      hiveRX: W - hiveLX,
+      hiveCY: fieldTop + fieldH / 2,
+      fieldLeft: hiveLX + hiveW * 0.46,
+      fieldRight: W - (hiveLX + hiveW * 0.46),
       barY: topbarL + 4,
     };
     return B.layout;
@@ -951,19 +960,25 @@ window.SL = window.SL || {};
     ctx.scale(L.scale, L.scale);
     const W = L.W, H = LOGICAL_H;
 
-    // --- background: vintage garden paper ---
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#d9c9a3');
-    g.addColorStop(0.5, '#e7d9b4');
-    g.addColorStop(1, '#cdbd92');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-
-    // halftone dots
-    ctx.fillStyle = 'rgba(43,29,22,0.05)';
-    for (let yy = 0; yy < H; yy += 14) {
-      for (let xx = (yy / 14) % 2 ? 7 : 0; xx < W; xx += 14) {
-        ctx.fillRect(xx, yy, 2, 2);
+    // --- background: painted battlefield if delivered, else garden paper ---
+    const bbg = SL.sprites.sheet('battle_bg');
+    if (bbg) {
+      // cover-fit so the painting is never squashed by the screen's aspect
+      const k = Math.max(W / bbg.width, H / bbg.height);
+      const dw = bbg.width * k, dh = bbg.height * k;
+      ctx.drawImage(bbg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    } else {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#d9c9a3');
+      g.addColorStop(0.5, '#e7d9b4');
+      g.addColorStop(1, '#cdbd92');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = 'rgba(43,29,22,0.05)';
+      for (let yy = 0; yy < H; yy += 14) {
+        for (let xx = (yy / 14) % 2 ? 7 : 0; xx < W; xx += 14) {
+          ctx.fillRect(xx, yy, 2, 2);
+        }
       }
     }
 
@@ -1035,18 +1050,20 @@ window.SL = window.SL || {};
     const ef = SL.DATA.FACTIONS[B.sides[1].faction];
     const shake0 = B.sides[0].hiveShakeT > 0 ? Math.sin(B.t * 60) * 3 : 0;
     const shake1 = B.sides[1].hiveShakeT > 0 ? Math.sin(B.t * 60) * 3 : 0;
-    const hiveH = Math.min(120, (L.fieldBot - L.fieldTop) * 0.62);
     SL.sprites.drawHive(ctx, B.sides[0].faction, {
-      x: L.hiveLX + shake0, y: L.fieldBot - 2, w: hiveH * 2, side: 0,
-      color: pf.color, maxH: hiveH,
+      x: L.hiveLX + shake0, y: L.hiveCY, w: L.hiveW, side: 0,
+      color: pf.color, maxH: L.hiveH, anchor: 'center',
     });
     SL.sprites.drawHive(ctx, B.sides[1].faction, {
-      x: L.hiveRX + shake1, y: L.fieldBot - 2, w: hiveH * 2, side: 1,
-      color: ef.color, maxH: hiveH, mirror: true,
+      x: L.hiveRX + shake1, y: L.hiveCY, w: L.hiveW, side: 1,
+      color: ef.color, maxH: L.hiveH, anchor: 'center', mirror: true,
     });
 
-    drawHiveBar(ctx, B.sides[0], L.hiveLX + 20, L.barY, pf.color);
-    drawHiveBar(ctx, B.sides[1], L.hiveRX - 20, L.barY, ef.color);
+    // bars ride above each base, clamped so neither runs off the edge
+    const barX0 = Math.max(94, Math.min(W - 94, L.hiveLX));
+    const barX1 = Math.max(94, Math.min(W - 94, L.hiveRX));
+    drawHiveBar(ctx, B.sides[0], barX0, L.barY, pf.color);
+    drawHiveBar(ctx, B.sides[1], barX1, L.barY, ef.color);
 
     // enemy reserves counter lives in the DOM topbar
     const reserves = B.sides[1].draw.length + B.sides[1].hand.filter(Boolean).length;

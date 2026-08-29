@@ -825,9 +825,21 @@ window.SL = window.SL || {};
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(p.x, p.y, ringR + style.lw / 2 + 1, 0, Math.PI * 2); ctx.stroke();
 
-    // kingdom emblem badge — only when there is no settlement art to speak
-    // for the faction already
-    if (!townImg) {
+    // A heraldic seal on every territory: the settlement shows the culture,
+    // the seal shows the crown it answers to, which is what you scan for.
+    const emblem = SL.sprites.sheet('emblem_' + fid);
+    if (emblem) {
+      const sr = t.capitalOf ? 15 : 13;
+      const sx = p.x - ringR * 0.70, sy = p.y - ringR * 0.70;
+      ctx.fillStyle = 'rgba(244,235,214,0.96)';
+      ctx.strokeStyle = '#1b120c';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(sx, sy, sr + 1.5, 0, Math.PI * 2); ctx.stroke();
+      ctx.drawImage(emblem, sx - sr + 1, sy - sr + 1, (sr - 1) * 2, (sr - 1) * 2);
+    } else if (!townImg) {
       const bx = p.x - r * 0.72, by = p.y - r * 0.72;
       ctx.fillStyle = 'rgba(240,227,200,0.94)';
       ctx.strokeStyle = '#1b120c';
@@ -929,70 +941,97 @@ window.SL = window.SL || {};
   }
 
   function drawLegend(ctx, L) {
+    // the map pans under a fixed HUD, so seat the legend on a soft band
+    const band = ctx.createLinearGradient(0, L.top - 62, 0, L.top - 4);
+    band.addColorStop(0, 'rgba(30,20,14,0.42)');
+    band.addColorStop(1, 'rgba(30,20,14,0)');
+    ctx.fillStyle = band;
+    ctx.fillRect(0, L.top - 62, L.W, 58);
+
     const chips = [['player', run.faction]].concat(run.rivals.map((f) => [f, f]));
-    const ICON = 26, PAD2 = 7, GAP = 12;
+    const ICON = 24, GAP = 10, H = 32;
     ctx.font = '900 10px "Trebuchet MS", sans-serif';
     ctx.textAlign = 'left';
 
-    const widths = chips.map(function (c) {
-      const label = c[0] === 'player' ? 'YOU' : SL.DATA.FACTIONS[c[1]].name;
-      return ICON + 4 + ctx.measureText(label).width + PAD2 * 2;
-    });
-    const total = widths.reduce((a, b) => a + b, 0) + GAP * (chips.length - 1);
-    let lx = Math.max(8, (L.W - total) / 2);
-    const cy = L.top - 34;
-    const h = ICON + PAD2;
+    const plateFor = (fid) => SL.sprites.sheet('nameplate_' + fid)
+      || SL.sprites.sheet('ui_nameplate');
 
-    chips.forEach(function (c, i) {
+    // A 3-sliced plate keeps its ornament in the outer quarter of the source.
+    // Content has to start inside that cap or it sits on top of the artwork.
+    const ph = H + 10;
+    const capOf = (img) => (img ? ph * (img.width * 0.25) / img.height : 0);
+    const padOf = (cap) => (cap ? 3 : 7);
+
+    const meta = chips.map(function (c) {
       const owner = c[0], fid = c[1];
       const alive = factionAlive(owner === 'player' ? 'player' : fid);
-      const fac = SL.DATA.FACTIONS[fid];
-      const label = owner === 'player' ? 'YOU' : fac.name;
-      const w = widths[i];
-      ctx.globalAlpha = alive ? 1 : 0.4;
+      const label = (owner === 'player' ? 'YOU' : SL.DATA.FACTIONS[fid].name)
+        + (alive ? '' : ' \u2620');
+      const img = plateFor(fid);
+      const cap = capOf(img);
+      const pad = padOf(cap);
+      const w = cap * 2 + pad * 2 + ICON + 5 + ctx.measureText(label).width;
+      return { owner, fid, alive, label, img, cap, pad, w };
+    });
 
-      // plate: the kingdom's own nameplate art, else a generic plate, else drawn
-      const plate = SL.sprites.sheet('nameplate_' + fid) || SL.sprites.sheet('ui_nameplate');
-      if (plate) {
-        // 3-slice: fixed decorative caps, stretched plain middle, so the
-        // ornament never distorts however long the kingdom's name is
-        const px = lx - 7, py = cy - h / 2 - 6, pw = w + 14, ph = h + 12;
-        const sw = plate.width, sh = plate.height;
-        const capS = Math.floor(sw * 0.25);              // source cap width
-        const capD = Math.min(ph * (capS / sh), pw / 2); // drawn cap width
-        ctx.drawImage(plate, 0, 0, capS, sh, px, py, capD, ph);
-        ctx.drawImage(plate, capS, 0, sw - capS * 2, sh,
-          px + capD, py, Math.max(0, pw - capD * 2), ph);
-        ctx.drawImage(plate, sw - capS, 0, capS, sh, px + pw - capD, py, capD, ph);
+    const total = meta.reduce((n, m) => n + m.w, 0) + GAP * (meta.length - 1);
+    let lx = Math.max(6, (L.W - total) / 2);
+    const cy = L.top - 34;
+
+    meta.forEach(function (m) {
+      const fac = SL.DATA.FACTIONS[m.fid];
+      ctx.globalAlpha = m.alive ? 1 : 0.45;
+
+      if (m.img) {
+        // fixed decorative caps, stretched plain middle
+        const sw = m.img.width, sh = m.img.height;
+        const capS = sw * 0.25;
+        const py = cy - ph / 2;
+        ctx.drawImage(m.img, 0, 0, capS, sh, lx, py, m.cap, ph);
+        ctx.drawImage(m.img, capS, 0, sw - capS * 2, sh,
+          lx + m.cap, py, Math.max(0, m.w - m.cap * 2), ph);
+        ctx.drawImage(m.img, sw - capS, 0, capS, sh, lx + m.w - m.cap, py, m.cap, ph);
       } else {
         ctx.fillStyle = 'rgba(240,227,200,0.92)';
         ctx.strokeStyle = '#1b120c';
         ctx.lineWidth = 2;
-        roundRect(ctx, lx, cy - h / 2, w, h, 9);
+        roundRect(ctx, lx, cy - H / 2, m.w, H, 9);
         ctx.fill(); ctx.stroke();
         ctx.fillStyle = fac.color;
-        roundRect(ctx, lx, cy - h / 2, 5, h, 3); ctx.fill();
+        roundRect(ctx, lx, cy - H / 2, 5, H, 3); ctx.fill();
       }
 
-      const ix = lx + PAD2;
-      if (!drawMark(ctx, fid, ix, cy - ICON / 2, ICON)) {
+      const ix = lx + m.cap + m.pad;
+      // the plates are faction-coloured and so are the emblems, so the mark
+      // sits on a cream seal or it disappears into its own banner
+      ctx.fillStyle = 'rgba(244,235,214,0.95)';
+      ctx.strokeStyle = '#1b120c';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.arc(ix + ICON / 2, cy, ICON / 2 + 1.5, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+      if (!drawMark(ctx, m.fid, ix + 1, cy - ICON / 2 + 1, ICON - 2)) {
         ctx.fillStyle = fac.color;
-        ctx.strokeStyle = '#1b120c';
-        ctx.beginPath(); ctx.arc(ix + ICON / 2, cy, 7, 0, Math.PI * 2);
-        ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(ix + ICON / 2, cy, 7, 0, Math.PI * 2); ctx.fill();
       }
 
-      ctx.fillStyle = '#2b1d16';
-      ctx.fillText(alive ? label : label + ' \u2620', ix + ICON + 4, cy + 4);
+      // the painted plates are saturated and dark, so the label is cream
+      // with an ink stroke — legible on plate art or on the drawn fallback
+      const tx = ix + ICON + 5;
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = 'rgba(20,13,9,0.9)';
+      ctx.lineWidth = 3;
+      ctx.strokeText(m.label, tx, cy + 4);
+      ctx.fillStyle = '#f7ecd2';
+      ctx.fillText(m.label, tx, cy + 4);
 
-      if (!alive) {
+      if (!m.alive) {
         ctx.strokeStyle = '#d84b2a';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(lx + 4, cy); ctx.lineTo(lx + w - 4, cy); ctx.stroke();
+        ctx.moveTo(lx + m.cap, cy); ctx.lineTo(lx + m.w - m.cap, cy); ctx.stroke();
       }
       ctx.globalAlpha = 1;
-      lx += w + GAP;
+      lx += m.w + GAP;
     });
   }
 
