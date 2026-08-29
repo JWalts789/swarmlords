@@ -177,7 +177,10 @@ window.SL = window.SL || {};
     // The hive stands level with the middle lane. Its drawn width decides
     // where the marching ground starts, so troops never overlap their base.
     const fieldH = fieldBot - fieldTop;
-    const hiveH = Math.min(108, fieldH * 0.52);
+    // Hive size and field margin are a BALANCE parameter, not just a visual
+    // one: the marching corridor was tuned at ~500 logical units, and
+    // shrinking it favours melee duelists over ranged and attrition builds.
+    const hiveH = Math.min(96, fieldH * 0.46);
     const hiveW = hiveH * 2;              // delivered hive art is 2:1
     // keep the whole base on screen: half its width, plus a margin
     const hiveLX = hiveW * 0.5 + 8;
@@ -188,8 +191,8 @@ window.SL = window.SL || {};
       hiveLX,
       hiveRX: W - hiveLX,
       hiveCY: fieldTop + fieldH / 2,
-      fieldLeft: hiveLX + hiveW * 0.46,
-      fieldRight: W - (hiveLX + hiveW * 0.46),
+      fieldLeft: hiveLX + hiveW * 0.34,
+      fieldRight: W - (hiveLX + hiveW * 0.34),
       barY: topbarL + 4,
     };
     return B.layout;
