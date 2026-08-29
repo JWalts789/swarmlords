@@ -974,7 +974,18 @@ window.SL = window.SL || {};
       return { owner, fid, alive, label, img, cap, pad, w };
     });
 
-    const total = meta.reduce((n, m) => n + m.w, 0) + GAP * (meta.length - 1);
+    let total = meta.reduce((n, m) => n + m.w, 0) + GAP * (meta.length - 1);
+    // On a narrow screen four full plates fill the row and the labels press
+    // into their end caps. Drop the wordmarks and keep the seals, which are
+    // the part that actually identifies a kingdom.
+    const budget = L.W * 0.86;
+    if (total > budget) {
+      meta.forEach(function (m) {
+        m.compact = true;
+        m.w = m.cap * 2 + m.pad * 2 + ICON;
+      });
+      total = meta.reduce((n, m) => n + m.w, 0) + GAP * (meta.length - 1);
+    }
     let lx = Math.max(6, (L.W - total) / 2);
     const cy = L.top - 34;
 
@@ -1016,13 +1027,18 @@ window.SL = window.SL || {};
 
       // the painted plates are saturated and dark, so the label is cream
       // with an ink stroke — legible on plate art or on the drawn fallback
-      const tx = ix + ICON + 5;
-      ctx.lineJoin = 'round';
-      ctx.strokeStyle = 'rgba(20,13,9,0.9)';
-      ctx.lineWidth = 3;
-      ctx.strokeText(m.label, tx, cy + 4);
-      ctx.fillStyle = '#f7ecd2';
-      ctx.fillText(m.label, tx, cy + 4);
+      if (!m.compact) {
+        const tx = ix + ICON + 5;
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = 'rgba(20,13,9,0.9)';
+        ctx.lineWidth = 3;
+        ctx.strokeText(m.label, tx, cy + 4);
+        ctx.fillStyle = '#f7ecd2';
+        ctx.fillText(m.label, tx, cy + 4);
+      } else if (!m.alive) {
+        ctx.fillStyle = '#d84b2a';
+        ctx.fillText('☠', ix + ICON + 2, cy + 4);
+      }
 
       if (!m.alive) {
         ctx.strokeStyle = '#d84b2a';

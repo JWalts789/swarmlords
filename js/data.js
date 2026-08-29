@@ -91,7 +91,7 @@ window.SL = window.SL || {};
     { hp: 38, dmg: 6, atkInt: 0.9, spd: 45, hiveDmg: 2 },
     { shape: 'ant', size: 1.0 }, 'The dependable line-bug.'));
   add(U('ant_spitter', 'ants', 2, 3, 'Acid Spitter',
-    { hp: 24, dmg: 5, atkInt: 1.1, spd: 40, range: 120, air: true, hiveDmg: 1 },
+    { hp: 24, dmg: 5, atkInt: 1.1, spd: 40, range: 120, air: true, traits: { proj: 'acid' }, hiveDmg: 1 },
     { shape: 'ant', size: 0.9, snout: true }, 'Sprays formic acid. Hits fliers.'));
   add(U('ant_bullet', 'ants', 2, 3, 'Bullet Ant',
     { hp: 30, dmg: 14, atkInt: 1.3, spd: 70, hiveDmg: 2 },
@@ -117,7 +117,7 @@ window.SL = window.SL || {};
     { hp: 26, dmg: 7, atkInt: 0.9, spd: 75, fly: true, air: true, hiveDmg: 2 },
     { shape: 'wasp', size: 0.9 }, 'Quick flier. Ignores the ground war.'));
   add(U('wasp_paper', 'wasps', 1, 2, 'Paper Wasp',
-    { hp: 22, dmg: 5, atkInt: 1.0, spd: 40, range: 110, air: true, hiveDmg: 1 },
+    { hp: 22, dmg: 5, atkInt: 1.0, spd: 40, range: 110, air: true, traits: { proj: 'pellet' }, hiveDmg: 1 },
     { shape: 'wasp', size: 0.9, ground: true }, 'Ground sniper. Swats fliers.'));
   add(U('wasp_jacket', 'wasps', 2, 3, 'Yellowjackets',
     { hp: 20, dmg: 8, atkInt: 1.0, spd: 80, fly: true, air: true, hiveDmg: 1, traits: { swarm: 2 } },
@@ -146,7 +146,7 @@ window.SL = window.SL || {};
     { hp: 45, dmg: 5, atkInt: 1.0, spd: 40, hiveDmg: 2 },
     { shape: 'beetle', size: 0.9, spots: true }, 'Deceptively adorable line-holder.'));
   add(U('btl_weevil', 'beetles', 1, 2, 'Weevil Gunner',
-    { hp: 30, dmg: 6, atkInt: 1.2, spd: 35, range: 100, air: true, hiveDmg: 1 },
+    { hp: 30, dmg: 6, atkInt: 1.2, spd: 35, range: 100, air: true, traits: { proj: 'pellet' }, hiveDmg: 1 },
     { shape: 'beetle', size: 0.85, snout: true }, 'Pellet snout. Reaches the sky.'));
   add(U('btl_tortoise', 'beetles', 2, 3, 'Tortoise Beetle',
     { hp: 110, dmg: 4, atkInt: 1.4, spd: 25, armor: 2, hiveDmg: 2 },
@@ -155,7 +155,7 @@ window.SL = window.SL || {};
     { hp: 95, dmg: 12, atkInt: 1.3, spd: 30, armor: 1, hiveDmg: 3 },
     { shape: 'beetle', size: 1.25, horns: true }, 'Pincers first, questions never.'));
   add(U('btl_bombardier', 'beetles', 3, 5, 'Bombardier',
-    { hp: 55, dmg: 10, atkInt: 1.6, spd: 30, range: 130, air: true, hiveDmg: 2, traits: { splash: 35 } },
+    { hp: 55, dmg: 10, atkInt: 1.6, spd: 30, range: 130, air: true, hiveDmg: 2, traits: { proj: 'seed',  splash: 35 } },
     { shape: 'beetle', size: 1.1, cannon: true }, 'Chemical artillery. Splashes.'));
   add(U('btl_rhino', 'beetles', 3, 6, 'Rhino Beetle',
     { hp: 160, dmg: 18, atkInt: 1.4, spd: 28, armor: 1, hiveDmg: 6 },
@@ -198,7 +198,7 @@ window.SL = window.SL || {};
     { hp: 55, dmg: 10, atkInt: 1.1, spd: 38, hiveDmg: 2 },
     { shape: 'termite', size: 1.1, jaw: true }, 'Soldier caste. All head.'));
   add(U('ter_nasute', 'termites', 2, 3, 'Nasute Glueshot',
-    { hp: 30, dmg: 6, atkInt: 1.1, spd: 35, range: 110, air: true, hiveDmg: 1, traits: { slow: { mult: 0.7, dur: 2 } } },
+    { hp: 30, dmg: 6, atkInt: 1.1, spd: 35, range: 110, air: true, hiveDmg: 1, traits: { proj: 'glue',  slow: { mult: 0.7, dur: 2 } } },
     { shape: 'termite', size: 0.9, snout: true }, 'Sticky spray slows what it hits.'));
   add(U('ter_rampart', 'termites', 2, 3, 'Mud Rampart',
     { hp: 140, dmg: 0, atkInt: 9, spd: 0, hiveDmg: 0, armor: 1 },
@@ -227,7 +227,7 @@ window.SL = window.SL || {};
     { hp: 62, dmg: 14, atkInt: 1.1, spd: 80, fly: true, air: true, hiveDmg: 3, traits: { strafe: true } },
     { shape: 'moth', size: 1.1 }, 'Fastest wings in the garden.'));
   add(U('mot_dustcaster', 'moths', 2, 4, 'Dustcaster',
-    { hp: 45, dmg: 8, atkInt: 1.2, spd: 35, range: 120, air: true, hiveDmg: 1, traits: { slow: { mult: 0.6, dur: 2.5 } } },
+    { hp: 45, dmg: 8, atkInt: 1.2, spd: 35, range: 120, air: true, hiveDmg: 1, traits: { proj: 'dust',  slow: { mult: 0.6, dur: 2.5 } } },
     { shape: 'moth', size: 1.0, ground: true, hood: true }, 'Sleep dust. Slows the rabble.'));
   add(U('mot_luna', 'moths', 3, 5, 'Luna Moth',
     { hp: 95, dmg: 16, atkInt: 1.2, spd: 55, fly: true, air: true, hiveDmg: 3, traits: { strafe: true } },
@@ -247,7 +247,7 @@ window.SL = window.SL || {};
 
   // ================= NEUTRAL WILDS =================
   add(U('neu_orbweaver', 'neutral', 2, 4, 'Orb Weaver',
-    { hp: 60, dmg: 8, atkInt: 1.1, spd: 30, range: 100, air: true, hiveDmg: 2, traits: { slow: { mult: 0.5, dur: 2 } } },
+    { hp: 60, dmg: 8, atkInt: 1.1, spd: 30, range: 100, air: true, hiveDmg: 2, traits: { proj: 'web',  slow: { mult: 0.5, dur: 2 } } },
     { shape: 'spider', size: 1.1 }, 'Webs slow everything they touch.'));
   add(U('neu_wolf', 'neutral', 2, 4, 'Wolf Spider',
     { hp: 80, dmg: 16, atkInt: 1.1, spd: 75, hiveDmg: 3 },

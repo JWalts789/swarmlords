@@ -305,8 +305,16 @@ window.SL = window.SL || {};
     if (img) {
       const fw = 256;
       let frame;
-      if (o.state === 'fight' || o.state === 'chomp') frame = 4 + (Math.floor(o.t * 6) % 2);
-      else frame = Math.floor(o.t * 8) % 4;
+      if (o.state === 'fight' || o.state === 'chomp') {
+        // o.atkPhase runs 0->1 across one attack cycle: wind up, then strike
+        const ph = o.atkPhase === undefined ? (Math.floor(o.t * 6) % 2) / 2 : o.atkPhase;
+        frame = ph < 0.55 ? 4 : 5;
+      } else {
+        // o.walkPhase advances with real distance travelled, so a snail
+        // shuffles and a bullet ant sprints
+        const wp = o.walkPhase === undefined ? o.t * 8 : o.walkPhase;
+        frame = Math.floor(wp) % 4;
+      }
       // sheetScale compensates sheets whose subject is drawn small in-cell
       // (e.g. sluglet: already drawn half-size AND stat-scaled — see data.js)
       // maxH keeps champions and other big art inside their lane band
@@ -532,8 +540,77 @@ window.SL = window.SL || {};
 
   function logoSheet() { return sheet('logo_wordmark'); }
 
+  // ---------- projectiles ----------
+  // Each ranged unit throws something recognisable rather than a coloured dot.
+  const PROJ = {
+    acid:   { fill: '#8fbf3f', ink: '#33501a', shape: 'drop',  r: 5.0 },
+    pellet: { fill: '#b9a88a', ink: '#4a4033', shape: 'ball',  r: 3.6 },
+    glue:   { fill: '#d8b45c', ink: '#6b501c', shape: 'blob',  r: 5.2 },
+    web:    { fill: '#f2ecdd', ink: '#5a5348', shape: 'web',   r: 5.4 },
+    dust:   { fill: '#b79ad6', ink: '#4b3866', shape: 'puff',  r: 5.6 },
+    seed:   { fill: '#c9762f', ink: '#5c3312', shape: 'ball',  r: 4.2 },
+  };
+
+  function drawProjectile(ctx, p) {
+    const img = p.art && sheet(p.art);
+    if (img) {
+      const d = (p.r || 5) * 3;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.dir < 0 ? Math.PI : 0);
+      ctx.drawImage(img, -d / 2, -d / 2, d, d);
+      ctx.restore();
+      return;
+    }
+    const k = PROJ[p.kind] || PROJ.pellet;
+    const r = k.r;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.scale(p.dir < 0 ? -1 : 1, 1);
+    // a short trail sells travel far better than a static dot
+    ctx.strokeStyle = k.fill;
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = r * 0.8;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-r * 3.2, 0); ctx.lineTo(-r * 0.6, 0); ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = k.fill;
+    ctx.strokeStyle = k.ink;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    if (k.shape === 'drop') {
+      ctx.moveTo(r * 1.5, 0);
+      ctx.quadraticCurveTo(r * 0.2, -r, -r * 0.9, -r * 0.35);
+      ctx.quadraticCurveTo(-r * 1.3, 0, -r * 0.9, r * 0.35);
+      ctx.quadraticCurveTo(r * 0.2, r, r * 1.5, 0);
+    } else if (k.shape === 'blob') {
+      ctx.ellipse(0, 0, r * 1.15, r * 0.8, 0.3, 0, Math.PI * 2);
+    } else if (k.shape === 'puff') {
+      ctx.arc(-r * 0.5, 0, r * 0.62, 0, Math.PI * 2);
+      ctx.arc(r * 0.45, -r * 0.28, r * 0.72, 0, Math.PI * 2);
+      ctx.arc(r * 0.3, r * 0.42, r * 0.55, 0, Math.PI * 2);
+    } else {
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    if (k.shape === 'web') {
+      ctx.strokeStyle = k.ink;
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(-Math.cos(a) * r, -Math.sin(a) * r);
+        ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
   SL.sprites = {
     init, drawUnit, drawHive, thumb, shade, makeMarchingBug, logoSheet,
+    drawProjectile,
     hasSheet: (n) => !!sheet(n),
     sheet, // raw access for map/UI art
   };

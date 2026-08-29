@@ -269,6 +269,7 @@ window.SL = window.SL || {};
       maxHp: Math.round(def.hp * hpMult),
       armor: def.armor + m.armorAdd,
       state: def.spd === 0 ? 'hold' : 'march',
+      walkPhase: B.rng.range(0, 4),   // desynced so a rank does not march in lockstep
       atkCd: def.atkInt * 0.5,
       t: B.rng.range(0, 5),
       slowT: 0, slowMult: 1,
@@ -563,6 +564,9 @@ window.SL = window.SL || {};
               x: u.x, y: laneY(u.lane) + u.yJit,
               tgt, side: u.side, att: u,
               spd: 340, color: SL.DATA.FACTIONS[u.def.faction].color,
+              kind: (u.def.traits && u.def.traits.proj) || 'pellet',
+              art: 'proj_' + u.def.id,
+              dir: u.side === 0 ? 1 : -1,
             });
           } else {
             doDamageWithSplash(u, tgt);
@@ -595,6 +599,9 @@ window.SL = window.SL || {};
         if (u.side === 0 && o.x > u.x && nx > o.x - gap) nx = o.x - gap;
         if (u.side === 1 && o.x < u.x && nx < o.x + gap) nx = o.x + gap;
       }
+      // one full four-frame cycle per ~34px travelled keeps stride and
+      // ground speed in agreement for every unit
+      u.walkPhase += Math.abs(nx - u.x) / 34 * 4;
       u.x = nx;
 
       // reached far hive?
@@ -1130,6 +1137,9 @@ window.SL = window.SL || {};
         y: laneY(u.lane) + u.yJit,
         side: u.side,
         t: u.t,
+        walkPhase: u.walkPhase,
+        // 0 just after a swing, 1 as the next one lands
+        atkPhase: 1 - Math.max(0, Math.min(1, u.atkCd / Math.max(0.05, unitAtkInt(u)))),
         state: u.state === 'hold' ? 'march' : u.state,
         color: SL.DATA.FACTIONS[u.def.faction].color,
         size: unitSize,
@@ -1141,12 +1151,7 @@ window.SL = window.SL || {};
     }
 
     // projectiles
-    for (const p of B.projectiles) {
-      ctx.fillStyle = p.color;
-      ctx.strokeStyle = '#1b120c';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    }
+    for (const p of B.projectiles) SL.sprites.drawProjectile(ctx, p);
 
     // particles
     for (const pt of B.particles) {
