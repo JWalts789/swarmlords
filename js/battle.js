@@ -786,37 +786,10 @@ window.SL = window.SL || {};
       const def = SL.DATA.CARDS[id];
       if (!def) return;
       const c = effCost(side, def);
-      const fac = SL.DATA.FACTIONS[def.faction] || SL.DATA.FACTIONS.neutral;
-      const el = document.createElement('button');
-      el.className = 'hand-card f-' + def.faction + (def.type === 'tactic' ? ' tactic' : '');
-      el.style.setProperty('--fc', fac.color);
-      el.style.setProperty('--fc-soft', hexA(fac.color, 0.3));
+      const el = SL.ui.buildCard(id, { size: 'hand', cost: c });
       if (i === B.armed) el.classList.add('armed');
-      if (c > side.energy) el.classList.add('unaffordable');
-      else el.classList.add('ready');
+      el.classList.add(c > side.energy ? 'unaffordable' : 'ready');
 
-      const art = document.createElement('div');
-      art.className = 'hc-art';
-      art.appendChild(SL.sprites.thumb(id, 58));
-
-      const plate = document.createElement('div');
-      plate.className = 'hc-plate';
-      const nm = document.createElement('div');
-      nm.className = 'hc-name';
-      nm.textContent = def.name;
-      plate.appendChild(nm);
-
-      const cost = document.createElement('div');
-      cost.className = 'hc-cost' + (c < def.cost ? ' discount' : '');
-      cost.textContent = c;
-
-      const pips = document.createElement('div');
-      pips.className = 'hc-pips';
-      pips.textContent = def.type === 'tactic' ? '◆' : '★'.repeat(def.tier);
-
-      el.appendChild(art); el.appendChild(pips); el.appendChild(plate); el.appendChild(cost);
-      el._cost = cost;
-      handEls[i] = el;
       // tap arms the card; press-and-hold inspects it instead
       let held = false;
       el.addEventListener('pointerdown', (ev) => {
@@ -924,9 +897,9 @@ window.SL = window.SL || {};
       el.classList.toggle('armed', i === B.armed);
       el.classList.toggle('unaffordable', poor);
       el.classList.toggle('ready', !poor);
-      if (el._cost) {
-        el._cost.textContent = c;
-        el._cost.classList.toggle('discount', c < def.cost);
+      if (el._costEl) {
+        el._costEl.textContent = c;
+        el._costEl.classList.toggle('discount', c < def.cost);
       }
     }
   }
@@ -1003,6 +976,42 @@ window.SL = window.SL || {};
 
   // ---------------- render ----------------
 
+  const battleBgBlends = {};
+
+  function factionBattleBg(leftFaction, rightFaction) {
+    const left = SL.sprites.sheet('battle_bg_' + leftFaction);
+    const right = SL.sprites.sheet('battle_bg_' + rightFaction);
+    if (!left && !right) return SL.sprites.sheet('battle_bg');
+    if (!left) return right;
+    if (!right || leftFaction === rightFaction) return left;
+
+    const key = leftFaction + '>' + rightFaction;
+    if (battleBgBlends[key]) return battleBgBlends[key];
+
+    // All faction plates share the P8 1600x800 composition. Build the
+    // crossfade once per matchup so the battle loop still draws one image.
+    const w = 1600, h = 800;
+    const mixed = document.createElement('canvas');
+    mixed.width = w; mixed.height = h;
+    const mctx = mixed.getContext('2d');
+    mctx.drawImage(left, 0, 0, w, h);
+
+    const overlay = document.createElement('canvas');
+    overlay.width = w; overlay.height = h;
+    const octx = overlay.getContext('2d');
+    octx.drawImage(right, 0, 0, w, h);
+    octx.globalCompositeOperation = 'destination-in';
+    const fade = octx.createLinearGradient(0, 0, w, 0);
+    fade.addColorStop(0.38, 'rgba(255,255,255,0)');
+    fade.addColorStop(0.62, 'rgba(255,255,255,1)');
+    octx.fillStyle = fade;
+    octx.fillRect(0, 0, w, h);
+    mctx.drawImage(overlay, 0, 0);
+
+    battleBgBlends[key] = mixed;
+    return mixed;
+  }
+
   function render(ctx, canvasW, canvasH) {
     if (!B.sides) return;
     const L = layout(canvasW, canvasH);
@@ -1011,7 +1020,7 @@ window.SL = window.SL || {};
     const W = L.W, H = LOGICAL_H;
 
     // --- background: painted battlefield if delivered, else garden paper ---
-    const bbg = SL.sprites.sheet('battle_bg');
+    const bbg = factionBattleBg(B.sides[0].faction, B.sides[1].faction);
     if (bbg) {
       // cover-fit so the painting is never squashed by the screen's aspect
       const k = Math.max(W / bbg.width, H / bbg.height);

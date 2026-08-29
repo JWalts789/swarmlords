@@ -282,27 +282,7 @@ html, body {
 .modal-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
 /* draft cards */
-.draft-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-.draft-card {
-  width: 104px; border: 3px solid var(--ink); border-radius: 14px;
-  background: #fff6dd; box-shadow: 0 3px 0 var(--ink);
-  padding: 8px 6px; text-align: center; cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  position: relative;
-}
-.draft-card:active { transform: translateY(2px); }
-.draft-card .dc-art canvas, .draft-card .dc-art img { width: 64px; height: 64px; }
-.draft-card .dc-name { font-size: 11px; font-weight: 900; line-height: 1.1; }
-.draft-card .dc-stats { font-size: 9px; color: var(--ink-soft); line-height: 1.3; }
-.draft-card .dc-cost {
-  position: absolute; top: -8px; left: -8px;
-  width: 24px; height: 24px; border-radius: 50%;
-  background: var(--brass); border: 2px solid var(--ink);
-  font-size: 12px; font-weight: 900;
-  display: flex; align-items: center; justify-content: center;
-}
-.draft-card .dc-tier { font-size: 9px; color: var(--brass); font-weight: 900; letter-spacing: 2px; }
-.draft-card.tactic { background: #efe4f7; }
+.draft-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: stretch; }
 
 /* shop */
 .shop-section-title {
@@ -433,9 +413,7 @@ body.ui-art .modal-box, body.ui-art #map-panel {
 /* compact battle hand on short (landscape phone) screens */
 @media (max-height: 500px) {
   :root { --card-w: 62px; --card-h: 82px; }
-  .hand-card .hc-art canvas, .hand-card .hc-art img { width: 44px; height: 44px; }
-  .hand-card .hc-name { font-size: 7px; }
-  #hand-area { padding: 4px calc(8px + var(--safe-right)) calc(4px + var(--safe-bot)) calc(8px + var(--safe-left)); }
+      #hand-area { padding: 4px calc(8px + var(--safe-right)) calc(4px + var(--safe-bot)) calc(8px + var(--safe-left)); }
   #energy-bar { bottom: calc(94px + var(--safe-bot)); height: 11px; }
   #next-thumb { width: 34px; height: 44px; }
   .screen-title { font-size: 20px; margin: 6px 0 10px; }
@@ -521,16 +499,8 @@ body.ui-art .modal-box, body.ui-art #map-panel { background-color: var(--paper);
 body.ui-art .shop-col { background-color: rgba(240,227,200,.9); }
 
 /* shop market cards get room to breathe on their own screen */
-.shop-cards .draft-card { width: 136px; padding: 10px 8px; gap: 5px; }
-.shop-cards .draft-card .dc-art canvas, .shop-cards .draft-card .dc-art img { width: 88px; height: 88px; }
-.shop-cards .draft-card .dc-name { font-size: 13px; }
-.shop-cards .draft-card .dc-stats { font-size: 10px; }
-.shop-cards .draft-card .dc-cost { width: 28px; height: 28px; font-size: 14px; }
-@media (max-height: 500px) {
-  .shop-cards .draft-card { width: 118px; padding: 7px 6px; }
-  .shop-cards .draft-card .dc-art canvas, .shop-cards .draft-card .dc-art img { width: 68px; height: 68px; }
-  .shop-cards .draft-card .dc-name { font-size: 11px; }
-}
+.shop-cards @media (max-height: 500px) {
+      }
 
 /* QA: ?noanim=1 freezes intro animations so headless capture is truthful */
 body.no-anim *, body.no-anim *::after, body.no-anim *::before {
@@ -583,67 +553,331 @@ body.no-anim *, body.no-anim *::after, body.no-anim *::before {
 
 /* ---------- battle hand cards ---------- */
 
-.hand-card {
-  width: var(--card-w); height: var(--card-h);
-  border: 3px solid var(--ink); border-radius: 12px;
-  background: linear-gradient(180deg, #fdf6e4 0%, #f2e6cd 58%, #e4d2ad 100%);
-  box-shadow: 0 3px 0 var(--ink), 0 6px 12px rgba(0,0,0,.4);
-  display: flex; flex-direction: column; align-items: stretch;
-  position: relative; overflow: hidden; padding: 0;
-  transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .12s, filter .12s;
+#next-card { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.next-label { font-size: 8px; font-weight: 900; color: var(--paper-dark); letter-spacing: 1px; }
+#next-thumb {
+  width: 40px; height: 52px; border: 2px solid var(--ink); border-radius: 8px;
+  background: var(--paper-dark); opacity: .85; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
 }
-/* faction ribbon across the top edge */
-.hand-card::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px;
-  background: var(--fc, var(--brass));
-  border-bottom: 2px solid var(--ink);
+#next-thumb canvas, #next-thumb img { width: 36px; height: 36px; }
+
+/* ---------- overlays / modals ---------- */
+
+#overlay-root { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+
+.modal-veil {
+  position: absolute; inset: 0; background: rgba(43,29,22,.72);
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: auto;
+  animation: veilIn .18s ease-out;
 }
-.hand-card .hc-art {
+@keyframes veilIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-box {
+  width: min(92vw, 420px); max-height: 84vh; overflow-y: auto;
+  background: var(--paper);
+  border: 4px solid var(--ink); border-radius: 18px;
+  box-shadow: 0 6px 0 var(--ink), 0 12px 40px rgba(0,0,0,.5);
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+  animation: boxPop .22s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes boxPop { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.modal-title {
+  font-size: 20px; font-weight: 900; letter-spacing: 2px; text-align: center;
+  text-shadow: 2px 2px 0 var(--brass);
+}
+.modal-sub { font-size: 13px; text-align: center; color: var(--ink-soft); line-height: 1.4; }
+.modal-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+/* draft cards */
+.draft-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.draft-card {
+  width: 104px; border: 3px solid var(--ink); border-radius: 14px;
+  background: #fff6dd; box-shadow: 0 3px 0 var(--ink);
+  padding: 8px 6px; text-align: center; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  position: relative;
+}
+.draft-card:active { transform: translateY(2px); }
+.draft-card .dc-art canvas, .draft-card .dc-art img { width: 64px; height: 64px; }
+.draft-card .dc-name { font-size: 11px; font-weight: 900; line-height: 1.1; }
+.draft-card .dc-stats { font-size: 9px; color: var(--ink-soft); line-height: 1.3; }
+
+/* shop */
+.shop-section-title {
+  font-size: 12px; font-weight: 900; letter-spacing: 2px; color: var(--ink-soft);
+  border-bottom: 2px solid var(--ink-soft); padding-bottom: 3px; margin-top: 4px;
+}
+.shop-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.shop-item-price { font-size: 11px; font-weight: 900; color: var(--ink); background: var(--brass); border: 2px solid var(--ink); border-radius: 8px; padding: 2px 8px; }
+.shop-item-price.cant { background: var(--paper-dark); opacity: .6; }
+.upg-card {
+  flex: 1 1 140px; max-width: 180px;
+  border: 3px solid var(--ink); border-radius: 12px; background: #fff6dd;
+  box-shadow: 0 3px 0 var(--ink);
+  padding: 8px; cursor: pointer; text-align: center;
+}
+.upg-card .upg-name { font-weight: 900; font-size: 12px; }
+.upg-card .upg-desc { font-size: 10px; color: var(--ink-soft); margin: 4px 0 6px; line-height: 1.3; }
+
+/* deck list */
+.deck-list { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.deck-chip {
+  border: 2px solid var(--ink); border-radius: 10px; background: #fff6dd;
+  padding: 4px 8px; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; gap: 5px;
+}
+.deck-chip .chip-cost {
+  background: var(--brass); border-radius: 50%; width: 16px; height: 16px;
+  font-size: 9px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--ink);
+}
+.deck-chip.removable { cursor: pointer; }
+.deck-chip.removable:active { background: var(--blood); color: var(--paper); }
+
+/* ---------- title cards (SPLAT! etc.) ---------- */
+
+#titlecard-root {
+  position: absolute; inset: 0; z-index: 40;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+#titlecard-burst {
+  position: absolute; width: 340px; height: 340px;
+  background:
+    repeating-conic-gradient(var(--brass) 0deg 12deg, var(--paper) 12deg 24deg);
+  border-radius: 50%;
+  border: 6px solid var(--ink);
+  animation: burstSpin 6s linear infinite, burstIn .25s ease-out;
+  box-shadow: 0 0 0 12px rgba(43,29,22,.35), 0 0 80px rgba(0,0,0,.6);
+}
+@keyframes burstSpin { to { transform: rotate(360deg); } }
+@keyframes burstIn { from { transform: scale(.2); } }
+#titlecard-text {
+  position: relative; z-index: 2;
+  font-size: clamp(40px, 14vw, 72px); font-weight: 900; letter-spacing: 3px;
+  color: var(--blood);
+  text-shadow: 3px 3px 0 var(--ink), -2px -2px 0 var(--paper);
+  transform: rotate(-4deg);
+  animation: cardPop .3s cubic-bezier(.34,1.56,.64,1);
+}
+#titlecard-sub {
+  position: relative; z-index: 2;
+  margin-top: 6px; font-size: 15px; font-weight: 900; letter-spacing: 2px;
+  color: var(--ink); background: var(--paper); border: 3px solid var(--ink);
+  border-radius: 10px; padding: 4px 14px; transform: rotate(-2deg);
+}
+#titlecard-sub:empty { display: none; }
+@keyframes cardPop { from { transform: rotate(-4deg) scale(.2); } to { transform: rotate(-4deg) scale(1); } }
+
+/* ---------- toasts ---------- */
+
+#toast-root {
+  position: absolute; top: calc(52px + var(--safe-top)); left: 0; right: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  z-index: 35; pointer-events: none;
+}
+.toast {
+  background: var(--ink); color: var(--paper);
+  border: 2px solid var(--brass); border-radius: 10px;
+  font-size: 12px; font-weight: 700; letter-spacing: .5px;
+  padding: 7px 14px; max-width: 86vw; text-align: center;
+  animation: toastIn .25s ease-out;
+}
+.toast.grim { border-color: var(--blood); color: #f4c9bc; }
+@keyframes toastIn { from { transform: translateY(-14px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* results screen reuses dom-screen + modal styles */
+.results-stats { font-size: 13px; line-height: 1.7; text-align: center; }
+.results-stats b { color: var(--blood); }
+
+/* ---------- landscape game: rotate prompt when held tall ---------- */
+
+#rotate-overlay {
+  position: absolute; inset: 0; z-index: 60;
+  display: none;
+  align-items: center; justify-content: center;
+  background: var(--ink);
+}
+@media (orientation: portrait) {
+  #rotate-overlay { display: flex; }
+}
+.rotate-inner { text-align: center; color: var(--paper); }
+.rotate-icon { font-size: 56px; animation: rotHint 1.6s ease-in-out infinite; }
+@keyframes rotHint { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
+.rotate-text { font-size: 20px; font-weight: 900; letter-spacing: 3px; margin-top: 14px; color: var(--brass); }
+.rotate-sub { font-size: 12px; letter-spacing: 2px; color: var(--paper-dark); margin-top: 6px; }
+
+/* ---------- delivered UI art (activated when files exist) ---------- */
+
+body.ui-art .modal-box, body.ui-art #map-panel {
+  border: 14px solid transparent;
+  border-image: url("../assets/sprites/ui_panel.png") 70 fill round;
+  border-radius: 0;
+  box-shadow: 0 6px 0 rgba(27,18,12,.55), 0 12px 40px rgba(0,0,0,.5);
+}
+
+.ui-ic {
+  display: inline-block; width: 17px; height: 17px; vertical-align: -3px;
+  background-image: url("../assets/sprites/ui_icons.png");
+  background-size: 102px 17px; background-repeat: no-repeat;
+}
+.ui-ic-coin { background-position: 0 0; }
+.ui-ic-terr { background-position: -17px 0; }
+.ui-ic-shield { background-position: -34px 0; }
+.ui-ic-energy { background-position: -51px 0; }
+.ui-ic-deck { background-position: -68px 0; }
+.ui-ic-battle { background-position: -85px 0; }
+
+/* compact battle hand on short (landscape phone) screens */
+@media (max-height: 500px) {
+  :root { --card-w: 62px; --card-h: 82px; }
+      #hand-area { padding: 4px calc(8px + var(--safe-right)) calc(4px + var(--safe-bot)) calc(8px + var(--safe-left)); }
+  #energy-bar { bottom: calc(94px + var(--safe-bot)); height: 11px; }
+  #next-thumb { width: 34px; height: 44px; }
+  .screen-title { font-size: 20px; margin: 6px 0 10px; }
+  .title-logo { margin-top: 0; }
+  .logo-word { font-size: clamp(32px, 8vh, 48px); }
+  #title-logo img { max-height: 24vh; }
+  .logo-sub { font-size: 10px; letter-spacing: 3px; margin-top: 4px; }
+  .title-bugs { height: 58px; }
+  .title-bugs canvas { width: 52px !important; height: 52px !important; }
+  .title-buttons { gap: 7px; }
+  .big-btn { padding: 9px 20px; font-size: 15px; min-width: 200px; }
+  .small-btn { padding: 6px 12px; font-size: 12px; }
+  .title-footer { display: none; }
+  .faction-list { max-width: 640px; }
+}
+
+/* ---------- THE CAPITAL SHOP (dedicated screen) ---------- */
+
+#screen-shop { padding: 0; }
+#screen-shop .shop-header {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  padding: calc(8px + var(--safe-top)) calc(12px + var(--safe-right)) 8px
+           calc(12px + var(--safe-left));
+  background: var(--ink);
+  border-bottom: 3px solid var(--brass);
+  position: relative; z-index: 2; flex-shrink: 0;
+}
+.shop-heading { flex: 1; min-width: 0; }
+.shop-title {
+  font-size: 19px; font-weight: 900; letter-spacing: 2px;
+  color: var(--paper); text-shadow: 2px 2px 0 var(--blood);
+}
+.shop-stats { font-size: 11px; font-weight: 700; color: var(--paper-dark); margin-top: 2px; }
+.shop-stats b { color: var(--brass); }
+#screen-shop .shop-header .big-btn { min-width: 120px; padding: 10px 20px; flex-shrink: 0; }
+
+.shop-body {
+  flex: 1; width: 100%; min-height: 0;
+  display: flex; gap: 12px;
+  padding: 10px calc(12px + var(--safe-right)) calc(10px + var(--safe-bot))
+           calc(12px + var(--safe-left));
+  position: relative; z-index: 2;
+}
+.shop-col {
+  display: flex; flex-direction: column; gap: 6px; min-height: 0;
+  background: rgba(240,227,200,.55);
+  border: 3px solid var(--ink); border-radius: 14px;
+  padding: 8px 10px;
+}
+.shop-col-market { flex: 3; }
+.shop-col-side { flex: 2; overflow-y: auto; }
+.shop-col-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-size: 11px; font-weight: 900; letter-spacing: 2px; color: var(--ink-soft);
+  border-bottom: 2px solid var(--ink-soft); padding-bottom: 3px; flex-shrink: 0;
+}
+.shop-col-head .small-btn { padding: 4px 10px; font-size: 10px; }
+.shop-cards {
   flex: 1; min-height: 0;
-  display: flex; align-items: center; justify-content: center;
-  margin-top: 5px;
-  background: radial-gradient(circle at 50% 56%, var(--fc-soft, transparent) 0%, transparent 72%);
+  display: flex; gap: 8px; align-items: center; justify-content: center;
+  flex-wrap: wrap; overflow-y: auto;
 }
-.hand-card .hc-art canvas, .hand-card .hc-art img { width: 58px; height: 58px; }
-.hand-card .hc-pips {
-  position: absolute; top: 8px; right: 5px;
-  font-size: 8px; letter-spacing: -1px; color: var(--brass);
-  text-shadow: 0 1px 0 var(--ink); pointer-events: none;
+.shop-upgrades { display: flex; flex-direction: column; gap: 6px; }
+.shop-upgrades .upg-card { max-width: none; flex: none; }
+.small-btn.wide { width: 100%; }
+.shop-empty { font-size: 12px; color: var(--ink-soft); text-align: center; padding: 12px; }
+
+@media (max-height: 500px) {
+  .shop-title { font-size: 16px; }
+  #screen-shop .shop-header { padding-top: calc(5px + var(--safe-top)); padding-bottom: 5px; }
+  #screen-shop .shop-header .big-btn { padding: 8px 16px; font-size: 14px; min-width: 96px; }
+  .shop-body { gap: 8px; padding-top: 7px; }
+  .shop-col { padding: 6px 8px; }
+  .draft-card { width: 96px; padding: 6px 4px; }
+  .draft-card .dc-art canvas, .draft-card .dc-art img { width: 52px; height: 52px; }
+  .upg-card { padding: 6px; }
+  .upg-card .upg-desc { margin: 3px 0 5px; }
 }
-.hand-card .hc-plate {
-  background: var(--fc, var(--ink-soft));
-  border-top: 2px solid var(--ink);
-  padding: 3px 2px 4px; flex-shrink: 0;
+
+/* delivered parchment panel needs an opaque bed or the map bleeds through */
+body.ui-art .modal-box, body.ui-art #map-panel { background-color: var(--paper); }
+body.ui-art .shop-col { background-color: rgba(240,227,200,.9); }
+
+/* shop market cards get room to breathe on their own screen */
+.shop-cards @media (max-height: 500px) {
+      }
+
+/* QA: ?noanim=1 freezes intro animations so headless capture is truthful */
+body.no-anim *, body.no-anim *::after, body.no-anim *::before {
+  animation: none !important; transition: none !important;
 }
-.hand-card .hc-name {
-  font-size: 8px; font-weight: 900; letter-spacing: .2px; line-height: 1.05;
-  text-align: center; color: #fff8e6;
-  text-shadow: 0 1px 1px rgba(27,18,12,.85);
+
+/* battle topbar right cluster: loyalty badge + speed + forfeit */
+.bt-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.bt-badge {
+  font-size: 10px; font-weight: 900; letter-spacing: 1px;
+  border: 2px solid var(--ink); border-radius: 8px;
+  padding: 4px 8px; background: var(--paper); color: var(--ink);
+  white-space: nowrap;
 }
-.hand-card .hc-cost {
-  position: absolute; top: -3px; left: -3px;
-  width: 24px; height: 24px; border-radius: 50%;
-  background: radial-gradient(circle at 36% 32%, #ffd76b, var(--brass) 70%);
-  border: 2px solid var(--ink);
-  font-size: 12px; font-weight: 900; color: var(--ink);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,.4);
+.bt-badge.devoted { background: var(--brass); }
+.bt-badge.kindred { background: var(--good); color: var(--paper); }
+.bt-badge.mongrel { background: var(--paper-dark); color: var(--ink-soft); }
+#btn-speed { min-width: 42px; }
+#btn-speed.fast { background: var(--brass); }
+
+/* long-press card inspector */
+#card-inspect {
+  position: absolute; z-index: 45; pointer-events: none;
+  background: var(--paper); border: 3px solid var(--ink); border-radius: 12px;
+  box-shadow: 0 4px 0 var(--ink), 0 8px 24px rgba(0,0,0,.45);
+  padding: 8px 10px; width: 190px;
 }
-.hand-card .hc-cost.discount {
-  background: radial-gradient(circle at 36% 32%, #9ae5a4, var(--good) 70%);
-  color: #102a14;
+#card-inspect .ci-name { font-weight: 900; font-size: 13px; letter-spacing: .5px; }
+#card-inspect .ci-tier { font-size: 9px; font-weight: 900; color: var(--brass); letter-spacing: 2px; }
+#card-inspect .ci-stats { font-size: 10px; color: var(--ink-soft); margin-top: 4px; line-height: 1.4; }
+#card-inspect .ci-desc { font-size: 10px; font-style: italic; margin-top: 5px; color: var(--ink); }
+
+/* first-battle onboarding hint */
+#battle-hint {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: calc(140px + var(--safe-bot));
+  background: var(--ink); color: var(--brass);
+  border: 3px solid var(--brass); border-radius: 12px;
+  padding: 8px 18px; font-size: 13px; font-weight: 900; letter-spacing: 1.5px;
+  white-space: nowrap; z-index: 12; pointer-events: none;
+  animation: hintPulse 1.4s ease-in-out infinite;
 }
-.hand-card.tactic { background: linear-gradient(180deg, #f7f0fb 0%, #efe4f7 58%, #ded0ec 100%); }
+@keyframes hintPulse { 0%,100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.06); } }
+@media (max-height: 500px) { #battle-hint { bottom: calc(104px + var(--safe-bot)); font-size: 11px; padding: 6px 14px; } }
+
+.mp-why {
+  font-size: 10px; font-weight: 700; color: var(--ink-soft);
+  max-width: 190px; text-align: right; line-height: 1.35;
+}
+
+/* ---------- battle hand cards ---------- */
+
+/* faction ribbon across the top edge */
 
 /* affordable cards sit proud; unaffordable ones recede */
-.hand-card.ready { box-shadow: 0 3px 0 var(--ink), 0 0 0 2px rgba(224,165,30,.55), 0 6px 12px rgba(0,0,0,.4); }
-.hand-card.unaffordable { filter: grayscale(.7) brightness(.68); box-shadow: 0 2px 0 var(--ink); }
-.hand-card.armed {
-  transform: translateY(-15px) scale(1.07);
-  outline: 4px solid var(--brass);
-  box-shadow: 0 8px 0 var(--ink), 0 0 22px rgba(224,165,30,.75);
-  z-index: 3;
-}
 
 /* segmented energy meter reads better than a plain bar */
 #energy-bar::after {
@@ -711,7 +945,6 @@ body.no-anim *, body.no-anim *::after, body.no-anim *::before {
 }
 
 /* softer unaffordable state — recede without going black */
-.hand-card.unaffordable { filter: grayscale(.5) brightness(.84); }
 @media (max-height: 500px) {
   #map-panel { padding: 7px 11px; bottom: calc(46px + var(--safe-bot)); }
   #mp-name { font-size: 14px; }
@@ -722,26 +955,30 @@ body.no-anim *, body.no-anim *::after, body.no-anim *::before {
    art does. The ::after layer is the decorative inner frame; painted
    frames from Codex replace it per faction via the body.cf-* classes. */
 
-.hand-card::after, .draft-card::after {
-  content: ""; position: absolute; inset: 3px;
+
+/* the frame layer: painted faction art when delivered, drawn border until
+   then. It paints above .card-win, so the frame's ornament is never
+   covered by card content the way the old solid name bar covered it. */
+.card::after {
+  content: ""; position: absolute; inset: 0;
   pointer-events: none; border-radius: inherit;
 }
 
 /* ANTS — pebbled earthworks: studded ring, rounded corners */
 .f-ants { border-radius: 13px; }
-.f-ants::after { border: 2px dotted var(--fc); border-radius: 10px; }
+.f-ants::after { inset: 3px; border: 2px dotted var(--fc); border-radius: 10px; }
 
 /* WASPS — paper comb: angular, clipped corners, crisp rule */
 .f-wasps { border-radius: 4px; }
 .f-wasps::after {
-  border: 2px solid var(--fc); border-radius: 2px;
+  inset: 3px; border: 2px solid var(--fc); border-radius: 2px;
   clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
 }
 
 /* BEETLES — riveted plate: heavy square frame with corner rivets */
 .f-beetles { border-radius: 3px; }
 .f-beetles::after {
-  border: 3px solid var(--fc); border-radius: 1px;
+  inset: 3px; border: 3px solid var(--fc); border-radius: 1px;
   background:
     radial-gradient(circle at 5px 5px, var(--fc) 1.7px, transparent 2.2px),
     radial-gradient(circle at calc(100% - 5px) 5px, var(--fc) 1.7px, transparent 2.2px),
@@ -752,24 +989,24 @@ body.no-anim *, body.no-anim *::after, body.no-anim *::before {
 /* MANTIDS — court elegance: fine double rule, opposing pointed corners */
 .f-mantids { border-radius: 17px 4px 17px 4px; }
 .f-mantids::after {
-  border: 1px solid var(--fc); border-radius: 14px 2px 14px 2px;
+  inset: 3px; border: 1px solid var(--fc); border-radius: 14px 2px 14px 2px;
   box-shadow: inset 0 0 0 3px rgba(253,246,227,.45), inset 0 0 0 4px var(--fc);
 }
 
 /* TERMITES — cracked mud: broken frame */
 .f-termites { border-radius: 7px; }
-.f-termites::after { border: 2px dashed var(--fc); border-radius: 5px; }
+.f-termites::after { inset: 3px; border: 2px dashed var(--fc); border-radius: 5px; }
 
 /* MOTHS — silk: very soft corners, thread-thin double ring */
 .f-moths { border-radius: 21px; }
 .f-moths::after {
-  border: 1px solid var(--fc); border-radius: 18px;
+  inset: 3px; border: 1px solid var(--fc); border-radius: 18px;
   box-shadow: inset 0 0 0 2px rgba(253,246,227,.5), inset 0 0 0 3px var(--fc);
 }
 
 /* WILDS — untamed: ragged groove */
 .f-neutral { border-radius: 9px; }
-.f-neutral::after { border: 4px double var(--fc); border-radius: 7px; }
+.f-neutral::after { inset: 3px; border: 4px double var(--fc); border-radius: 7px; }
 
 /* painted frames, swapped in per faction as Codex delivers them */
 body.cf-ants .f-ants::after,
@@ -783,6 +1020,19 @@ body.cf-neutral .f-neutral::after {
   background-repeat: no-repeat; background-position: center; background-size: 100% 100%;
   inset: 0;
 }
+/* a painted frame supplies its own edge, so drop the element's border */
+/* the painted frame supplies the edge, so hide the drawn border — but keep
+   the parchment fill, or the transparent frame centre shows the page */
+body.cf-ants .f-ants, body.cf-wasps .f-wasps, body.cf-beetles .f-beetles,
+body.cf-mantids .f-mantids, body.cf-termites .f-termites,
+body.cf-moths .f-moths, body.cf-neutral .f-neutral {
+  border-color: transparent;
+  box-shadow: 0 4px 10px rgba(0,0,0,.45);
+}
+body.cf-ants .f-ants.ready, body.cf-wasps .f-wasps.ready,
+body.cf-beetles .f-beetles.ready, body.cf-mantids .f-mantids.ready,
+body.cf-termites .f-termites.ready, body.cf-moths .f-moths.ready,
+body.cf-neutral .f-neutral.ready { box-shadow: 0 0 0 2px rgba(224,165,30,.5), 0 4px 10px rgba(0,0,0,.45); }
 body.cf-ants .f-ants::after { background-image: url("../assets/sprites/card_frame_ants.png"); }
 body.cf-wasps .f-wasps::after { background-image: url("../assets/sprites/card_frame_wasps.png"); }
 body.cf-beetles .f-beetles::after { background-image: url("../assets/sprites/card_frame_beetles.png"); }
@@ -798,3 +1048,112 @@ body.cf-neutral .f-neutral::after { background-image: url("../assets/sprites/car
 }
 .ui-coin.stack { background-image: url("../assets/sprites/ui_coin_stack.png"); width: 18px; }
 .shop-item-price .ui-coin { width: 14px; height: 14px; vertical-align: -2px; }
+
+/* ==================== CARDS ====================
+   One component for every surface. The painted faction frames reserve a
+   ~34px border on a 384x512 sheet (≈9% wide, ≈7% tall), so all content
+   lives inside .card-win, which is inset to match. Nothing is allowed to
+   sit on the frame's ornament. */
+
+.card {
+  position: relative; flex: 0 0 auto;
+  padding: 0; border: 3px solid var(--ink);
+  background: linear-gradient(180deg, #fdf6e4 0%, #f2e6cd 58%, #e4d2ad 100%);
+  box-shadow: 0 3px 0 var(--ink), 0 6px 12px rgba(0,0,0,.4);
+  overflow: visible;
+  transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .12s, filter .12s;
+  font-family: inherit; color: var(--ink);
+}
+.card.tactic { background: linear-gradient(180deg, #f8f1fc 0%, #efe4f7 58%, #ded0ec 100%); }
+
+.card--hand { width: var(--card-w); height: var(--card-h); cursor: pointer; }
+.card--large { width: 140px; min-height: 194px; cursor: pointer; }
+
+/* the frame's inner window — everything readable lives in here */
+.card-win {
+  position: absolute; inset: 8% 10%;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px; overflow: hidden;
+}
+.card--large .card-win { inset: 7% 9%; gap: 3px; }
+
+.card-art {
+  flex: 1 1 auto; min-height: 0; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 50% 54%, var(--fc-soft, transparent) 0%, transparent 70%);
+}
+.card--hand .card-art canvas, .card--hand .card-art img { width: 52px; height: 52px; }
+.card--large .card-art canvas, .card--large .card-art img { width: 76px; height: 76px; }
+
+/* name sits on a scrim rather than a solid bar, so the frame stays visible */
+.card-name {
+  flex: 0 0 auto; width: 100%; text-align: center;
+  font-weight: 900; letter-spacing: .2px; line-height: 1.05;
+  color: #fff8e6;
+  text-shadow: 0 1px 0 rgba(27,18,12,.95), 0 0 3px rgba(27,18,12,.9);
+  background: linear-gradient(rgba(27,18,12,0), rgba(27,18,12,.72) 42%);
+  padding: 3px 1px 1px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.card--hand .card-name { font-size: 8px; }
+.card--large .card-name { font-size: 12px; white-space: normal; line-height: 1.1; }
+
+.card-tags { display: flex; gap: 2px; justify-content: center; flex-wrap: wrap; flex: 0 0 auto; }
+.card-tag {
+  font-size: 6px; font-weight: 900; letter-spacing: .3px;
+  padding: 1px 3px; border-radius: 4px;
+  background: rgba(27,18,12,.8); color: var(--brass);
+}
+.card--large .card-tag { font-size: 8px; padding: 1px 5px; }
+.card--hand .card-tags { display: none; }   /* the hand needs speed, not detail */
+
+.card-stats {
+  flex: 0 0 auto; font-size: 9px; color: var(--ink-soft); text-align: center;
+  line-height: 1.25;
+}
+.card-stats b { color: var(--ink); font-size: 11px; }
+.card-desc { font-style: italic; font-size: 8.5px; }
+
+/* cost badge tucks into the window's top-left, clear of the corner ornament */
+.card-cost {
+  position: absolute; border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, #ffd76b, var(--brass) 70%);
+  border: 2px solid var(--ink);
+  font-weight: 900; color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,.45);
+}
+.card--hand .card-cost { width: 21px; height: 21px; font-size: 12px; top: 3px; left: 3px; }
+.card--large .card-cost { width: 28px; height: 28px; font-size: 15px; top: 5px; left: 5px; }
+.card-cost.discount {
+  background: radial-gradient(circle at 36% 32%, #9ae5a4, var(--good) 70%);
+  color: #102a14;
+}
+.card-tier {
+  position: absolute; top: 6px; right: 7px;
+  font-size: 9px; letter-spacing: -1px; color: var(--brass);
+  text-shadow: 0 1px 0 rgba(27,18,12,.9);
+}
+
+.card.ready { box-shadow: 0 3px 0 var(--ink), 0 0 0 2px rgba(224,165,30,.55), 0 6px 12px rgba(0,0,0,.4); }
+.card.unaffordable { filter: grayscale(.5) brightness(.84); box-shadow: 0 2px 0 var(--ink); }
+.card.armed {
+  transform: translateY(-15px) scale(1.07);
+  outline: 4px solid var(--brass);
+  box-shadow: 0 8px 0 var(--ink), 0 0 22px rgba(224,165,30,.75);
+  z-index: 3;
+}
+.card--large:active { transform: translateY(2px); }
+
+@media (max-height: 500px) {
+  .card--large { width: 122px; min-height: 172px; }
+  .card--large .card-art canvas, .card--large .card-art img { width: 64px; height: 64px; }
+  .card--large .card-name { font-size: 11px; }
+}
+
+/* price tag rides under a shop card rather than falling into its window */
+.card .shop-item-price {
+  position: absolute; left: 50%; bottom: -11px; transform: translateX(-50%);
+  z-index: 4; white-space: nowrap;
+}
+.shop-cards { padding-bottom: 14px; }

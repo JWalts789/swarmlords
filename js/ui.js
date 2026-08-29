@@ -324,29 +324,98 @@ window.SL = window.SL || {};
   }
 
 
-  function cardEl(cardId) {
+  // Compact role tags. The long stat sentence never fit inside a frame's
+  // window; these do, and they answer the questions that decide a play:
+  // can it fly, can it hit fliers, does it outrange me, is it armoured.
+  function roleTags(def) {
+    const t = [];
+    if (def.type === 'tactic') return ['TACTIC'];
+    if (def.fly) t.push(def.traits.strafe ? 'FLY+' : 'FLY');
+    if (def.range > 0) t.push('RNG');
+    if (def.air && !def.fly) t.push('AIR');
+    if (def.armor > 0) t.push('ARM');
+    if (def.traits.swarm) t.push('x' + def.traits.swarm);
+    if (def.traits.splash) t.push('SPL');
+    if (def.traits.healer) t.push('MEND');
+    if (def.traits.slow) t.push('SLOW');
+    if (def.traits.dodge) t.push('DODGE');
+    return t.slice(0, 3);
+  }
+
+  // size: 'hand' | 'large'. cost may differ from def.cost under loyalty.
+  function buildCard(cardId, opts) {
+    const o = opts || {};
     const def = SL.DATA.CARDS[cardId];
     const fac = SL.DATA.FACTIONS[def.faction] || SL.DATA.FACTIONS.neutral;
-    const el = document.createElement('div');
-    el.className = 'draft-card f-' + def.faction + (def.type === 'tactic' ? ' tactic' : '');
+    const large = o.size === 'large';
+    const cost = o.cost === undefined ? def.cost : o.cost;
+
+    const el = document.createElement(large ? 'div' : 'button');
+    el.className = 'card ' + (large ? 'card--large' : 'card--hand')
+      + ' f-' + def.faction + (def.type === 'tactic' ? ' tactic' : '');
     el.style.setProperty('--fc', fac.color);
-    el.style.setProperty('--fc-soft', hexA(fac.color, 0.28));
-    const cost = document.createElement('div');
-    cost.className = 'dc-cost'; cost.textContent = def.cost;
+    el.style.setProperty('--fc-soft', hexA(fac.color, 0.26));
+
+    const win = document.createElement('div');
+    win.className = 'card-win';
+
     const art = document.createElement('div');
-    art.className = 'dc-art';
-    art.appendChild(SL.sprites.thumb(cardId, 64));
+    art.className = 'card-art';
+    art.appendChild(SL.sprites.thumb(cardId, large ? 76 : 52));
+
     const name = document.createElement('div');
-    name.className = 'dc-name'; name.textContent = def.name;
-    const tier = document.createElement('div');
-    tier.className = 'dc-tier';
-    tier.textContent = def.type === 'tactic' ? 'TACTIC' : '★'.repeat(def.tier);
-    const stats = document.createElement('div');
-    stats.className = 'dc-stats';
-    stats.textContent = SL.DATA.statLine(def);
-    el.appendChild(cost); el.appendChild(art); el.appendChild(name);
-    el.appendChild(tier); el.appendChild(stats);
+    name.className = 'card-name';
+    name.textContent = def.name;
+
+    const costEl = document.createElement('div');
+    costEl.className = 'card-cost' + (cost < def.cost ? ' discount' : '');
+    costEl.textContent = cost;
+
+    win.appendChild(art);
+    win.appendChild(name);
+
+    const tags = roleTags(def);
+    if (tags.length) {
+      const row = document.createElement('div');
+      row.className = 'card-tags';
+      tags.forEach((t) => {
+        const b = document.createElement('span');
+        b.className = 'card-tag';
+        b.textContent = t;
+        row.appendChild(b);
+      });
+      win.appendChild(row);
+    }
+
+    if (large && def.type === 'unit') {
+      const st = document.createElement('div');
+      st.className = 'card-stats';
+      st.innerHTML = '<b>' + def.hp + '</b> hp &nbsp; <b>' + def.dmg + '</b> dmg'
+        + (def.hiveDmg > 2 ? ' &nbsp; <b>' + def.hiveDmg + '</b> hive' : '');
+      win.appendChild(st);
+    }
+    if (large && def.type === 'tactic') {
+      const st = document.createElement('div');
+      st.className = 'card-stats card-desc';
+      st.textContent = def.desc;
+      win.appendChild(st);
+    }
+
+    el.appendChild(win);
+    el.appendChild(costEl);
+    if (large) {
+      const tier = document.createElement('div');
+      tier.className = 'card-tier';
+      tier.textContent = def.type === 'tactic' ? '\u25c6' : '\u2605'.repeat(def.tier);
+      el.appendChild(tier);
+    }
+    el._costEl = costEl;
+    el._def = def;
     return el;
+  }
+
+  function cardEl(cardId) {
+    return buildCard(cardId, { size: 'large' });
   }
 
   function draftModal(cardIds, opts, cb) {
@@ -589,6 +658,7 @@ window.SL = window.SL || {};
     updateTopbar, showTerritoryPanel, hideTerritoryPanel,
     turnBanner, titleCard, toast,
     modal, customModal, closeModal, closeAllModals, confirmModal,
-    cardEl, draftModal, defenseModal, deckViewer, resultsScreen, coinHTML,
+    cardEl, buildCard, roleTags, draftModal, defenseModal, deckViewer,
+    resultsScreen, coinHTML,
   };
 })();

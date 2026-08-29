@@ -607,4 +607,13 @@ the units. When in doubt, make it plainer — the drama comes from the bugs.
 
 | Batch | Assets | Status |
 |---|---|---|
-| P8 battlefield | battle_bg | PENDING |
+| P8 battlefield | battle_bg + 7 faction grounds | **ALL ACCEPTED** 2026-08-29 — delivered as a generic ground plus one per kingdom, which is better than spec'd: the engine crossfades your soil into the enemy's at the centre, so every matchup is fought on its own frontier. QA converted the set from PNG to JPEG (opaque, no alpha needed): 21.8MB → 2.2MB, a 90% saving. |
+
+## Format note (added 2026-08-29)
+
+Opaque full-screen paintings — `battle_bg*`, `map_bg` — ship as **JPEG**,
+not PNG. They carry no transparency, and as PNG the battlefield set alone
+was 21.8MB against 2.2MB as quality-86 JPEG. The engine picks the extension
+automatically, so deliver whichever is convenient and QA converts.
+Everything with transparency (sheets, frames, emblems, plates, glyphs)
+stays PNG.
