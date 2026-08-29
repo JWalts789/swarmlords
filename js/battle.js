@@ -481,7 +481,7 @@ window.SL = window.SL || {};
         s.regenT -= s.regenInt;
         if (s.energy < s.energyMax) {
           s.energy++;
-          if (s.isPlayer) { SL.audio.sfx('energy'); renderHand(); }
+          if (s.isPlayer) { SL.audio.sfx('energy'); refreshHandState(); }
         }
       }
       if (s.mods.hiveRegen > 0 && s.hiveHp > 0) {
@@ -740,7 +740,7 @@ window.SL = window.SL || {};
   function armCard(idx) {
     if (B.armed === idx) B.armed = -1;
     else if (cardPlayable(B.sides[0], idx)) { B.armed = idx; SL.audio.sfx('click'); }
-    renderHand();
+    refreshHandState();
     updateHint();
   }
 
@@ -766,11 +766,15 @@ window.SL = window.SL || {};
   }
 
 
+  // Full rebuild. Anything mid-press is about to be orphaned, so clear it.
   function renderHand() {
     if (!B.sides) return;
+    cancelHold();
+    hideInspect();
     const side = B.sides[0];
     const wrap = document.getElementById('hand-cards');
     wrap.innerHTML = '';
+    handEls = [];
     side.hand.forEach((id, i) => {
       const def = SL.DATA.CARDS[id];
       if (!def) return;
@@ -804,22 +808,26 @@ window.SL = window.SL || {};
       pips.textContent = def.type === 'tactic' ? '◆' : '★'.repeat(def.tier);
 
       el.appendChild(art); el.appendChild(pips); el.appendChild(plate); el.appendChild(cost);
+      el._cost = cost;
+      handEls[i] = el;
       // tap arms the card; press-and-hold inspects it instead
-      let holdT = null, held = false;
-      const clearHold = () => { clearTimeout(holdT); holdT = null; };
+      let held = false;
       el.addEventListener('pointerdown', (ev) => {
         ev.preventDefault();
         held = false;
-        holdT = setTimeout(() => { held = true; showInspect(el, id); }, 380);
+        cancelHold();
+        holdTimer = setTimeout(() => {
+          holdTimer = null; held = true; showInspect(el, id);
+        }, 380);
       });
       el.addEventListener('pointerup', (ev) => {
         ev.preventDefault();
-        clearHold();
+        cancelHold();
         if (held) { hideInspect(); return; }
         armCard(i);
       });
-      el.addEventListener('pointerleave', () => { clearHold(); if (held) hideInspect(); });
-      el.addEventListener('pointercancel', () => { clearHold(); hideInspect(); });
+      el.addEventListener('pointerleave', () => { cancelHold(); if (held) hideInspect(); });
+      el.addEventListener('pointercancel', () => { cancelHold(); hideInspect(); });
       wrap.appendChild(el);
     });
     const nx = document.getElementById('next-thumb');
@@ -855,10 +863,19 @@ window.SL = window.SL || {};
 
   // press-and-hold card inspector
   let inspectEl = null;
+  let handEls = [];        // the live card buttons, for in-place restyling
+  let holdTimer = null;    // pending press-and-hold, cancellable from anywhere
+
+  function cancelHold() {
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+  }
   function showInspect(anchorEl, cardId) {
     hideInspect();
     const def = SL.DATA.CARDS[cardId];
     if (!def) return;
+    // a rebuilt hand leaves detached buttons behind; their bounding rect is
+    // all zeros, which would pin the panel to the top-left corner
+    if (!anchorEl || anchorEl.isConnected === false) return;
     const side = B.sides && B.sides[0];
     const c = side ? effCost(side, def) : def.cost;
     const box = document.createElement('div');
@@ -882,6 +899,29 @@ window.SL = window.SL || {};
   function hideInspect() {
     if (inspectEl && inspectEl.parentNode) inspectEl.parentNode.removeChild(inspectEl);
     inspectEl = null;
+  }
+
+  // Energy only changes what a card LOOKS like, never which cards are held,
+  // so restyle in place. Rebuilding here is what orphaned presses.
+  function refreshHandState() {
+    if (!B.sides) return;
+    const side = B.sides[0];
+    for (let i = 0; i < handEls.length; i++) {
+      const el = handEls[i];
+      const id = side.hand[i];
+      if (!el || !id) continue;
+      const def = SL.DATA.CARDS[id];
+      if (!def) continue;
+      const c = effCost(side, def);
+      const poor = c > side.energy;
+      el.classList.toggle('armed', i === B.armed);
+      el.classList.toggle('unaffordable', poor);
+      el.classList.toggle('ready', !poor);
+      if (el._cost) {
+        el._cost.textContent = c;
+        el._cost.classList.toggle('discount', c < def.cost);
+      }
+    }
   }
 
   function updateEnergyUI() {
@@ -1164,6 +1204,14 @@ window.SL = window.SL || {};
     ctx.arcTo(x, y + h, x, y, r);
     ctx.arcTo(x, y, x + w, y, r);
     ctx.closePath();
+  }
+
+  // Backstop: whatever happens to the card that opened it, a pointer release
+  // anywhere in the document closes the inspector.
+  if (typeof document !== 'undefined' && document.addEventListener) {
+    const release = () => { cancelHold(); hideInspect(); };
+    document.addEventListener('pointerup', release, true);
+    document.addEventListener('pointercancel', release, true);
   }
 
   SL.battle = {
