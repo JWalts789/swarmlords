@@ -269,7 +269,7 @@ window.SL = window.SL || {};
       maxHp: Math.round(def.hp * hpMult),
       armor: def.armor + m.armorAdd,
       state: def.spd === 0 ? 'hold' : 'march',
-      walkPhase: B.rng.range(0, 4),   // desynced so a rank does not march in lockstep
+      walkPhase: B.rng.next(),        // desynced so a rank does not march in lockstep
       atkCd: def.atkInt * 0.5,
       t: B.rng.range(0, 5),
       slowT: 0, slowMult: 1,
@@ -601,7 +601,7 @@ window.SL = window.SL || {};
       }
       // one full four-frame cycle per ~34px travelled keeps stride and
       // ground speed in agreement for every unit
-      u.walkPhase += Math.abs(nx - u.x) / 34 * 4;
+      u.walkPhase += Math.abs(nx - u.x) / 34;   // one stride cycle per ~34px
       u.x = nx;
 
       // reached far hive?

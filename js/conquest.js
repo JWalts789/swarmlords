@@ -973,8 +973,12 @@ window.SL = window.SL || {};
       // hand-lettered kingdom name when delivered; system text is a
       // placeholder that reads badly against a painted banner
       const word = SL.sprites.sheet('wordmark_' + fid);
-      const wordH = 13;
-      const wordW = word ? wordH * (word.width / word.height) : 0;
+      // scale the lettering to the plate it sits on, then cap the width so a
+      // long name (TERMITES) cannot stretch its banner past its neighbours
+      let wordH = Math.round(ph * 0.40);
+      let wordW = word ? wordH * (word.width / word.height) : 0;
+      const WORD_MAX = 96;
+      if (wordW > WORD_MAX) { wordH = Math.round(wordH * WORD_MAX / wordW); wordW = WORD_MAX; }
       const textW = word ? wordW : ctx.measureText(label).width;
       const w = cap * 2 + pad * 2 + ICON + 5 + textW;
       return { owner, fid, alive, label, img, cap, pad, w, word, wordW, wordH };

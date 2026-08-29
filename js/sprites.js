@@ -52,6 +52,7 @@ window.SL = window.SL || {};
       probe('emblem_' + f);
       probe('nameplate_' + f);
       probe('wordmark_' + f);
+      probe('card_bg_' + f);
     });
   }
 
@@ -330,10 +331,10 @@ window.SL = window.SL || {};
         const ph = o.atkPhase === undefined ? (Math.floor(o.t * 6) % 2) / 2 : o.atkPhase;
         frame = attackStart + Math.min(attackFrames - 1, Math.floor(ph * attackFrames));
       } else {
-        // o.walkPhase advances with real distance travelled, so a snail
-        // shuffles and a bullet ant sprints
-        const wp = o.walkPhase === undefined ? o.t * 8 : o.walkPhase;
-        frame = Math.floor(wp) % walkFrames;
+        // o.walkPhase counts CYCLES travelled, not frames, so a sheet can
+        // carry any number of walk frames without changing the stride length
+        const wp = o.walkPhase === undefined ? o.t * 2 : o.walkPhase;
+        frame = Math.floor(wp * walkFrames) % walkFrames;
       }
       // sheetScale compensates sheets whose subject is drawn small in-cell
       // (e.g. sluglet: already drawn half-size AND stat-scaled — see data.js)

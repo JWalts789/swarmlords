@@ -1023,16 +1023,37 @@ body.cf-neutral .f-neutral::after {
 /* a painted frame supplies its own edge, so drop the element's border */
 /* the painted frame supplies the edge, so hide the drawn border — but keep
    the parchment fill, or the transparent frame centre shows the page */
+/* A box-shadow draws the element's RECTANGLE, so around a shaped painted
+   frame it reads as a pale card-shaped halo spilling past the border.
+   drop-shadow follows the artwork's alpha instead. */
 body.cf-ants .f-ants, body.cf-wasps .f-wasps, body.cf-beetles .f-beetles,
 body.cf-mantids .f-mantids, body.cf-termites .f-termites,
 body.cf-moths .f-moths, body.cf-neutral .f-neutral {
-  border-color: transparent;
-  box-shadow: 0 4px 10px rgba(0,0,0,.45);
+  border-color: transparent; background: none;
+  box-shadow: none; border-radius: 0;
+  filter: drop-shadow(0 3px 3px rgba(27,18,12,.5));
 }
 body.cf-ants .f-ants.ready, body.cf-wasps .f-wasps.ready,
 body.cf-beetles .f-beetles.ready, body.cf-mantids .f-mantids.ready,
 body.cf-termites .f-termites.ready, body.cf-moths .f-moths.ready,
-body.cf-neutral .f-neutral.ready { box-shadow: 0 0 0 2px rgba(224,165,30,.5), 0 4px 10px rgba(0,0,0,.45); }
+body.cf-neutral .f-neutral.ready {
+  box-shadow: none;
+  filter: drop-shadow(0 3px 3px rgba(27,18,12,.5)) drop-shadow(0 0 3px rgba(224,165,30,.95));
+}
+body.cf-ants .f-ants.armed, body.cf-wasps .f-wasps.armed,
+body.cf-beetles .f-beetles.armed, body.cf-mantids .f-mantids.armed,
+body.cf-termites .f-termites.armed, body.cf-moths .f-moths.armed,
+body.cf-neutral .f-neutral.armed {
+  box-shadow: none; outline: none;
+  filter: drop-shadow(0 6px 4px rgba(27,18,12,.55)) drop-shadow(0 0 7px rgba(224,165,30,1));
+}
+body.cf-ants .f-ants.unaffordable, body.cf-wasps .f-wasps.unaffordable,
+body.cf-beetles .f-beetles.unaffordable, body.cf-mantids .f-mantids.unaffordable,
+body.cf-termites .f-termites.unaffordable, body.cf-moths .f-moths.unaffordable,
+body.cf-neutral .f-neutral.unaffordable {
+  box-shadow: none;
+  filter: grayscale(.5) brightness(.84) drop-shadow(0 2px 2px rgba(27,18,12,.45));
+}
 body.cf-ants .f-ants::after { background-image: url("../assets/sprites/card_frame_ants.png"); }
 body.cf-wasps .f-wasps::after { background-image: url("../assets/sprites/card_frame_wasps.png"); }
 body.cf-beetles .f-beetles::after { background-image: url("../assets/sprites/card_frame_beetles.png"); }
@@ -1058,13 +1079,15 @@ body.cf-neutral .f-neutral::after { background-image: url("../assets/sprites/car
 .card {
   position: relative; flex: 0 0 auto;
   padding: 0; border: 3px solid var(--ink);
-  background: linear-gradient(180deg, #fdf6e4 0%, #f2e6cd 58%, #e4d2ad 100%);
+  /* the interior is painted by ::before, inset to the frame's opening —
+     a fill on the element itself spills past the frame's irregular edge */
+  background: none;
   box-shadow: 0 3px 0 var(--ink), 0 6px 12px rgba(0,0,0,.4);
   overflow: visible;
   transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .12s, filter .12s;
   font-family: inherit; color: var(--ink);
 }
-.card.tactic { background: linear-gradient(180deg, #f8f1fc 0%, #efe4f7 58%, #ded0ec 100%); }
+
 
 .card--hand { width: var(--card-w); height: var(--card-h); cursor: pointer; }
 .card--large { width: 140px; min-height: 194px; cursor: pointer; }
@@ -1229,7 +1252,9 @@ body.energy-art #energy-fill {
   background: url("../assets/sprites/ui_energy_fill.png") left center/auto 100% repeat-x;
   border-radius: 0;
 }
-body.energy-art #energy-num { top: 50%; transform: translateY(-50%); right: 10px; }
+/* the badge is anchored left; leaving a `right` here stretched it across
+   the whole meter because both edges were pinned */
+body.energy-art #energy-num { right: auto; left: -46px; }
 body.energy-art #energy-bar::after { display: none; }
 
 /* painted plaques for shop upgrades and kingdom cards */
@@ -1237,8 +1262,10 @@ body.upg-art .upg-card {
   /* the leaf's stem curls reach ~25% into the art, past the nominal 34px
      slice; a deeper slice keeps them as fixed corners instead of stretching
      them across the middle where the title sits */
-  border-width: 26px 22px 20px; border-style: solid; border-color: transparent;
-  border-image: url("../assets/sprites/ui_card_upgrade.png") 62 34 46 fill stretch;
+  /* the leaf is 1.5:1 but the plaque is nearer 4:1, so the stem curl and
+     tip must sit in generous side caps or the whole leaf smears */
+  border-width: 26px 62px 20px; border-style: solid; border-color: transparent;
+  border-image: url("../assets/sprites/ui_card_upgrade.png") 62 122 46 fill stretch;
   border-radius: 0; background: none; box-shadow: none;
 }
 body.kingdom-art .faction-card {
@@ -1302,3 +1329,61 @@ body.energy-art #energy-bar { border-left-width: 37px; border-right-width: 37px;
   .faction-lock { font-size: 9px; }
   .faction-list { gap: 7px; }
 }
+
+
+/* ---- card interior sits INSIDE the frame's window ----
+   The painted frames have irregular outer edges, so a background on the
+   card's full rectangle spills past them at the corners. The parchment is
+   now its own layer, inset to the frame's opening. */
+.card::before {
+  content: ""; position: absolute; inset: 3px;
+  background: linear-gradient(180deg, #fdf6e4 0%, #f2e6cd 58%, #e4d2ad 100%);
+  border-radius: 5px;
+  z-index: 0;
+}
+.card.tactic::before { background: linear-gradient(180deg, #f8f1fc 0%, #efe4f7 58%, #ded0ec 100%); }
+.card-win { z-index: 1; }
+.card-cost, .card-tier { z-index: 3; }
+/* painted card backgrounds replace the flat fill per faction when delivered */
+body.cb-ants .f-ants::before { background-image: url("../assets/sprites/card_bg_ants.png"); }
+body.cb-wasps .f-wasps::before { background-image: url("../assets/sprites/card_bg_wasps.png"); }
+body.cb-beetles .f-beetles::before { background-image: url("../assets/sprites/card_bg_beetles.png"); }
+body.cb-mantids .f-mantids::before { background-image: url("../assets/sprites/card_bg_mantids.png"); }
+body.cb-termites .f-termites::before { background-image: url("../assets/sprites/card_bg_termites.png"); }
+body.cb-moths .f-moths::before { background-image: url("../assets/sprites/card_bg_moths.png"); }
+body.cb-neutral .f-neutral::before { background-image: url("../assets/sprites/card_bg_neutral.png"); }
+body[class*="cb-"] .card::before { background-size: 100% 100%; background-repeat: no-repeat; }
+
+
+/* ---- energy readout ----
+   The count was sitting on the trough's end cap in ink-on-dark and had
+   become unreadable. It now rides in its own badge at the left of the
+   meter, and the nectar is inset and rounded so it sits in the channel
+   instead of butting square against the caps. */
+#energy-num {
+  left: -46px; right: auto; top: 50%; transform: translateY(-50%);
+  min-width: 38px; height: 26px; padding: 0 6px;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 36% 30%, #ffd76b, var(--brass) 72%);
+  border: 2px solid var(--ink); border-radius: 999px;
+  font-size: 13px; font-weight: 900; color: var(--ink);
+  box-shadow: 0 2px 4px rgba(0,0,0,.45);
+  z-index: 3;
+}
+#energy-bar { overflow: visible; }
+#energy-fill {
+  border-radius: 999px;
+  margin: 3px 0;
+  height: calc(100% - 6px);
+  box-shadow: inset 0 -2px 0 rgba(27,18,12,.18);
+}
+body.energy-art #energy-fill { border-radius: 999px; }
+@media (max-height: 500px) {
+  #energy-num { min-width: 30px; height: 22px; font-size: 12px; }
+}
+
+/* a painted frame has a thick irregular edge, so its interior sits further in */
+body.cf-ants .f-ants::before, body.cf-wasps .f-wasps::before,
+body.cf-beetles .f-beetles::before, body.cf-mantids .f-mantids::before,
+body.cf-termites .f-termites::before, body.cf-moths .f-moths::before,
+body.cf-neutral .f-neutral::before { inset: 7% 9%; }

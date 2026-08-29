@@ -143,6 +143,7 @@ window.SL = window.SL || {};
       // painted card frames replace the drawn ones per faction, as they land
       Object.keys(SL.DATA.FACTIONS).forEach((f) => {
         if (SL.sprites.hasSheet('card_frame_' + f)) document.body.classList.add('cf-' + f);
+        if (SL.sprites.hasSheet('card_bg_' + f)) document.body.classList.add('cb-' + f);
       });
       if (SL.game.screen === 'map') SL.ui.updateTopbar();
     }, ms));
