@@ -1,6 +1,6 @@
 // SWARMLORDS service worker — cache-first PWA shell.
 // BUMP THE CACHE VERSION on every deploy so clients pick up new files.
-const CACHE = 'swarmlords-v20';
+const CACHE = 'swarmlords-v21';
 
 const CORE = [
   '.',

@@ -36,27 +36,36 @@ Deliver the generator's **raw RGBA output, untouched**:
 
 ## UNIT SHEET FORMAT (all unit sheets identical)
 
-`1536×256` PNG, six `256×256` cells, character centered in each cell,
-**profile facing RIGHT** (the engine rotates them to march up/down):
+Final extracted sheet: `2816×256` PNG, eleven `256×256` cells, character
+centered in each cell, **profile facing RIGHT** (the engine rotates them to
+march up/down). Raw generator canvases may arrive in a larger one- or two-row
+layout; deliver those untouched and QA extracts the final strip.
 
 | Frame | Pose |
 |---|---|
-| 1–4 | Walk cycle (contact / down / passing / up — bouncy, cartoony) |
-| 5–6 | Attack loop (wind-up / strike — big, readable, jaw or sting or swipe) |
+| 1–6 | Movement loop (contact / compression / passing / lift / extended passing / return — bouncy, cartoony) |
+| 7–11 | Attack sequence (anticipation / deeper wind-up / release / impact or follow-through / recovery) |
 
-Same character size and position in all six cells. Feet near the cell's
+Same character size and anchor in all eleven cells. Feet near the cell's
 vertical center-line bottom third. The engine scales sheets to ~64px tall in
 play, so silhouettes must read TINY: exaggerate heads, jaws, and weapons.
+
+Legacy `1536×256` sheets remain supported as four movement plus two attack
+frames, but every new or corrected unit uses the expanded eleven-frame
+contract so movement and attacks flow smoothly.
 
 ### Per-unit prompt template
 ```
 A single cartoon <SUBJECT> in vintage 1930s rubber-hose animation style,
 hand-inked wobbly sepia outlines, cel-painted flat colors with soft airbrush
 shading, pie-cut eyes, mischievous personality, dominant accent color
-<HEX>, in profile facing right, on a transparent 1536x256 sprite sheet of
-six 256x256 frames: frames 1-4 a bouncy walk cycle with squash and
-stretch, frames 5-6 an exaggerated attack (wind-up, then strike). Same
-character, same size, centered in every frame. No background, no text.
+<HEX>, in profile facing right. Create exactly eleven poses for extraction
+to a transparent 2816x256 sprite sheet of eleven 256x256 cells: frames 1-6
+a seamless bouncy movement cycle with squash, stretch, contact and passing
+poses; frames 7-11 an exaggerated attack with anticipation, deeper wind-up,
+release, impact or follow-through, and recovery. Same character, same scale
+and anchor in every pose. No background, no text, no baked ground shadow,
+and no pose or detached fragment may cross into a neighboring frame.
 ```
 
 ---
@@ -211,7 +220,9 @@ head, bone white with rust helmet-crest; attack = bear-trap jaw snap.
 nozzle head, bone white; attack = sprays a sticky amber glob.
 ### TE4 `ter_rampart_sheet.png` — Mud Rampart: not a bug — a squat mud
 turret with two sleepy eyes peeking from arrow slits, earthen brown over
-bone; frames 1-4 = idle breathing/settling dust, 5-6 = braces against a hit.
+bone; movement frames 1-6 = stationary idle breathing/settling dust (it is a
+building, never walking), attack frames 7-11 = anticipates and braces against
+a hit, absorbs the impact, then settles back into place.
 ### TE5 `ter_sapper_sheet.png` — Sapper: a scurrying termite hugging a
 too-big powder keg with a lit fuse, bone white; attack = winds up to hurl it.
 ### TE6 `ter_alate_sheet.png` — Alate: a winged termite aviator with a
@@ -244,11 +255,12 @@ crown, deep violet; attack = silent screaming dive with trailing wisps.
 
 ## QA CHECKLIST (per sheet, before accepting)
 
-1. **Grid test:** six exact 256px cells; character centered and same size
-   in all six. Off-center frames jitter in-game.
+1. **Grid test:** eleven exact 256px cells in the extracted final strip;
+   character centered and same size in all eleven. Off-center frames jitter
+   in-game.
 2. **Facing test:** profile facing RIGHT in every frame.
-3. **Loop test:** frames 1→4→1 at speed — no pop. Frames 5→6→5 — reads as
-   hitting something to its right.
+3. **Loop test:** frames 1→6→1 at speed — no pop. Frames 7→11 read as one
+   complete attack to the right, including anticipation and recovery.
 4. **Thumbnail test:** readable and charming at 64px; the attack must be
    obvious at 64px.
 5. **Alpha test:** true transparency, no white halo, no baked shadow (the
@@ -804,6 +816,13 @@ readable silhouettes. Everything should sit near their numbers.
 
 ## P11a — BEETLES: full re-roll (7 sheets)
 
+**Expanded roster animation contract (2026-08-29):** every corrected sheet
+extract to `2816×256`, eleven `256×256` cells. Frames 1–6 are the movement
+loop; frames 7–11 are anticipation / deeper wind-up / release / impact or
+follow-through / recovery. The renderer detects 11-frame sheets by width;
+all existing 6-frame sheets remain valid. This contract now applies to all
+48 unit sheets, including the two grounded wasps.
+
 Beetles carry **four times the ink coverage of the ants** and are the
 darkest, least saturated roster by a wide margin. On the battlefield the
 Stag and the Hercules read as black blobs rather than characters.
@@ -815,8 +834,8 @@ multiplying alpha — a lossy repair that plainly over-darkened it. So please
 to correct the files in the repo.
 
 Re-deliver: `btl_ladybird`, `btl_weevil`, `btl_tortoise`, `btl_stag`,
-`btl_bombardier`, `btl_rhino`, `btl_hercules` — same subjects and poses as
-the accepted originals, same `1536×256` six-frame format.
+`btl_bombardier`, `btl_rhino`, `btl_hercules` — same subjects and identity
+as the accepted originals, using the expanded eleven-frame format above.
 
 Corrections to apply while re-rolling:
 
@@ -828,8 +847,15 @@ Corrections to apply while re-rolling:
   contrast that makes the ants read, and the beetles have lost them into
   the dark.
 - Aim for roughly **luminance 35–42, saturation 50–60, ink under 25%**.
+- **Stag weapon continuity:** its antler pincers remain mounted during the
+  movement loop. During the attack it visibly detaches them and fences with
+  one horn-saber in each hand; while held, the head is bare. The recovery
+  reattaches them. Never show horns both mounted and held.
 
 ## P11b — WASPS: wing correction (5 sheets)
+
+The same expanded 11-frame contract applies: six hover/movement frames and
+five attack frames, extracted to `2816×256` by QA.
 
 The wasps' tone is fine; the problem is compositional. Their wings are
 **large flat cream ovals with no interior structure**, so each character
@@ -855,8 +881,17 @@ Corrections:
 
 | Batch | Assets | Status |
 |---|---|---|
-| P11a beetles re-roll | 7 unit sheets, RAW | PENDING |
-| P11b wasp wings | 5 unit sheets, RAW | PENDING |
+| P11a beetles re-roll | 7 unit sheets | **ACCEPTED + WIRED 2026-08-29** |
+| P11b wasp wings | 5 unit sheets | **ACCEPTED + WIRED 2026-08-29** |
+| P11c roster motion overhaul | remaining 36 unit sheets | **ACCEPTED + WIRED 2026-08-29** |
 
 Deliver raw per the standing protocol — no background cleanup, no alpha
 correction. That is exactly what damaged the beetles the first time.
+
+**P11 QA closeout:** untouched raws are preserved in commit `c8aac22`.
+`tools/extract_unit_sheets.py` keys checker/black mattes, detects 11-across or
+6-over-5 layouts, isolates complete poses by connected body components,
+keeps one scale and baseline per sheet, and emits the final `2816×256` strip.
+Rare ten-pose generator deliveries reuse their neutral pose as frame 11
+recovery. All 48 final sheets passed: 11 nonempty frames, transparent outer
+pixels, and no occupied pixels on a 256px cell boundary.

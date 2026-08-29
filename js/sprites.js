@@ -2,8 +2,9 @@
 // Every unit renders as placeholder rubber-hose vector art. On boot we probe
 // assets/sprites/<id>_sheet.png for each card (and hive_<faction>.png); any
 // sheet that exists replaces the placeholder automatically. No code changes
-// per art delivery. Sheet format: 1536x256, six 256px frames:
-// frames 0-3 walk cycle, frames 4-5 attack. Bug drawn in profile FACING RIGHT.
+// per art delivery. Legacy sheets are 1536x256: four walk + two attack.
+// Expanded sheets are 2816x256: six walk + five attack. Frames are 256px;
+// frame counts are detected from image width. Bugs face RIGHT.
 window.SL = window.SL || {};
 
 (function () {
@@ -317,16 +318,22 @@ window.SL = window.SL || {};
     if (o.side === 1) ctx.scale(-1, 1); // enemy faces left
     if (img) {
       const fw = 256;
+      const totalFrames = Math.max(1, Math.floor(img.width / fw));
+      const expanded = totalFrames >= 11;
+      const walkFrames = expanded ? 6 : Math.min(4, totalFrames);
+      const attackStart = expanded ? 6 : Math.min(4, totalFrames - 1);
+      const attackFrames = expanded ? Math.min(5, totalFrames - attackStart) : Math.min(2, totalFrames - attackStart);
       let frame;
       if (o.state === 'fight' || o.state === 'chomp') {
-        // o.atkPhase runs 0->1 across one attack cycle: wind up, then strike
+        // o.atkPhase runs 0->1 across one attack cycle. Expanded sheets can
+        // spend five distinct frames on anticipation, release, and recovery.
         const ph = o.atkPhase === undefined ? (Math.floor(o.t * 6) % 2) / 2 : o.atkPhase;
-        frame = ph < 0.55 ? 4 : 5;
+        frame = attackStart + Math.min(attackFrames - 1, Math.floor(ph * attackFrames));
       } else {
         // o.walkPhase advances with real distance travelled, so a snail
         // shuffles and a bullet ant sprints
         const wp = o.walkPhase === undefined ? o.t * 8 : o.walkPhase;
-        frame = Math.floor(wp) % 4;
+        frame = Math.floor(wp) % walkFrames;
       }
       // sheetScale compensates sheets whose subject is drawn small in-cell
       // (e.g. sluglet: already drawn half-size AND stat-scaled — see data.js)
@@ -536,7 +543,8 @@ window.SL = window.SL || {};
       ctx.clearRect(0, 0, cv.width, cv.height);
       const img = sheet(cardId + '_sheet');
       if (img) {
-        const f = Math.floor(ms / 130) % 4;
+        const walkFrames = img.width >= 2816 ? 6 : 4;
+        const f = Math.floor(ms / 130) % walkFrames;
         ctx.drawImage(img, f * 256, 0, 256, 256, 0, 0, cv.width, cv.height);
       } else {
         ctx.save();
