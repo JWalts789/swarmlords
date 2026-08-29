@@ -666,7 +666,7 @@ letter closes up or a stroke disappears, thicken it.
 
 | Batch | Assets | Status |
 |---|---|---|
-| P9 wordmarks | 7 × wordmark_*.png | PENDING |
+| P9 wordmarks | 7 x wordmark_*.png | **ALL ACCEPTED** 2026-08-29 — QA alpha-trimmed them; the engine sizes each chip from the image's aspect, so transparent margin was becoming wasted banner width. |
 
 ---
 
@@ -757,10 +757,27 @@ All four words: transparent background, no plaque, trimmed tight.
 
 | Batch | Assets | Status |
 |---|---|---|
-| P10a buttons | ui_btn, ui_btn_primary, ui_btn_danger, ui_pill | PENDING |
-| P10b grounds | menu_bg, select_bg, shop_bg | PENDING |
-| P10c title cards | burst_gold + 4 words | PENDING |
-| P10d battle HUD | ui_energy_frame, ui_energy_fill | PENDING |
-| P10e plaques | ui_card_upgrade, ui_card_kingdom, ui_divider | PENDING |
+| P10a buttons | ui_btn, ui_btn_primary, ui_btn_danger, ui_pill | **ACCEPTED** 2026-08-29 |
+| P10b grounds | menu_bg, select_bg, shop_bg | **ACCEPTED** 2026-08-29 — all three centres measured calm (stdev 7-28) |
+| P10c title cards | burst_gold + 4 words | **ACCEPTED** 2026-08-29 — burst centre 1% opaque, lettering reads |
+| P10d battle HUD | ui_energy_frame, ui_energy_fill | **ACCEPTED** 2026-08-29 — nectar tile seam is mathematically perfect (0.0 channel diff) |
+| P10e plaques | ui_card_upgrade, ui_card_kingdom, ui_divider | **ACCEPTED** 2026-08-29 — see the 9-slice note below |
 
 **17 files.** With these the game has no programmer art left in it.
+
+## 9-slice note (learned on P10e, 2026-08-29)
+
+Two plaques needed their slice retuned in-engine, worth knowing for future
+framed art:
+
+- **Keep ornament inside the slice.** The leaf plaque's stem curls reach
+  about 25% into the artwork, past the nominal 34px border, so they were
+  being stretched across the middle exactly where the title sits. Fixed by
+  slicing deeper (62/34/46) rather than by moving the text.
+- **`round` tiles the middle, `stretch` scales it.** The bark placard has
+  vertical posts in its middle band; tiled, they repeated across the card
+  and cut through the label. Anything with structure in the middle wants
+  `stretch`.
+
+The practical rule: **if a motif is not in the corner, it will be repeated
+or stretched.** Put ornament in the corners, keep the middle plain.

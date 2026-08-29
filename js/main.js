@@ -148,11 +148,12 @@ window.SL = window.SL || {};
     }, ms));
 
     // dev boot shortcuts: ?demo=map | ?demo=battle | ?demo=shop|deck|draft|results
-    const dm = /demo=(shop|deck|draft|results)/.exec(location.search);
+    const dm = /demo=(shop|deck|draft|results|faction)/.exec(location.search);
     if (dm) {
       SL.conquest.startRun('ants');
       setTimeout(() => {
-        if (dm[1] === 'shop') SL.shop.open();
+        if (dm[1] === 'faction') { SL.ui.buildFactionSelect(); SL.ui.showScreen('faction'); }
+        else if (dm[1] === 'shop') SL.shop.open();
         else if (dm[1] === 'deck') SL.ui.deckViewer(false);
         else if (dm[1] === 'draft') SL.ui.draftModal(['ant_bullet', 'neu_wolf', 'btl_stag'],
           { title: 'RECRUITMENT', sub: 'The defeated bend the knee. Enlist one:', skippable: true, skipLabel: 'SKIP (+2 gold)' }, () => {});

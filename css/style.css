@@ -1225,13 +1225,16 @@ body.energy-art #energy-bar::after { display: none; }
 
 /* painted plaques for shop upgrades and kingdom cards */
 body.upg-art .upg-card {
-  border-width: 16px; border-style: solid; border-color: transparent;
-  border-image: url("../assets/sprites/ui_card_upgrade.png") 34 fill round;
+  /* the leaf's stem curls reach ~25% into the art, past the nominal 34px
+     slice; a deeper slice keeps them as fixed corners instead of stretching
+     them across the middle where the title sits */
+  border-width: 26px 22px 20px; border-style: solid; border-color: transparent;
+  border-image: url("../assets/sprites/ui_card_upgrade.png") 62 34 46 fill stretch;
   border-radius: 0; background: none; box-shadow: none;
 }
 body.kingdom-art .faction-card {
-  border-width: 16px; border-style: solid; border-color: transparent;
-  border-image: url("../assets/sprites/ui_card_kingdom.png") 34 fill round;
+  border-width: 30px 26px 24px; border-style: solid; border-color: transparent;
+  border-image: url("../assets/sprites/ui_card_kingdom.png") 58 46 50 fill stretch;
   border-radius: 0; background: none; box-shadow: none;
 }
 
@@ -1241,3 +1244,16 @@ body.ui-art .shop-col-head, body.ui-art .shop-section-title {
   background: url("../assets/sprites/ui_divider.png") left bottom/100% 7px no-repeat;
   padding-bottom: 8px;
 }
+
+/* the leaf plaque curls its stem inward at the top, so inset the content
+   further than the 9-slice border alone allows */
+body.upg-art .upg-card { padding: 2px 6px 4px; }
+body.upg-art .upg-card .upg-name { margin-top: 2px; }
+
+/* let the painted log interior show around the shop's panels */
+body.bg-shop .shop-col { background-color: rgba(240,227,200,.72); }
+body.bg-shop.ui-art .shop-col { background-color: rgba(240,227,200,.78); }
+/* the placard's top bark edge overhangs; drop the name clear of it */
+body.kingdom-art .faction-card { padding: 6px 10px 8px; align-items: flex-start; }
+body.kingdom-art .faction-info { padding-top: 4px; }
+body.kingdom-art .faction-swatch { margin-top: 2px; }
