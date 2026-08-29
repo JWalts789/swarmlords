@@ -1213,14 +1213,23 @@ body.burst-art #titlecard-burst {
 }
 
 /* painted energy meter */
+/* The trough is 512x48 (10.7:1). Stretching it to the full bar width was a
+   4.5x horizontal smear and a 2.7x vertical squash. 3-slice it instead:
+   fixed end caps, only the plain middle stretches. */
 body.energy-art #energy-bar {
-  border: none; background: url("../assets/sprites/ui_energy_frame.png") center/100% 100% no-repeat;
-  height: 18px;
+  height: 26px;
+  background: none; border-radius: 0;
+  border: 0 solid transparent;
+  border-left-width: 26px; border-right-width: 26px;
+  border-image: url("../assets/sprites/ui_energy_frame.png") 0 56 fill stretch;
 }
 body.energy-art #energy-fill {
+  /* auto width at full height keeps the nectar tile square-on, and it is
+     seam-perfect so it repeats cleanly */
   background: url("../assets/sprites/ui_energy_fill.png") left center/auto 100% repeat-x;
   border-radius: 0;
 }
+body.energy-art #energy-num { top: 50%; transform: translateY(-50%); right: 10px; }
 body.energy-art #energy-bar::after { display: none; }
 
 /* painted plaques for shop upgrades and kingdom cards */
@@ -1239,10 +1248,11 @@ body.kingdom-art .faction-card {
 }
 
 /* vine rule under section headings */
+/* the vine rule is 21:1; 'contain' keeps its taper instead of squashing it */
 body.ui-art .shop-col-head, body.ui-art .shop-section-title {
   border-bottom: none;
-  background: url("../assets/sprites/ui_divider.png") left bottom/100% 7px no-repeat;
-  padding-bottom: 8px;
+  background: url("../assets/sprites/ui_divider.png") center bottom/contain no-repeat;
+  padding-bottom: 12px;
 }
 
 /* the leaf plaque curls its stem inward at the top, so inset the content
@@ -1257,3 +1267,38 @@ body.bg-shop.ui-art .shop-col { background-color: rgba(240,227,200,.78); }
 body.kingdom-art .faction-card { padding: 6px 10px 8px; align-items: flex-start; }
 body.kingdom-art .faction-info { padding-top: 4px; }
 body.kingdom-art .faction-swatch { margin-top: 2px; }
+
+/* ---- energy meter: sized to the art, not to the screen ----
+   A screen-wide bar stretched the 512x48 trough badly and read as a smear.
+   Centring it over the hand at a sane height keeps the end clusters in
+   proportion and composes better. */
+/* The trough art is 512x48 = 10.7:1. Anything wider than that ratio
+   squashes the channel into a hairline no matter how it is sliced, so the
+   meter is sized TO the art rather than stretched across the screen. */
+#energy-bar {
+  left: 50%; right: auto; transform: translateX(-50%);
+  height: 32px;
+  width: min(342px, 52vw);   /* 32 x 10.7 */
+}
+#energy-num { right: 12px; top: 50%; transform: translateY(-58%); font-size: 12px; }
+body.energy-art #energy-bar { border-left-width: 37px; border-right-width: 37px; }
+
+@media (max-height: 500px) {
+  #energy-bar { height: 26px; width: min(278px, 46vw); bottom: calc(98px + var(--safe-bot)); }
+  body.energy-art #energy-bar { border-left-width: 30px; border-right-width: 30px; }
+  #energy-num { font-size: 11px; }
+}
+
+/* ---- kingdom cards: compact on short screens ----
+   The painted bark border made each row tall enough that the second card
+   was being cut in half by the scrolling list on a landscape phone. */
+@media (max-height: 500px) {
+  body.kingdom-art .faction-card { border-width: 22px 20px 18px; padding: 2px 6px 4px; }
+  .faction-card { gap: 8px; }
+  .faction-swatch { width: 42px; height: 42px; }
+  .faction-name { font-size: 14px; }
+  .faction-kingdom { font-size: 10px; }
+  .faction-desc { font-size: 10px; line-height: 1.25; }
+  .faction-lock { font-size: 9px; }
+  .faction-list { gap: 7px; }
+}

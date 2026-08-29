@@ -781,3 +781,82 @@ framed art:
 
 The practical rule: **if a motif is not in the corner, it will be repeated
 or stretched.** Put ornament in the corners, keep the middle plain.
+
+---
+
+# PRIORITY 11 — FACTION CONSISTENCY CORRECTION (added 2026-08-29)
+
+Side by side, two rosters sit outside the house style. This is measured,
+not an impression — sampling every opaque pixel of five units per faction:
+
+| faction | luminance | saturation | near-black ink |
+|---|---|---|---|
+| **ants (the reference)** | 39 | 60 | **14%** |
+| wasps | 46 | 58 | 17% |
+| **beetles** | **25** | **38** | **55%** |
+| mantids | 37 | 53 | 24% |
+| termites | 42 | 58 | 22% |
+| moths | 55 | 38 | 9% |
+
+**The ants are the standard.** Solid ember-red bodies, clear cel shading,
+cream gloves and shoes, bold but not heavy ink, pie-cut eyes, chunky
+readable silhouettes. Everything should sit near their numbers.
+
+## P11a — BEETLES: full re-roll (7 sheets)
+
+Beetles carry **four times the ink coverage of the ants** and are the
+darkest, least saturated roster by a wide margin. On the battlefield the
+Stag and the Hercules read as black blobs rather than characters.
+
+**This is very likely our fault, not the artwork's.** That batch arrived
+with its alpha crushed and was restored here by reversing a white matte and
+multiplying alpha — a lossy repair that plainly over-darkened it. So please
+**re-generate all seven from scratch and deliver raw**, rather than trying
+to correct the files in the repo.
+
+Re-deliver: `btl_ladybird`, `btl_weevil`, `btl_tortoise`, `btl_stag`,
+`btl_bombardier`, `btl_rhino`, `btl_hercules` — same subjects and poses as
+the accepted originals, same `1536×256` six-frame format.
+
+Corrections to apply while re-rolling:
+
+- **Steel blue must read as blue**, not near-black. Target the mid-tone of
+  the Iron Acorn hive, which is correct — the units drifted far darker.
+- **Ink is an outline, not a fill.** Carapaces are large flat blue shapes
+  with one darker shadow shape; they are not filled with black.
+- Keep the cream gloves and shoes at full brightness — they are the value
+  contrast that makes the ants read, and the beetles have lost them into
+  the dark.
+- Aim for roughly **luminance 35–42, saturation 50–60, ink under 25%**.
+
+## P11b — WASPS: wing correction (5 sheets)
+
+The wasps' tone is fine; the problem is compositional. Their wings are
+**large flat cream ovals with no interior structure**, so each character
+reads as a small body behind two blank paddles — unfinished next to the
+other factions.
+
+Re-deliver the winged five: `wasp_drone`, `wasp_jacket`, `wasp_lancer`,
+`wasp_hornet`, `wasp_queen`. (`wasp_paper` and `wasp_dauber` are ground
+units and are fine as they are.)
+
+Corrections:
+
+- **Smaller wings relative to the body.** The body is the character; wings
+  should read as motion, not as the largest shape on the sheet.
+- **Give the wing interior structure** — a few dark vein lines and a panel
+  break, so it reads as a wing rather than a paddle.
+- **Suggest translucency**: let the body's silhouette show faintly through
+  where a wing crosses it, the way a real wasp's wing does.
+- Keep the brass-gold and black striping strong on the body so the faction
+  colour still carries at 64px.
+
+## Delivery table
+
+| Batch | Assets | Status |
+|---|---|---|
+| P11a beetles re-roll | 7 unit sheets, RAW | PENDING |
+| P11b wasp wings | 5 unit sheets, RAW | PENDING |
+
+Deliver raw per the standing protocol — no background cleanup, no alpha
+correction. That is exactly what damaged the beetles the first time.
