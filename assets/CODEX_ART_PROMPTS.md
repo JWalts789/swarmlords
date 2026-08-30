@@ -1207,3 +1207,55 @@ stretched across all of it, so the throw now reads as a swing.
 | Batch | Assets | Status |
 |---|---|---|
 | P17 Dauber even cycle | wasp_dauber_sheet.png at 15 frames (10 + 5) | **ACCEPTED + WIRED 2026-08-30** — half-step mean motion 3.933% / 3.935% (0.07% difference) |
+
+---
+
+# PRIORITY 18 -- MUD DAUBER: THE TWO HALF-STEPS MUST OPPOSE (2026-08-30)
+
+P17 fixed what it measured. The cycle is now even -- 4.213% vs 4.219% mean
+motion per frame across the halves, a 0.14% gap where it used to be 31%.
+That part is genuinely solved and should not be touched.
+
+**But the two half-steps are the same step, not opposite ones.** Laid out
+with frames 0-4 above frames 5-9, every pair shows the same boot leading:
+frame 1 and frame 6 are the same pose with a slightly different trowel angle.
+He leads with the same leg twice per cycle, so he hops in place rather than
+walking. That is the stutter that is still visible in play.
+
+## The measurement
+
+Comparing a frame with the one half a cycle later should show the LARGEST
+change in the cycle -- it is the opposite step. Instead:
+
+| | Dauber | fleet median | best in fleet |
+|---|---|---|---|
+| adjacent frames differ | 4.22% | -- | -- |
+| **opposite steps differ** | **2.99%** | -- | -- |
+| **ratio (opposite / adjacent)** | **0.71** | **1.07** | **1.43** |
+
+He is **48th of 48** on this. He is the only unit whose opposite steps are
+*less* distinct than its neighbouring frames.
+
+## What is needed
+
+Keep all 15 frames, keep the even balance, keep the bob, the trowel
+counter-swing, the fixed base and the clean loop. Redraw **frames 5-9 as the
+opposite step of frames 0-4**:
+
+- If frame 0 has the **left** boot forward and the right trailing, frame 5
+  must have the **right** boot forward and the left trailing.
+- Same for 1/6, 2/7, 3/8, 4/9 -- same body position in the stride, opposite
+  legs.
+- The trowel should swing the other way in the second half too, since it
+  counter-balances whichever leg is leading.
+
+## Acceptance test
+
+For each k in 0..4, the silhouette difference between frame k and frame k+5
+must be **greater** than between k and k+1. Target ratio **1.15 or better**
+(the fleet's best walkers reach 1.36-1.43). If the ratio is below 1.0 the
+character is stepping in place, whatever the balance figures say.
+
+| Batch | Assets | Status |
+|---|---|---|
+| P18 Dauber opposing steps | wasp_dauber_sheet.png, frames 5-9 redrawn | PENDING |
