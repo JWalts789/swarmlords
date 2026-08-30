@@ -1452,7 +1452,9 @@ body.head-art .head-muster.lettered { background-image: url("../assets/sprites/h
 
 /* --- map HUD: painted glyphs beside each readout --- */
 .hud-ic {
-  display: inline-block; width: 18px; height: 18px; vertical-align: -4px;
+  display: inline-block;
+  width: clamp(20px, 3.4vh, 34px); height: clamp(20px, 3.4vh, 34px);
+  vertical-align: -4px;
   background-size: contain; background-repeat: no-repeat; background-position: center;
 }
 .hud-ic-gold { background-image: url("../assets/sprites/hud_gold.png"); }
@@ -1461,8 +1463,9 @@ body.head-art .head-muster.lettered { background-image: url("../assets/sprites/h
 .hud-ic-deck { background-image: url("../assets/sprites/hud_deck.png"); }
 .hud-ic-home { background-image: url("../assets/sprites/hud_home.png"); }
 .hud-ic-menu { background-image: url("../assets/sprites/hud_menu.png"); }
-body.hud-art #btn-home, body.hud-art #btn-menu { font-size: 0; padding: 5px 9px; }
-body.hud-art #btn-home .hud-ic, body.hud-art #btn-menu .hud-ic { vertical-align: middle; }
+/* tied to the glyph actually being present, not to a family class */
+.tb-btn.is-glyph { font-size: 0; padding: 6px 10px; line-height: 0; }
+.tb-btn.is-glyph .hud-ic { vertical-align: middle; }
 
 /* --- shop upgrades: plaque by rarity --- */
 body.upg-art .upg-card.rarity-rare {
@@ -1976,14 +1979,12 @@ body.no-anim .spoils-lower { opacity: 1; transform: none; }
   gap: clamp(2px, .8vh, 8px);
   padding-top: clamp(1px, .5vh, 6px);
 }
-/* the wash sits above the border-image (children paint over borders), so it
-   is inset to the plank's middle and multiplied to read as stained wood */
-.fc-wash {
-  position: absolute; inset: 4% 6%;
-  background: var(--fc); opacity: .17;
-  mix-blend-mode: multiply; border-radius: 10px;
-  pointer-events: none;
-}
+/* The wash was a rectangle laid over an irregular painted plank, so its
+   straight edges showed as a box floating on the bark -- the same mistake
+   as outlining a card frame. Identity comes from things that follow the
+   art instead: the emblem, the wordmark, the kingdom's own creatures, a
+   coloured halo around the plank's real edge, and the subtitle. */
+.fc-wash { display: none; }
 .fc-head {
   display: flex; align-items: center; justify-content: center;
   gap: clamp(6px, 1.4vh, 16px);
@@ -2104,3 +2105,13 @@ body.ui-art .faction-detail { padding-top: clamp(4px, 1.6vh, 26px); }
   padding-block: clamp(4px, 1vh, 11px);
   font-size: clamp(10px, 1.9vh, 19px);
 }
+
+/* identity that follows the plank's painted edge rather than boxing it in */
+body.kingdom-art .faction-card {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--fc) 62%, transparent));
+}
+body.kingdom-art .faction-card.locked {
+  filter: saturate(.72) drop-shadow(0 0 4px color-mix(in srgb, var(--fc) 42%, transparent));
+}
+.faction-card .faction-kingdom { color: color-mix(in srgb, var(--fc) 62%, var(--ink)); }
+.fd-kingdom { color: color-mix(in srgb, var(--fc) 62%, var(--ink)); }

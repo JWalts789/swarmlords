@@ -1165,3 +1165,45 @@ than **BACK**; it is the button that starts a campaign.
 |---|---|---|
 | P16a spoils chest | chest_sheet.png (6 x 384) | **ACCEPTED** 2026-08-29 |
 | P16b select lettering | head_kingdoms, word_back, word_towar | **ACCEPTED** 2026-08-29 |
+
+---
+
+# PRIORITY 17 -- MUD DAUBER WALK, EVEN CYCLE (added 2026-08-30)
+
+The 14-frame Dauber is a big improvement on the shuffle, but he still reads
+as stuttering, and the reason is structural rather than artistic.
+
+**A walk cycle is two matched half-steps.** Nine frames cannot split evenly:
+one half-step gets four frames and the other five. Measured on the delivered
+sheet:
+
+- Mean motion per frame in the first half of the cycle: **6.15%** of the cell
+- Mean motion per frame in the second half: **4.25%** -- **31% less**
+- Frames 2 and 6, which should be exact opposite steps, differ by only
+  **1.96%** -- they are very nearly the same pose, so a third of the cycle
+  barely moves at all
+
+That uneven distribution is what reads as a limp. Every other unit in the
+game walks in six frames (two matched three-frame half-steps), which is why
+none of them do this.
+
+**Deliver him at 3840x256 -- 15 frames of 256: 10 walk + 5 attack.**
+
+- **Frames 0-9: the walk, as two matched half-steps of five.** Frame 5 should
+  be frame 0's exact mirror in leg and arm position (right foot forward where
+  the left was), frame 6 mirrors 1, and so on. Same amount of travel in each
+  half. If you overlay frame k on frame k+5, the pose should read as the
+  opposite step -- not as a near-identical one.
+- Keep everything that already works: the vertical bob, the trowel
+  counter-swing, the fixed base, and frames 0 and 9 differing so the loop
+  does not stall.
+- **Frames 10-14: the attack**, unchanged from the current 9-13.
+
+Engine side this needs no change: the split is derived from sheet length, so
+15 frames becomes 10 walk + 5 attack automatically. The strike itself has
+been re-timed to play over the last third of the cooldown rather than being
+stretched across all of it, so the throw now reads as a swing.
+
+| Batch | Assets | Status |
+|---|---|---|
+| P17 Dauber even cycle | wasp_dauber_sheet.png at 15 frames (10 + 5) | PENDING |

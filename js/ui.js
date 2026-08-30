@@ -122,6 +122,17 @@ window.SL = window.SL || {};
     return strip;
   }
 
+
+  function glyphButton(id, iconCls) {
+    const b = $(id);
+    if (!b) return;
+    b.innerHTML = '';
+    const sp = document.createElement('span');
+    sp.className = 'hud-ic ' + iconCls;
+    b.appendChild(sp);
+    b.classList.add('is-glyph');
+  }
+
   function letterButton(id, word, text) {
     const b = $(id);
     if (!b) return;
@@ -244,8 +255,7 @@ window.SL = window.SL || {};
     } else {
       $('tb-terr').textContent = '⬢ ' + SL.conquest.playerTerrs().length;
     }
-    $('tb-turn').innerHTML = (SL.sprites.hasSheet('hud_turn')
-      ? '<span class="hud-ic hud-ic-turn"></span> ' : '') + 'TURN ' + run.turn;
+    $('tb-turn').innerHTML = '<span class="hud-ic hud-ic-turn"></span> TURN ' + run.turn;
   }
 
   function showTerritoryPanel(t) {
@@ -803,8 +813,12 @@ window.SL = window.SL || {};
       SL.conquest.startRun(selectedFaction);
     });
 
-    if (SL.sprites.hasSheet('hud_home')) $('btn-home').innerHTML = '<span class="hud-ic hud-ic-home"></span>';
-    if (SL.sprites.hasSheet('hud_menu')) $('btn-menu').innerHTML = '<span class="hud-ic hud-ic-menu"></span>';
+    // The glyph goes in unconditionally and the CSS loads it by path. Asking
+    // whether the sheet had arrived YET meant that on a cold load the button
+    // kept its text label -- and body.hud-art, added later when the art did
+    // land, then set font-size:0 on it. The result was an invisible button.
+    glyphButton('btn-home', 'hud-ic-home');
+    glyphButton('btn-menu', 'hud-ic-menu');
     $('btn-home').addEventListener('click', () => {
       SL.audio.sfx('click');
       const cv = $('game-canvas');

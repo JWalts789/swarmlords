@@ -348,10 +348,17 @@ window.SL = window.SL || {};
       const attackFrames = expanded ? ATTACK : Math.min(2, totalFrames - attackStart);
       let frame;
       if (o.state === 'fight' || o.state === 'chomp') {
-        // o.atkPhase runs 0->1 across one attack cycle. Expanded sheets can
-        // spend five distinct frames on anticipation, release, and recovery.
+        // o.atkPhase runs 0->1 across one attack COOLDOWN, and spreading the
+        // five frames across the whole of it made every strike a slideshow:
+        // the Mud Dauber's throw poses differ enormously in silhouette, so
+        // holding each for a fifth of 1.1s read as the animation breaking
+        // rather than as a swing. The unit now holds its wound-up pose and
+        // the strike plays out over the last part of the cooldown, landing
+        // on the final frame exactly as the damage does.
+        const SWING = 0.38;
         const ph = o.atkPhase === undefined ? (Math.floor(o.t * 6) % 2) / 2 : o.atkPhase;
-        frame = attackStart + Math.min(attackFrames - 1, Math.floor(ph * attackFrames));
+        const k = ph <= 1 - SWING ? 0 : (ph - (1 - SWING)) / SWING;
+        frame = attackStart + Math.min(attackFrames - 1, Math.floor(k * attackFrames));
       } else {
         // o.walkPhase counts CYCLES travelled, not frames, so a sheet can
         // carry any number of walk frames without changing the stride length
