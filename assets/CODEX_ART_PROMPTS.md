@@ -1023,8 +1023,8 @@ different object.
 | P13a HUD glyphs | 6 files | **ACCEPTED 2026-08-29** |
 | P13b territory rings | 7 × node_ring_*.png | **ACCEPTED 2026-08-29** |
 | P13c road segment | map_road.png (seamless L/R) | **ACCEPTED 2026-08-29** |
-| P14a shop headings | 4 files | PENDING |
-| P14b rarity plaques | 2 files | PENDING |
+| P14a shop headings | 4 files | **ACCEPTED 2026-08-29** |
+| P14b rarity plaques | 2 files | **ACCEPTED 2026-08-29** |
 
 **27 files.** All hooks are already live in the engine.
 
@@ -1054,7 +1054,7 @@ ends carved. When it is empty you should read an empty vessel, not a line.
 
 | Batch | Assets | Status |
 |---|---|---|
-| P14c energy trough | ui_energy_frame.png (re-roll) | PENDING |
+| P14c energy trough | ui_energy_frame.png (re-roll) | **ACCEPTED 2026-08-29** |
 
 ---
 
