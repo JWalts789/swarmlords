@@ -97,6 +97,31 @@ window.SL = window.SL || {};
   }
 
 
+
+  // Three of the kingdom's own creatures say more about it than any blurb.
+  // Cheap ones first: they read as the faction's rank and file.
+  function factionRoster(fid, n) {
+    return Object.keys(SL.DATA.CARDS)
+      .filter((id) => {
+        const d = SL.DATA.CARDS[id];
+        return d.type === 'unit' && d.faction === fid;
+      })
+      .sort((a, b) => SL.DATA.CARDS[a].cost - SL.DATA.CARDS[b].cost)
+      .slice(0, n);
+  }
+
+  function rosterStrip(fid, n, cls) {
+    const strip = document.createElement('div');
+    strip.className = cls;
+    factionRoster(fid, n).forEach((id) => {
+      const slot = document.createElement('div');
+      slot.className = 'fc-thumb';
+      slot.appendChild(SL.sprites.thumb(id, 96));
+      strip.appendChild(slot);
+    });
+    return strip;
+  }
+
   function letterButton(id, word, text) {
     const b = $(id);
     if (!b) return;
@@ -145,9 +170,18 @@ window.SL = window.SL || {};
             : '<span class="win-tally">\u00d7' + meta.wins[fid] + '</span>')
         : '';
 
+      // the kingdom's colour, washed over the timber so no two plates read
+      // as the same piece of wood
+      el.style.setProperty('--fc', fac.color);
+      const wash = document.createElement('div');
+      wash.className = 'fc-wash';
+      el.appendChild(wash);
+
       const head = document.createElement('div');
       head.className = 'fc-head';
       head.appendChild(sw);
+      const titles = document.createElement('div');
+      titles.className = 'fc-titles';
       const nameEl = document.createElement('div');
       nameEl.className = 'faction-name has-word';
       nameEl.appendChild(wordmarkEl(fid, fac.name));
@@ -156,14 +190,15 @@ window.SL = window.SL || {};
         w.innerHTML = wins;
         nameEl.appendChild(w);
       }
-      head.appendChild(nameEl);
-
+      titles.appendChild(nameEl);
       const sub = document.createElement('div');
       sub.className = 'faction-kingdom';
       sub.textContent = fac.kingdom;
+      titles.appendChild(sub);
+      head.appendChild(titles);
 
       el.appendChild(head);
-      el.appendChild(sub);
+      el.appendChild(rosterStrip(fid, 3, 'fc-roster'));
 
       // Locked kingdoms preview too -- seeing what a kingdom does is the
       // reason to go and unlock it.
@@ -376,6 +411,8 @@ window.SL = window.SL || {};
 
   function modal(opts) {
     const wrap = document.createElement('div');
+    // named so a panel can lay its body out against its own box
+    wrap.className = 'modal-body';
     if (opts.title) {
       const t = document.createElement('div');
       t.className = 'modal-title'; t.textContent = opts.title;
@@ -540,6 +577,8 @@ window.SL = window.SL || {};
       (unlocked ? '' : '<div class="fd-lock"><span class="lock-tag">LOCKED</span> '
         + fac.unlockHint + '</div>');
     host.querySelector('.fd-name').appendChild(wordmarkEl(fid, fac.name));
+    host.style.setProperty('--fc', fac.color);
+    host.appendChild(rosterStrip(fid, 4, 'fd-roster'));
   }
 
   function draftModal(cardIds, opts, cb) {
