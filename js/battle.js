@@ -1174,7 +1174,7 @@ window.SL = window.SL || {};
     // floaters
     for (const f of B.floaters) {
       ctx.globalAlpha = Math.max(0, 1 - f.t / 1.2);
-      ctx.font = '900 ' + f.size + 'px "Trebuchet MS", sans-serif';
+      ctx.font = '900 ' + f.size + 'px "Lilita One", "Trebuchet MS", sans-serif';
       ctx.textAlign = 'center';
       ctx.strokeStyle = '#f0e3c8';
       ctx.lineWidth = 3;
@@ -1186,7 +1186,7 @@ window.SL = window.SL || {};
 
     // sudden death notice
     if (B.t > SUDDEN_DEATH_AT && !B.over) {
-      ctx.font = '900 16px "Trebuchet MS", sans-serif';
+      ctx.font = '900 16px "Lilita One", "Trebuchet MS", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillStyle = '#d84b2a';
       ctx.fillText('SUDDEN DEATH — HIVES CRUMBLING', W / 2, L.fieldTop - 8);
@@ -1204,7 +1204,7 @@ window.SL = window.SL || {};
     roundRect(ctx, cx - w / 2, y, w, h, 5); ctx.fill();
     ctx.fillStyle = color;
     if (frac > 0) { roundRect(ctx, cx - w / 2, y, Math.max(6, w * frac), h, 5); ctx.fill(); }
-    ctx.font = '900 10px "Trebuchet MS", sans-serif';
+    ctx.font = '900 10px "Lilita One", "Trebuchet MS", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#f0e3c8';
     ctx.fillText(Math.ceil(side.hiveHp) + ' / ' + side.hiveMax, cx, y + h - 3);

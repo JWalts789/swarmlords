@@ -921,7 +921,7 @@ window.SL = window.SL || {};
     const coin = SL.sprites.sheet('hud_gold') || SL.sprites.sheet('ui_coin');
     const uiIcons = coin ? null : SL.sprites.sheet('ui_icons');
     const yLabel = String(t.yield);
-    ctx.font = '900 14px "Trebuchet MS", sans-serif';
+    ctx.font = '900 14px "Lilita One", "Trebuchet MS", sans-serif';
     const IC = (coin || uiIcons) ? 16 : 0;
     const GAP = IC ? 3 : 0;
     const gw = IC + GAP + ctx.measureText(yLabel).width;
@@ -991,7 +991,7 @@ window.SL = window.SL || {};
 
     const chips = [['player', run.faction]].concat(run.rivals.map((f) => [f, f]));
     const ICON = 24, GAP = 10, H = 32;
-    ctx.font = '900 10px "Trebuchet MS", sans-serif';
+    ctx.font = '900 10px "Lilita One", "Trebuchet MS", sans-serif';
     ctx.textAlign = 'left';
 
     const plateFor = (fid) => SL.sprites.sheet('nameplate_' + fid)
@@ -1078,10 +1078,10 @@ window.SL = window.SL || {};
         ctx.drawImage(m.word, lx + (m.w - m.wordW) / 2, cy - m.wordH / 2,
           m.wordW, m.wordH);
         if (!m.alive) {
-          ctx.font = '900 13px "Trebuchet MS", sans-serif';
+          ctx.font = '900 13px "Lilita One", "Trebuchet MS", sans-serif';
           ctx.fillStyle = '#d84b2a';
           ctx.fillText('☠', lx + m.cap + 1, cy + 5);
-          ctx.font = '900 10px "Trebuchet MS", sans-serif';
+          ctx.font = '900 10px "Lilita One", "Trebuchet MS", sans-serif';
         }
       } else {
       // the plates are faction-coloured and so are the emblems, so the mark

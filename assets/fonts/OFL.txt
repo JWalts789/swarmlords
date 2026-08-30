@@ -1,0 +1,8 @@
+Lilita One and Nunito are used here under the SIL Open Font License 1.1.
+
+  Lilita One  (c) Juan Montoreano / Nicolas Massi
+  Nunito      (c) The Nunito Project Authors
+
+Both files are the latin subset as served by Google Fonts, bundled with the
+game so the installed PWA keeps its typography offline. Full licence text:
+https://openfontlicense.org

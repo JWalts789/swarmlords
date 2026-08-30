@@ -76,6 +76,26 @@ window.SL = window.SL || {};
 
   let selectedFaction = null;
 
+
+  // Ask for the wordmark by path so a slow load cannot freeze the fallback
+  // in. onerror is the only thing that decides the art is genuinely absent.
+  function wordmarkEl(fid, fallbackText, cls) {
+    const img = document.createElement('img');
+    img.className = 'faction-word';
+    img.alt = fallbackText;
+    img.addEventListener('error', () => {
+      const span = document.createElement('span');
+      span.textContent = fallbackText;
+      if (img.parentNode) {
+        img.parentNode.classList.remove('has-word');
+        img.parentNode.replaceChild(span, img);
+      }
+    });
+    img.src = 'assets/sprites/wordmark_' + fid + '.png';
+    if (cls) img.classList.add(cls);
+    return img;
+  }
+
   function buildFactionSelect() {
     const list = $('faction-list');
     list.innerHTML = '';
@@ -105,7 +125,6 @@ window.SL = window.SL || {};
       // that needs room to read goes in the detail panel, because fitting a
       // blurb, a passive, a Devoted power and an unlock hint inside one
       // placard is what pushed the copy onto the bark border.
-      const word = SL.sprites.sheet('wordmark_' + fid);
       const crown = SL.sprites.sheet('map_crown');
       const wins = meta.wins[fid]
         ? (crown
@@ -117,10 +136,13 @@ window.SL = window.SL || {};
       head.className = 'fc-head';
       head.appendChild(sw);
       const nameEl = document.createElement('div');
-      nameEl.className = 'faction-name' + (word ? ' has-word' : '');
-      nameEl.innerHTML = (word
-        ? '<img class="faction-word" src="' + word.src + '" alt="' + fac.name + '">'
-        : fac.name) + wins;
+      nameEl.className = 'faction-name has-word';
+      nameEl.appendChild(wordmarkEl(fid, fac.name));
+      if (wins) {
+        const w = document.createElement('span');
+        w.innerHTML = wins;
+        nameEl.appendChild(w);
+      }
       head.appendChild(nameEl);
 
       const sub = document.createElement('div');
@@ -493,12 +515,9 @@ window.SL = window.SL || {};
     if (!host) return;
     const fac = SL.DATA.FACTIONS[fid];
     const loy = SL.DATA.LOYALTY[fid];
-    const word = SL.sprites.sheet('wordmark_' + fid);
     host.className = 'faction-detail f-' + fid + (unlocked ? '' : ' is-locked');
     host.innerHTML =
-      '<div class="fd-name' + (word ? ' has-word' : '') + '">' +
-        (word ? '<img class="faction-word" src="' + word.src + '" alt="' + fac.name + '">' : fac.name) +
-      '</div>' +
+      '<div class="fd-name has-word"></div>' +
       '<div class="fd-kingdom">' + fac.kingdom + '</div>' +
       '<div class="fd-blurb">' + fac.blurb + '</div>' +
       '<div class="fd-perk"><span class="fd-tag">PASSIVE</span> ' + fac.passiveDesc + '</div>' +
@@ -506,6 +525,7 @@ window.SL = window.SL || {};
         + '</b> — ' + loy.desc + '</div>' : '') +
       (unlocked ? '' : '<div class="fd-lock"><span class="lock-tag">LOCKED</span> '
         + fac.unlockHint + '</div>');
+    host.querySelector('.fd-name').appendChild(wordmarkEl(fid, fac.name));
   }
 
   function draftModal(cardIds, opts, cb) {

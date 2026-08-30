@@ -1,6 +1,23 @@
+/* ---- bundled type (SIL Open Font License 1.1) ----
+   Lilita One for display, Nunito for body. Both are the latin subset only,
+   ~50KB together, and they ship with the app so the PWA keeps its look
+   offline. Trebuchet stays in the stack as the swap-in while they load. */
+@font-face {
+  font-family: 'Lilita One';
+  src: url('../assets/fonts/lilitaone.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Nunito';
+  src: url('../assets/fonts/nunito.woff2') format('woff2');
+  font-weight: 400 900; font-style: normal; font-display: swap;
+}
+
 /* SWARMLORDS — vintage rubber-hose UI. Cream paper, sepia ink, brass. */
 
 :root {
+  --font-display: 'Lilita One', 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --font-body: 'Nunito', 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
   --paper: #f0e3c8;
   --paper-dark: #e2d0a8;
   --ink: #2b1d16;
@@ -22,7 +39,7 @@ html, body {
   height: 100%;
   overflow: hidden;
   background: var(--ink);
-  font-family: "Trebuchet MS", "Segoe UI", Verdana, sans-serif;
+  font-family: var(--font-body);
   color: var(--ink);
   touch-action: manipulation;
   user-select: none;
@@ -1450,13 +1467,14 @@ body.energy-art #energy-bar {
 }
 body.energy-art #energy-fill {
   position: absolute;
-  top: 47.9%; height: 20.8%;
+  /* rebuilt trough: 26px channel at rows 11-36 of 48 */
+  top: 22.9%; height: 54.2%;
   left: 0; margin: 0;
   border-radius: 0; box-shadow: none;
   /* the tile is seam-perfect left-to-right, so repeat it at channel height */
   background: url("../assets/sprites/ui_energy_fill.png") left center/auto 100% repeat-x;
 }
-body.energy-art #energy-num { top: 57.3%; transform: translateY(-50%); }
+body.energy-art #energy-num { top: 50%; transform: translateY(-50%); }
 
 @media (max-height: 500px) {
   body.energy-art #energy-bar {
@@ -1720,3 +1738,20 @@ body.kingdom-art .faction-card.locked.selected {
           drop-shadow(0 0 1px rgba(224,165,30,.9));
 }
 .faction-detail { justify-content: center; }
+
+
+/* ---- display face on the things that announce themselves ----
+   Lilita One has no lowercase personality to speak of at 9px, so body copy
+   stays in Nunito; this is titles, buttons, plates and numbers only. */
+.screen-title, .modal-title, .big-btn, .small-btn, .action-btn,
+.shop-title, .shop-col-head, .shop-section-title,
+.faction-name, .faction-kingdom, .fd-kingdom, .fd-tag,
+.card-name, .card-cost, .card-tag, .upg-name,
+.tb-item, #energy-num, .titlecard-text, .lock-tag, .unlock-tag,
+.hud-pill, .win-tally, .draft-card .dc-name {
+  font-family: var(--font-display);
+  letter-spacing: .6px;
+}
+/* the display face already carries its weight; 900 on top smears it */
+.screen-title, .modal-title, .big-btn, .small-btn, .action-btn,
+.card-name, .card-cost, .faction-name { font-weight: 400; }
