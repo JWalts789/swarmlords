@@ -128,8 +128,12 @@ window.SL = window.SL || {};
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 
-    // activate delivered UI art once its probe loads (checked a few times)
-    [800, 2500, 6000].forEach((ms) => setTimeout(() => {
+    // Activate delivered UI art as each piece lands. This used to sample on a
+    // timer that stopped at 6s; once the card interiors joined the queue the
+    // frames could still be in flight when the last sample ran, and a faction
+    // that lost that race showed unframed cards for the rest of the session.
+    function applyArtClasses() {
+      const before = document.body.className;
       if (SL.sprites.hasSheet('ui_panel')) document.body.classList.add('ui-art');
       // each art family switches on independently, so partial deliveries work
       if (SL.sprites.hasSheet('ui_btn')) document.body.classList.add('btn-art');
@@ -147,18 +151,31 @@ window.SL = window.SL || {};
         if (SL.sprites.hasSheet('card_frame_' + f)) document.body.classList.add('cf-' + f);
         if (SL.sprites.hasSheet('card_bg_' + f)) document.body.classList.add('cb-' + f);
       });
-      if (SL.game.screen === 'map') SL.ui.updateTopbar();
-    }, ms));
+      // only repaint when this call actually turned something on -- the
+      // listener fires once per sheet and there are well over a hundred
+      if (document.body.className !== before && SL.game.screen === 'map') {
+        SL.ui.updateTopbar();
+      }
+    }
+    applyArtClasses();
+    SL.sprites.onSheetLoad(applyArtClasses);
 
     // dev boot shortcuts: ?demo=map | ?demo=battle | ?demo=shop|deck|draft|results
     const dm = /demo=(shop|deck|draft|results|faction)/.exec(location.search);
+    const draftIds = () => {
+      const cm = /cards=([a-z0-9_,]+)/.exec(location.search);
+      const ids = cm ? cm[1].split(',').filter((id) => SL.DATA.CARDS[id]) : [];
+      return ids.length ? ids : ['ant_bullet', 'neu_wolf', 'btl_stag'];
+    };
     if (dm) {
       SL.conquest.startRun('ants');
       setTimeout(() => {
         if (dm[1] === 'faction') { SL.ui.buildFactionSelect(); SL.ui.showScreen('faction'); }
         else if (dm[1] === 'shop') SL.shop.open();
         else if (dm[1] === 'deck') SL.ui.deckViewer(false);
-        else if (dm[1] === 'draft') SL.ui.draftModal(['ant_bullet', 'neu_wolf', 'btl_stag'],
+        // ?demo=draft&cards=a,b,c → draft those cards instead (art QA for
+        // faction frames and interiors side by side)
+        else if (dm[1] === 'draft') SL.ui.draftModal(draftIds(),
           { title: 'RECRUITMENT', sub: 'The defeated bend the knee. Enlist one:', skippable: true, skipLabel: 'SKIP (+2 gold)' }, () => {});
         else if (dm[1] === 'results') SL.ui.resultsScreen({ won: true, faction: 'ants', turns: 24,
           stats: { battlesWon: 12, battlesLost: 3, territoriesTaken: 14, factionsEliminated: 3, goldEarned: 420 },

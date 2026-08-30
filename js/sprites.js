@@ -15,11 +15,20 @@ window.SL = window.SL || {};
   // PNG the battlefield set alone was 21MB.
   const JPEG = /^(battle_bg|map_bg|menu_bg|select_bg|shop_bg)/;
 
+  // Anything that decides what to show based on which art has arrived must
+  // react to the arrival, not sample it on a timer: a sheet still in flight
+  // when the last sample runs would stay invisible for the whole session.
+  const loadListeners = [];
+  function onSheetLoad(fn) { loadListeners.push(fn); }
+
   function probe(name) {
     if (sheets[name]) return;
     const img = new Image();
     const rec = { img, ready: false };
-    img.onload = () => { rec.ready = true; };
+    img.onload = () => {
+      rec.ready = true;
+      loadListeners.forEach((fn) => { try { fn(name); } catch (e) {} });
+    };
     img.onerror = () => {};
     img.src = 'assets/sprites/' + name + (JPEG.test(name) ? '.jpg' : '.png');
     sheets[name] = rec;
@@ -441,11 +450,16 @@ window.SL = window.SL || {};
     const ctx = cv.getContext('2d');
     ctx.scale(2, 2);
     const fac = SL.DATA.FACTIONS[def.faction];
+    // A thumb drawn before its sheet arrived is a placeholder, and caching
+    // that froze the vector bug in for the rest of the session at whatever
+    // size asked first. Only real art is worth keeping.
+    let painted = true;
     if (def.type === 'unit') {
       const img = sheet(def.id + '_sheet');
       if (img) {
         ctx.drawImage(img, 0, 0, 256, 256, 2, 2, size - 4, size - 4);
       } else {
+        painted = false;
         ctx.save();
         ctx.translate(size / 2, size / 2 + size * 0.08);
         drawBugLocal(ctx, def, { t: 0.4, state: 'march', color: fac.color, size: size * 0.62 });
@@ -454,9 +468,9 @@ window.SL = window.SL || {};
     } else {
       const icon = sheet(def.id + '_icon');
       if (icon) ctx.drawImage(icon, 2, 2, size - 4, size - 4);
-      else drawTacticIcon(ctx, def, size, fac.color);
+      else { painted = false; drawTacticIcon(ctx, def, size, fac.color); }
     }
-    thumbs[key] = cv;
+    if (painted) thumbs[key] = cv;
     return cv;
   }
 
@@ -641,5 +655,6 @@ window.SL = window.SL || {};
     drawProjectile,
     hasSheet: (n) => !!sheet(n),
     sheet, // raw access for map/UI art
+    onSheetLoad,
   };
 })();
