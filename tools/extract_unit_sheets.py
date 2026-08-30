@@ -3,7 +3,7 @@
 
 Raw deliveries are preserved in Git before this runs. Generator output is
 normally eleven poses in one row or six poses over five poses, with the
-Mud Dauber's expanded animation supplied as an over-complete 8+8 board.
+Mud Dauber's even two-step animation supplied as a 5+5+5 board.
 Sources may sit on a baked neutral checker or a near-black matte.
 """
 
@@ -74,6 +74,11 @@ def content_bands(mask: np.ndarray) -> list[tuple[int, int]]:
 def row_layout(mask: np.ndarray, frames: int) -> tuple[list[tuple[int, int, int]], str]:
     h, w = mask.shape
     runs = content_bands(mask)
+    if frames == 15 and len(runs) >= 3:
+        split_a = (runs[0][1] + runs[1][0]) // 2
+        split_b = (runs[1][1] + runs[2][0]) // 2
+        bottom = min(h, runs[2][1] + max(8, int(h * 0.03)))
+        return [(0, split_a, 5), (split_a, split_b, 5), (split_b, bottom, 5)], "5+5+5"
     two_rows = len(runs) >= 2 and runs[0][1] < runs[1][0]
     if not two_rows:
         return [(0, h, frames)], f"{frames}x1"
@@ -153,26 +158,21 @@ def content_box(mask: np.ndarray) -> tuple[int, int, int, int]:
 
 
 def extract(path: Path) -> tuple[str, float]:
-    frames = 14 if path.stem == "wasp_dauber_sheet" else DEFAULT_FRAMES
-    move_frames = 9 if frames == 14 else 6
-    raw_frames = 16 if frames == 14 else frames
+    frames = 15 if path.stem == "wasp_dauber_sheet" else DEFAULT_FRAMES
+    move_frames = 10 if frames == 15 else 6
+    raw_frames = frames
     source = keyed_rgba(Image.open(path))
     mask = source[..., 3] > 18
     rows, arrangement = row_layout(mask, raw_frames)
     min_ratio = 0.015 if path.stem == "ter_alate_sheet" else 0.0
     pose_masks, centres = isolate_poses(mask, rows, min_ratio)
-    if frames == 14:
-        # The Dauber source deliberately over-delivers eleven walk poses.
-        # Keep the eight-pose top-row loop plus its first bottom-row bridge,
-        # then the five authored attack/recovery poses at the end.
-        selected = list(range(9)) + list(range(11, 16))
-        pose_masks = [pose_masks[index] for index in selected]
-        centres = [centres[index] for index in selected]
     boxes = [content_box(pose) for pose in pose_masks]
-    move_bottom = float(np.median([box[3] for box in boxes[:8 if frames == 14 else move_frames]]))
+    move_bottom = float(np.median([box[3] for box in boxes[:move_frames]]))
     attack_bottom = float(np.median([box[3] for box in boxes[move_frames:]]))
-    if frames == 14:
-        baselines = [move_bottom] * 8 + [float(boxes[8][3])] + [attack_bottom] * 5
+    if frames == 15:
+        first_step_bottom = float(np.median([box[3] for box in boxes[:5]]))
+        second_step_bottom = float(np.median([box[3] for box in boxes[5:10]]))
+        baselines = [first_step_bottom] * 5 + [second_step_bottom] * 5 + [attack_bottom] * 5
     else:
         baselines = [move_bottom] * move_frames + [attack_bottom] * (frames - move_frames)
     anchor = 190 if path.stem in FLIERS else 220

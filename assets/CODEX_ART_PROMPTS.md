@@ -1206,4 +1206,4 @@ stretched across all of it, so the throw now reads as a swing.
 
 | Batch | Assets | Status |
 |---|---|---|
-| P17 Dauber even cycle | wasp_dauber_sheet.png at 15 frames (10 + 5) | PENDING |
+| P17 Dauber even cycle | wasp_dauber_sheet.png at 15 frames (10 + 5) | **ACCEPTED + WIRED 2026-08-30** — half-step mean motion 3.933% / 3.935% (0.07% difference) |
