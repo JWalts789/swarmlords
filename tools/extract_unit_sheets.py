@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Extract raw Codex unit canvases into the engine's 11-frame strip.
+"""Extract raw Codex unit canvases into engine-ready frame strips.
 
 Raw deliveries are preserved in Git before this runs. Generator output is
-normally eleven poses in one row or six poses over five poses, on either a
-baked neutral checker or a near-black matte.
+normally eleven poses in one row or six poses over five poses, with the
+Mud Dauber's expanded animation supplied as an over-complete 8+8 board.
+Sources may sit on a baked neutral checker or a near-black matte.
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ FLIERS = {
     "mot_dustling_sheet", "mot_hawk_sheet", "mot_luna_sheet",
     "mot_witch_sheet", "mot_deathshead_sheet",
 }
-CELL, FRAMES = 256, 11
+CELL, DEFAULT_FRAMES = 256, 11
 
 
 def keyed_rgba(image: Image.Image) -> np.ndarray:
@@ -70,16 +71,18 @@ def content_bands(mask: np.ndarray) -> list[tuple[int, int]]:
     return runs
 
 
-def row_layout(mask: np.ndarray) -> tuple[list[tuple[int, int, int]], str]:
+def row_layout(mask: np.ndarray, frames: int) -> tuple[list[tuple[int, int, int]], str]:
     h, w = mask.shape
     runs = content_bands(mask)
     two_rows = len(runs) >= 2 and runs[0][1] < runs[1][0]
     if not two_rows:
-        return [(0, h, FRAMES)], "11x1"
+        return [(0, h, frames)], f"{frames}x1"
     split = (runs[0][1] + runs[1][0]) // 2
-    # Ignore any accidental third-row duplicate beneath the intended 6+5.
+    top_count = 8 if frames == 16 else (7 if frames == 14 else 6)
+    bottom_count = frames - top_count
+    # Ignore any accidental third-row duplicate beneath the intended layout.
     bottom = min(h, runs[1][1] + max(8, int(h * 0.03)))
-    return [(0, split, 6), (split, bottom, 5)], "6+5"
+    return [(0, split, top_count), (split, bottom, bottom_count)], f"{top_count}+{bottom_count}"
 
 
 def isolate_poses(
@@ -150,15 +153,28 @@ def content_box(mask: np.ndarray) -> tuple[int, int, int, int]:
 
 
 def extract(path: Path) -> tuple[str, float]:
+    frames = 14 if path.stem == "wasp_dauber_sheet" else DEFAULT_FRAMES
+    move_frames = 9 if frames == 14 else 6
+    raw_frames = 16 if frames == 14 else frames
     source = keyed_rgba(Image.open(path))
     mask = source[..., 3] > 18
-    rows, arrangement = row_layout(mask)
+    rows, arrangement = row_layout(mask, raw_frames)
     min_ratio = 0.015 if path.stem == "ter_alate_sheet" else 0.0
     pose_masks, centres = isolate_poses(mask, rows, min_ratio)
+    if frames == 14:
+        # The Dauber source deliberately over-delivers eleven walk poses.
+        # Keep the eight-pose top-row loop plus its first bottom-row bridge,
+        # then the five authored attack/recovery poses at the end.
+        selected = list(range(9)) + list(range(11, 16))
+        pose_masks = [pose_masks[index] for index in selected]
+        centres = [centres[index] for index in selected]
     boxes = [content_box(pose) for pose in pose_masks]
-    move_bottom = float(np.median([box[3] for box in boxes[:6]]))
-    attack_bottom = float(np.median([box[3] for box in boxes[6:]]))
-    baselines = [move_bottom] * 6 + [attack_bottom] * 5
+    move_bottom = float(np.median([box[3] for box in boxes[:8 if frames == 14 else move_frames]]))
+    attack_bottom = float(np.median([box[3] for box in boxes[move_frames:]]))
+    if frames == 14:
+        baselines = [move_bottom] * 8 + [float(boxes[8][3])] + [attack_bottom] * 5
+    else:
+        baselines = [move_bottom] * move_frames + [attack_bottom] * (frames - move_frames)
     anchor = 190 if path.stem in FLIERS else 220
 
     limits = []
@@ -168,7 +184,7 @@ def extract(path: Path) -> tuple[str, float]:
         limits.extend((120.0 / left, 120.0 / right, (anchor - 8.0) / up, (248.0 - anchor) / down))
     scale = min(limits)
 
-    output = Image.new("RGBA", (CELL * FRAMES, CELL), (0, 0, 0, 0))
+    output = Image.new("RGBA", (CELL * frames, CELL), (0, 0, 0, 0))
     for index, (pose_mask, cx, box, baseline) in enumerate(zip(pose_masks, centres, boxes, baselines)):
         x0, y0, x1, y1 = box
         isolated = source[y0:y1, x0:x1].copy()
@@ -194,7 +210,8 @@ def main() -> None:
     paths = args.paths or sorted(p for p in args.root.glob("*_sheet.png") if p.name.startswith(PREFIXES))
     for path in paths:
         arrangement, scale = extract(path)
-        print(f"{path.name}: {arrangement}, scale={scale:.3f}, 2816x256")
+        with Image.open(path) as image:
+            print(f"{path.name}: {arrangement}, scale={scale:.3f}, {image.width}x{image.height}")
 
 
 if __name__ == "__main__":

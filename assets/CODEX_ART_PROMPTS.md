@@ -1106,8 +1106,8 @@ the first place.
 
 | Batch | Assets | Status |
 |---|---|---|
-| P15a Mud Dauber walk | wasp_dauber_sheet.png at 14 frames | PENDING |
-| P15b Wasp wordmark | wordmark_wasps.png | PENDING |
+| P15a Mud Dauber walk | wasp_dauber_sheet.png at 14 frames | **ACCEPTED + WIRED 2026-08-30** |
+| P15b Wasp wordmark | wordmark_wasps.png | **ACCEPTED + WIRED 2026-08-30** |
 
 ---
 
