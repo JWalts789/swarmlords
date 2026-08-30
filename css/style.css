@@ -1528,3 +1528,195 @@ body.energy-art #energy-num { top: 57.3%; transform: translateY(-50%); }
   .win-crown { width: 12px; height: 12px; }
   .lock-tag { font-size: 8px; padding: 0 5px; }
 }
+
+
+/* ==================== KINGDOM SELECT: THE BOARD ====================
+   Six kingdoms on one screen as a 3x2 board of placards. It used to be a
+   scrolling column of full-width planks: only two and a half were ever
+   visible, the scrollbar was the only clue there were more, and the plank
+   art was stretched from its native 2:1 across a 6:1 letterbox, which is why
+   its bark ends crowded the text. A placard is close to the art's own
+   proportions, so the border behaves and the copy has room. */
+.faction-list {
+  max-width: none; width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 10px;
+  overflow: hidden;          /* everything fits, so nothing scrolls */
+  padding-bottom: 0;
+}
+.faction-card {
+  flex-direction: column;
+  align-items: stretch;
+  text-align: center;
+  gap: 3px;
+  min-width: 0; min-height: 0;
+  overflow: hidden;
+}
+.fc-head {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; flex: 0 0 auto;
+}
+.faction-card .faction-swatch {
+  width: 30px; height: 30px; border-width: 2px;
+  align-self: auto; flex: 0 0 auto;
+}
+.faction-card .faction-swatch img,
+.faction-card .faction-swatch canvas { width: 22px; height: 22px; }
+.faction-info {
+  display: flex; flex-direction: column; gap: 2px;
+  align-items: stretch; flex: 1 1 auto; min-height: 0;
+}
+.faction-id { flex: 0 0 auto; text-align: center; }
+/* no rule down the middle any more -- the placard is a single column */
+.faction-perks {
+  flex: 1 1 auto; min-height: 0;
+  border-left: none; padding-left: 0;
+  text-align: center;
+}
+.faction-name.has-word { justify-content: center; }
+.faction-desc { margin-top: 1px; }
+.faction-lock { margin-top: 2px; }
+
+/* The placard's painted edge curls inward past its 9-slice border, so the
+   copy needs clearance beyond the border-width alone or it sits on the wood. */
+body.kingdom-art .faction-card {
+  border-width: 26px 30px 24px;
+  padding: 0 4px 2px;
+  align-items: stretch;
+}
+
+@media (max-height: 560px) {
+  .faction-list { gap: 7px; }
+  body.kingdom-art .faction-card { border-width: 20px 24px 18px; padding: 0 3px 1px; }
+  .faction-card { gap: 2px; }
+  .faction-card .faction-swatch { width: 24px; height: 24px; }
+  .faction-card .faction-swatch img,
+  .faction-card .faction-swatch canvas { width: 18px; height: 18px; }
+  .faction-word { height: 18px; }
+  .faction-kingdom { font-size: 9px; letter-spacing: .5px; }
+  .faction-desc { font-size: 9px; line-height: 1.22; }
+  .faction-perk { font-size: 9px; line-height: 1.22; }
+  .faction-lock { font-size: 8.5px; }
+  .fc-head { gap: 6px; }
+}
+
+/* ---- lettered heading and buttons, once the art lands ---- */
+body.has-head-kingdoms .screen-title.lettered {
+  color: transparent; text-shadow: none;
+  background: url("../assets/sprites/head_kingdoms.png") center/contain no-repeat;
+  height: 30px;
+}
+body.has-word-back #btn-faction-back.lettered,
+body.has-word-towar #btn-faction-go.lettered { color: transparent; text-shadow: none; }
+body.has-word-back #btn-faction-back.lettered::after,
+body.has-word-towar #btn-faction-go.lettered::after {
+  content: ""; position: absolute; inset: 0;
+  background-position: center; background-repeat: no-repeat; background-size: 62% auto;
+}
+body.has-word-back #btn-faction-back.lettered::after { background-image: url("../assets/sprites/word_back.png"); }
+body.has-word-towar #btn-faction-go.lettered::after { background-image: url("../assets/sprites/word_towar.png"); }
+
+/* ==================== KINGDOM SELECT: BOARD AND PANEL ====================
+   The placards are nameplates; the panel does the talking. Six kingdoms are
+   on screen at once so there is nothing to scroll, and no placard is asked
+   to hold a paragraph, which is what used to push copy onto the bark. */
+.faction-body {
+  flex: 1; min-height: 0; width: 100%;
+  display: flex; gap: 14px; align-items: stretch;
+  position: relative; z-index: 2;
+}
+.faction-list {
+  flex: 1 1 58%; min-width: 0;
+  max-width: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 9px;
+  overflow: hidden;                 /* it all fits, so nothing scrolls */
+  padding-bottom: 0;
+}
+.faction-card {
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; gap: 2px;
+  min-width: 0; min-height: 0; overflow: hidden;
+}
+.fc-head {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; min-width: 0; max-width: 100%;
+}
+.faction-card .faction-swatch {
+  width: 28px; height: 28px; border-width: 2px;
+  align-self: auto; flex: 0 0 auto;
+}
+.faction-card .faction-swatch img,
+.faction-card .faction-swatch canvas { width: 21px; height: 21px; }
+.faction-card .faction-kingdom {
+  font-size: 9.5px; letter-spacing: .6px; line-height: 1.15;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ---- the panel ---- */
+.faction-detail {
+  flex: 1 1 42%; min-width: 0;
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 14px 16px;
+  border: 3px solid var(--ink); border-radius: 14px;
+  background: rgba(240,227,200,.92);
+  box-shadow: 0 3px 0 var(--ink);
+  overflow: hidden;
+  text-align: center;
+}
+body.ui-art .faction-detail {
+  border-width: 26px 24px 24px; border-style: solid; border-color: transparent;
+  border-image: url("../assets/sprites/ui_panel.png") 46 42 44 fill stretch;
+  border-radius: 0; box-shadow: none; background: none;
+  padding: 0 6px;
+}
+.fd-name { display: flex; align-items: center; justify-content: center; }
+.fd-name .faction-word { height: 30px; width: auto; }
+.fd-kingdom {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--ink-soft);
+}
+.fd-blurb { font-size: 11px; line-height: 1.32; color: var(--ink); }
+.fd-perk { font-size: 10.5px; line-height: 1.3; color: var(--ink-soft); }
+.fd-tag {
+  display: inline-block; font-size: 8px; font-weight: 900; letter-spacing: 1px;
+  padding: 1px 5px; border-radius: 3px; margin-right: 3px;
+  background: var(--ink); color: var(--brass); vertical-align: 1px;
+}
+.fd-lock { font-size: 10px; color: var(--blood); margin-top: 2px; }
+.faction-detail.is-locked .fd-name,
+.faction-detail.is-locked .fd-kingdom { opacity: .75; }
+
+@media (max-height: 560px) {
+  .faction-body { gap: 10px; }
+  .faction-list { gap: 7px; }
+  body.kingdom-art .faction-card { border-width: 18px 22px 16px; padding: 0 2px; }
+  .faction-card .faction-swatch { width: 23px; height: 23px; }
+  .faction-card .faction-swatch img,
+  .faction-card .faction-swatch canvas { width: 17px; height: 17px; }
+  .faction-word { height: 17px; }
+  .faction-card .faction-kingdom { font-size: 8.5px; }
+  .fd-name .faction-word { height: 24px; }
+  .fd-kingdom { font-size: 10px; }
+  .fd-blurb, .fd-perk { font-size: 9.5px; line-height: 1.26; }
+  body.ui-art .faction-detail { border-width: 20px 20px 18px; }
+}
+
+/* the selection ring has to follow the placard's painted edge -- an outline
+   draws the element rectangle, which read as a yellow box floating behind
+   the bark (the same reason the card frames use drop-shadow) */
+body.kingdom-art .faction-card.selected {
+  background: none; outline: none;
+  filter: drop-shadow(0 0 5px rgba(224,165,30,.95))
+          drop-shadow(0 0 1px rgba(224,165,30,1));
+}
+body.kingdom-art .faction-card.locked.selected {
+  filter: saturate(.4)
+          drop-shadow(0 0 5px rgba(224,165,30,.75))
+          drop-shadow(0 0 1px rgba(224,165,30,.9));
+}
+.faction-detail { justify-content: center; }

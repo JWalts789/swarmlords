@@ -82,6 +82,7 @@ window.SL = window.SL || {};
     selectedFaction = null;
     $('btn-faction-go').disabled = true;
     const meta = SL.game.meta;
+    let first = null, firstUnlocked = null;
     for (const fid of SL.DATA.FACTION_ORDER) {
       const fac = SL.DATA.FACTIONS[fid];
       const unlocked = meta.unlocked.includes(fid);
@@ -100,49 +101,56 @@ window.SL = window.SL || {};
         const starter = { ants: 'ant_soldier', wasps: 'wasp_drone', beetles: 'btl_ladybird', mantids: 'man_orchid', termites: 'ter_snapjaw', moths: 'mot_deathshead' }[fid];
         sw.appendChild(SL.sprites.makeMarchingBug(starter, 46));
       }
-      const info = document.createElement('div');
-      info.className = 'faction-info';
-      const loy = SL.DATA.LOYALTY[fid];
-      // Two columns: identity on the left, what the kingdom actually does on
-      // the right. Stacked, these rows grew tall enough that only two fitted
-      // on a landscape phone while most of the plank sat empty.
-      // The kingdoms are hand-lettered everywhere else; select should not be
-      // the one screen that names them in the UI font.
+      // The placard is a nameplate: emblem, painted name, subtitle. Anything
+      // that needs room to read goes in the detail panel, because fitting a
+      // blurb, a passive, a Devoted power and an unlock hint inside one
+      // placard is what pushed the copy onto the bark border.
       const word = SL.sprites.sheet('wordmark_' + fid);
       const crown = SL.sprites.sheet('map_crown');
       const wins = meta.wins[fid]
         ? (crown
-            ? '<span class="win-crown" style="background-image:url(' + crown.src + ')"></span>×' + meta.wins[fid]
-            : '<span class="win-tally">won ×' + meta.wins[fid] + '</span>')
+            ? '<span class="win-crown" style="background-image:url(' + crown.src + ')"></span>\u00d7' + meta.wins[fid]
+            : '<span class="win-tally">\u00d7' + meta.wins[fid] + '</span>')
         : '';
-      info.innerHTML =
-        '<div class="faction-id">' +
-          '<div class="faction-name' + (word ? ' has-word' : '') + '">' +
-            (word
-              ? '<img class="faction-word" src="' + word.src + '" alt="' + fac.name + '">'
-              : fac.name) + wins + '</div>' +
-          '<div class="faction-kingdom">' + fac.kingdom + '</div>' +
-          '<div class="faction-desc">' + fac.blurb + '</div>' +
-        '</div>' +
-        '<div class="faction-perks">' +
-          '<div class="faction-perk"><b>' + fac.passiveDesc + '</b></div>' +
-          (loy ? '<div class="faction-perk">Devoted: <b>' + loy.name + '</b> — ' + loy.desc + '</div>' : '') +
-          (unlocked ? '' : '<div class="faction-lock">'
-            + '<span class="lock-tag">LOCKED</span> ' + fac.unlockHint + '</div>') +
-        '</div>';
-      el.appendChild(sw);
-      el.appendChild(info);
-      if (unlocked) {
-        el.addEventListener('click', () => {
-          list.querySelectorAll('.faction-card').forEach((c) => c.classList.remove('selected'));
-          el.classList.add('selected');
+
+      const head = document.createElement('div');
+      head.className = 'fc-head';
+      head.appendChild(sw);
+      const nameEl = document.createElement('div');
+      nameEl.className = 'faction-name' + (word ? ' has-word' : '');
+      nameEl.innerHTML = (word
+        ? '<img class="faction-word" src="' + word.src + '" alt="' + fac.name + '">'
+        : fac.name) + wins;
+      head.appendChild(nameEl);
+
+      const sub = document.createElement('div');
+      sub.className = 'faction-kingdom';
+      sub.textContent = fac.kingdom;
+
+      el.appendChild(head);
+      el.appendChild(sub);
+
+      // Locked kingdoms preview too -- seeing what a kingdom does is the
+      // reason to go and unlock it.
+      el.addEventListener('click', () => {
+        list.querySelectorAll('.faction-card').forEach((c) => c.classList.remove('selected'));
+        el.classList.add('selected');
+        showFactionDetail(fid, unlocked);
+        if (unlocked) {
           selectedFaction = fid;
           $('btn-faction-go').disabled = false;
-          SL.audio.sfx('click');
-        });
+        }
+        SL.audio.sfx('click');
+      });
+      if (!first || (unlocked && !firstUnlocked)) {
+        first = first || el;
+        if (unlocked && !firstUnlocked) firstUnlocked = { el, fid };
       }
       list.appendChild(el);
     }
+    // never show an empty panel: open on the first kingdom the player owns
+    const boot = firstUnlocked || (first && { el: first, fid: SL.DATA.FACTION_ORDER[0] });
+    if (boot) boot.el.click();
   }
 
   // ---------------- map topbar / panel ----------------
@@ -475,6 +483,29 @@ window.SL = window.SL || {};
 
   function cardEl(cardId) {
     return buildCard(cardId, { size: 'large' });
+  }
+
+
+  // The panel is the only place a kingdom is described at length, so it can
+  // afford full sentences without crowding anything.
+  function showFactionDetail(fid, unlocked) {
+    const host = $('faction-detail');
+    if (!host) return;
+    const fac = SL.DATA.FACTIONS[fid];
+    const loy = SL.DATA.LOYALTY[fid];
+    const word = SL.sprites.sheet('wordmark_' + fid);
+    host.className = 'faction-detail f-' + fid + (unlocked ? '' : ' is-locked');
+    host.innerHTML =
+      '<div class="fd-name' + (word ? ' has-word' : '') + '">' +
+        (word ? '<img class="faction-word" src="' + word.src + '" alt="' + fac.name + '">' : fac.name) +
+      '</div>' +
+      '<div class="fd-kingdom">' + fac.kingdom + '</div>' +
+      '<div class="fd-blurb">' + fac.blurb + '</div>' +
+      '<div class="fd-perk"><span class="fd-tag">PASSIVE</span> ' + fac.passiveDesc + '</div>' +
+      (loy ? '<div class="fd-perk"><span class="fd-tag">DEVOTED</span> <b>' + loy.name
+        + '</b> — ' + loy.desc + '</div>' : '') +
+      (unlocked ? '' : '<div class="fd-lock"><span class="lock-tag">LOCKED</span> '
+        + fac.unlockHint + '</div>');
   }
 
   function draftModal(cardIds, opts, cb) {

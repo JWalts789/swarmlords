@@ -55,6 +55,7 @@ window.SL = window.SL || {};
      'map_road', 'hud_turn', 'hud_deck', 'hud_home', 'hud_menu',
      'hud_territory', 'hud_gold',
      'head_shop', 'head_market', 'head_upgrades', 'head_muster',
+     'head_kingdoms', 'word_back', 'word_towar',
      'ui_card_upgrade_rare', 'ui_card_upgrade_legendary'].forEach(probe);
     // a battlefield per kingdom, chosen by whose ground is being fought over
     Object.keys(SL.DATA.FACTIONS).forEach((f) => probe('battle_bg_' + f));

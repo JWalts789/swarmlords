@@ -853,20 +853,31 @@ window.SL = window.SL || {};
     if (emblem) {
       const sr = t.capitalOf ? 15 : 13;
       const sx = p.x - ringR * 0.70, sy = p.y - ringR * 0.70;
-      ctx.fillStyle = 'rgba(244,235,214,0.96)';
+      // The seal wears its kingdom's colour. It is laid over cream rather
+      // than used neat: the emblems are themselves faction-coloured, so a
+      // fully saturated disc swallowed the mark it was meant to show.
+      ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(244,235,214,0.96)'; ctx.fill();
+      ctx.save();
+      ctx.globalAlpha = 0.55; ctx.fillStyle = col; ctx.fill();
+      ctx.restore();
       ctx.strokeStyle = '#1b120c';
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.stroke();
       ctx.strokeStyle = col;
       ctx.lineWidth = 2.5;
       ctx.beginPath(); ctx.arc(sx, sy, sr + 1.5, 0, Math.PI * 2); ctx.stroke();
       ctx.drawImage(emblem, sx - sr + 1, sy - sr + 1, (sr - 1) * 2, (sr - 1) * 2);
     } else if (!townImg) {
       const bx = p.x - r * 0.72, by = p.y - r * 0.72;
-      ctx.fillStyle = 'rgba(240,227,200,0.94)';
+      ctx.beginPath(); ctx.arc(bx, by, 13, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(240,227,200,0.94)'; ctx.fill();
+      ctx.save();
+      ctx.globalAlpha = 0.55; ctx.fillStyle = col; ctx.fill();
+      ctx.restore();
       ctx.strokeStyle = '#1b120c';
       ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(bx, by, 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.stroke();
       if (!drawMark(ctx, fid, bx - 12, by - 12, 24)) {
         ctx.fillStyle = col;
         ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI * 2); ctx.fill();
@@ -1075,11 +1086,14 @@ window.SL = window.SL || {};
       } else {
       // the plates are faction-coloured and so are the emblems, so the mark
       // sits on a cream seal or it disappears into its own banner
-      ctx.fillStyle = 'rgba(244,235,214,0.95)';
+      ctx.beginPath(); ctx.arc(ix + ICON / 2, cy, ICON / 2 + 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(244,235,214,0.95)'; ctx.fill();
+      ctx.save();
+      ctx.globalAlpha = 0.55; ctx.fillStyle = fac.color; ctx.fill();
+      ctx.restore();
       ctx.strokeStyle = '#1b120c';
       ctx.lineWidth = 1.8;
-      ctx.beginPath(); ctx.arc(ix + ICON / 2, cy, ICON / 2 + 1.5, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
+      ctx.stroke();
       if (!drawMark(ctx, m.fid, ix + 1, cy - ICON / 2 + 1, ICON - 2)) {
         ctx.fillStyle = fac.color;
         ctx.beginPath(); ctx.arc(ix + ICON / 2, cy, 7, 0, Math.PI * 2); ctx.fill();

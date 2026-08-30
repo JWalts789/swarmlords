@@ -144,6 +144,13 @@ window.SL = window.SL || {};
       if (SL.sprites.hasSheet('ui_energy_frame')) document.body.classList.add('energy-art');
       if (SL.sprites.hasSheet('ui_card_upgrade')) document.body.classList.add('upg-art');
       if (SL.sprites.hasSheet('head_shop')) document.body.classList.add('head-art');
+      // Lettering that arrives piecemeal is gated on its OWN file. Keying it
+      // to a family class blanked the kingdom-select title and buttons the
+      // moment the shop headings landed, because the rules turned the type
+      // transparent while their replacement art did not exist yet.
+      ['head_kingdoms', 'word_back', 'word_towar'].forEach((n) => {
+        if (SL.sprites.hasSheet(n)) document.body.classList.add('has-' + n.replace(/_/g, '-'));
+      });
       if (SL.sprites.hasSheet('hud_gold')) document.body.classList.add('hud-art');
       if (SL.sprites.hasSheet('ui_card_kingdom')) document.body.classList.add('kingdom-art');
       // painted card frames replace the drawn ones per faction, as they land
