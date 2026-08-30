@@ -1652,15 +1652,10 @@ body.has-head-kingdoms .screen-title.lettered {
   background: url("../assets/sprites/head_kingdoms.png") center/contain no-repeat;
   height: 30px;
 }
-body.has-word-back #btn-faction-back.lettered,
-body.has-word-towar #btn-faction-go.lettered { color: transparent; text-shadow: none; }
-body.has-word-back #btn-faction-back.lettered::after,
-body.has-word-towar #btn-faction-go.lettered::after {
-  content: ""; position: absolute; inset: 0;
-  background-position: center; background-repeat: no-repeat; background-size: 62% auto;
-}
-body.has-word-back #btn-faction-back.lettered::after { background-image: url("../assets/sprites/word_back.png"); }
-body.has-word-towar #btn-faction-go.lettered::after { background-image: url("../assets/sprites/word_towar.png"); }
+/* the button words are <img> children now, sized by height so BACK and TO
+   WAR share a cap height whatever their plates measure */
+.btn-word { display: block; height: 19px; width: auto; }
+@media (max-height: 500px) { .btn-word { height: 16px; } }
 
 /* ==================== KINGDOM SELECT: BOARD AND PANEL ====================
    The placards are nameplates; the panel does the talking. Six kingdoms are
@@ -1954,3 +1949,16 @@ body.no-anim .spoils-lower { opacity: 1; transform: none; }
 .spoils-chest { position: relative; z-index: 1; }
 .spoils-rewards { position: relative; z-index: 2; }
 .spoils-lower { position: relative; z-index: 2; }
+
+/* A lettered button has to be its own containing block. Without it the
+   ::after's inset:0 resolved against the nearest positioned ancestor -- the
+   screen -- so BACK and TO WAR were both painted across the whole area and
+   landed on top of each other. */
+#btn-faction-back.lettered,
+#btn-faction-go.lettered { position: relative; }
+
+/* the chest is the hero of the ceremony and there is headroom for it */
+.spoils-chest { width: 178px; height: 178px; }
+@media (max-height: 500px) {
+  .spoils-chest { width: 124px; height: 124px; }
+}

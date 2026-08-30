@@ -96,6 +96,19 @@ window.SL = window.SL || {};
     return img;
   }
 
+
+  function letterButton(id, word, text) {
+    const b = $(id);
+    if (!b) return;
+    const img = document.createElement('img');
+    img.className = 'btn-word';
+    img.alt = text;
+    img.addEventListener('error', () => { b.textContent = text; });
+    img.src = 'assets/sprites/' + word + '.png';
+    b.textContent = '';
+    b.appendChild(img);
+  }
+
   function buildFactionSelect() {
     const list = $('faction-list');
     list.innerHTML = '';
@@ -737,6 +750,13 @@ window.SL = window.SL || {};
     $('btn-sfx').addEventListener('click', toggleSfx);
     $('btn-music').addEventListener('click', toggleMusic);
 
+    // The button labels are painted words. Doing this with a background on a
+    // pseudo-element meant guessing at box sizes -- font-size:0 collapsed the
+    // content box and the art went with it. A real img is measured by the
+    // browser, keeps the plate's proportions, and falls back to the label
+    // only if the file genuinely is not there.
+    letterButton('btn-faction-back', 'word_back', 'BACK');
+    letterButton('btn-faction-go', 'word_towar', 'TO WAR');
     $('btn-faction-back').addEventListener('click', () => { SL.audio.sfx('click'); showScreen('title'); });
     $('btn-faction-go').addEventListener('click', () => {
       if (!selectedFaction) return;
