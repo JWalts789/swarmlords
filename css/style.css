@@ -1487,3 +1487,44 @@ body.energy-art #energy-num { top: 57.3%; transform: translateY(-50%); }
   .draft-row .card--large .card-art canvas,
   .draft-row .card--large .card-art img { width: 62px; height: 62px; }
 }
+
+/* ---- kingdom select: painted names ----
+   The wordmarks are trimmed tight and each has its own aspect, so they are
+   sized by HEIGHT and left to find their own width. A fixed width would
+   squash TERMITES and stretch ANTS. */
+.faction-name.has-word { display: flex; align-items: center; gap: 8px; }
+.faction-word {
+  height: 28px; width: auto; max-width: 100%;
+  object-fit: contain; display: block;
+}
+.win-crown {
+  display: inline-block; width: 15px; height: 15px;
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+  vertical-align: -2px;
+}
+.win-tally { font-size: 10px; color: var(--brass); letter-spacing: .5px; }
+.lock-tag, .unlock-tag, .mp-cap {
+  display: inline-block; font-size: 9px; font-weight: 900; letter-spacing: 1px;
+  padding: 1px 6px; border-radius: 3px;
+  background: var(--ink); color: var(--brass);
+}
+.unlock-tag { font-size: 10px; }
+.mp-crown {
+  display: inline-block; width: 17px; height: 17px; margin-left: 6px;
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+  vertical-align: -3px;
+}
+/* the identity column reads as a title block, so it centres on its own */
+.faction-id { text-align: center; }
+.faction-name.has-word { justify-content: center; }
+.faction-card .faction-swatch { align-self: center; }
+
+@media (max-height: 500px) {
+  /* the painted name replaces a 14px text line, so the row only affords a
+     little more than that before the third kingdom drops off screen */
+  .faction-word { height: 20px; }
+  .faction-id .faction-kingdom { margin-top: 0; }
+  .faction-name.has-word { gap: 6px; }
+  .win-crown { width: 12px; height: 12px; }
+  .lock-tag { font-size: 8px; padding: 0 5px; }
+}

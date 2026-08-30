@@ -106,16 +106,29 @@ window.SL = window.SL || {};
       // Two columns: identity on the left, what the kingdom actually does on
       // the right. Stacked, these rows grew tall enough that only two fitted
       // on a landscape phone while most of the plank sat empty.
+      // The kingdoms are hand-lettered everywhere else; select should not be
+      // the one screen that names them in the UI font.
+      const word = SL.sprites.sheet('wordmark_' + fid);
+      const crown = SL.sprites.sheet('map_crown');
+      const wins = meta.wins[fid]
+        ? (crown
+            ? '<span class="win-crown" style="background-image:url(' + crown.src + ')"></span>×' + meta.wins[fid]
+            : '<span class="win-tally">won ×' + meta.wins[fid] + '</span>')
+        : '';
       info.innerHTML =
         '<div class="faction-id">' +
-          '<div class="faction-name">' + fac.name + (meta.wins[fid] ? ' 👑×' + meta.wins[fid] : '') + '</div>' +
+          '<div class="faction-name' + (word ? ' has-word' : '') + '">' +
+            (word
+              ? '<img class="faction-word" src="' + word.src + '" alt="' + fac.name + '">'
+              : fac.name) + wins + '</div>' +
           '<div class="faction-kingdom">' + fac.kingdom + '</div>' +
           '<div class="faction-desc">' + fac.blurb + '</div>' +
         '</div>' +
         '<div class="faction-perks">' +
           '<div class="faction-perk"><b>' + fac.passiveDesc + '</b></div>' +
           (loy ? '<div class="faction-perk">Devoted: <b>' + loy.name + '</b> — ' + loy.desc + '</div>' : '') +
-          (unlocked ? '' : '<div class="faction-lock">🔒 ' + fac.unlockHint + '</div>') +
+          (unlocked ? '' : '<div class="faction-lock">'
+            + '<span class="lock-tag">LOCKED</span> ' + fac.unlockHint + '</div>') +
         '</div>';
       el.appendChild(sw);
       el.appendChild(info);
@@ -139,7 +152,7 @@ window.SL = window.SL || {};
   function coinHTML(n, big) {
     if (big && SL.sprites.hasSheet('ui_coin_stack')) return '<span class="ui-coin stack"></span> ' + n;
     if (SL.sprites.hasSheet('ui_coin')) return '<span class="ui-coin"></span> ' + n;
-    return '◉ ' + n;
+    return n + ' gold';
   }
 
   function updateTopbar() {
@@ -161,7 +174,21 @@ window.SL = window.SL || {};
     const run = SL.conquest.getRun();
     const panel = $('map-panel');
     panel.classList.remove('hidden');
-    $('mp-name').textContent = t.name + (t.capitalOf ? ' 👑' : '');
+    // the capital mark is painted on the map, so match it here
+    const mpName = $('mp-name');
+    mpName.textContent = t.name;
+    if (t.capitalOf) {
+      const capCrown = SL.sprites.sheet('map_crown');
+      const mark = document.createElement('span');
+      if (capCrown) {
+        mark.className = 'mp-crown';
+        mark.style.backgroundImage = 'url(' + capCrown.src + ')';
+      } else {
+        mark.className = 'mp-cap';
+        mark.textContent = 'CAPITAL';
+      }
+      mpName.appendChild(mark);
+    }
     const ownerName = t.owner === 'player' ? 'YOURS'
       : t.owner === 'neutral' ? 'THE WILDS'
       : SL.DATA.FACTIONS[t.owner].kingdom.toUpperCase();
@@ -201,7 +228,8 @@ window.SL = window.SL || {};
       if (!f.disabled) {
         f.addEventListener('click', () => confirmModal(
           'FORTIFY ' + t.name.toUpperCase() + '?',
-          'Garrison ' + t.garrison + ' → ' + (t.garrison + 1) + ' for ◉' + cost + '. This is your action for the turn.',
+          'Garrison ' + t.garrison + ' to ' + (t.garrison + 1) + ' for '
+            + cost + ' gold. This is your action for the turn.',
           'FORTIFY', () => SL.conquest.playerFortify(t.id)));
       }
       actions.appendChild(f);
@@ -577,13 +605,13 @@ window.SL = window.SL || {};
       'Territories taken: <b>' + st.territoriesTaken + '</b><br>' +
       'Kingdoms toppled: <b>' + st.factionsEliminated + '</b> · Gold amassed: <b>' + st.goldEarned + '</b>' +
       (summary.unlockedThisRun.length
-        ? '<br><br>🔓 Unlocked: <b>' + summary.unlockedThisRun.map((f) => SL.DATA.FACTIONS[f].kingdom).join(', ') + '</b>'
+        ? '<br><br><span class="unlock-tag">UNLOCKED</span> <b>' + summary.unlockedThisRun.map((f) => SL.DATA.FACTIONS[f].kingdom).join(', ') + '</b>'
         : '');
     titleCard(summary.won ? 'KING OF THE GARDEN!' : 'SQUASHED!',
       summary.won ? 'last kingdom standing' : 'the colony falls');
     setTimeout(() => {
       modal({
-        title: summary.won ? '👑 KING OF THE GARDEN' : '☠ THE COLONY FALLS',
+        title: summary.won ? 'KING OF THE GARDEN' : 'THE COLONY FALLS',
         content,
         buttons: [
           { label: 'TITLE', cb: () => { SL.audio.music('title'); } },

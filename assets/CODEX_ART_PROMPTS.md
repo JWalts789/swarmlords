@@ -1055,3 +1055,55 @@ ends carved. When it is empty you should read an empty vessel, not a line.
 | Batch | Assets | Status |
 |---|---|---|
 | P14c energy trough | ui_energy_frame.png (re-roll) | PENDING |
+
+---
+
+# PRIORITY 15 -- ANIMATION AND LEGIBILITY FIXES (added 2026-08-29)
+
+## P15a -- Mud Dauber walk cycle (1 file)
+
+`wasp_dauber_sheet.png` -- currently 2816x256 (11 frames of 256). He shuffles:
+across his six walk frames the pose barely changes, so at speed he slides
+rather than strides. He is the one unit carrying a tool, and the trowel needs
+to swing with him.
+
+**Deliver him at 3584x256 -- 14 frames of 256.** The engine now takes the last
+five frames as the attack and everything before them as the walk, so this
+gives him **9 walk frames** with no code change and no effect on any other
+unit. (Any unit that needs a longer stride can now ship a longer sheet the
+same way.)
+
+- **Frames 0-8: the walk.** A full loop that returns to frame 0 cleanly. Give
+  it real travel: body rising and falling, legs clearly passing each other,
+  wings blurring on the up-beat, and the **trowel swinging counter to the
+  body** so it reads as weight being carried. Frames 0 and 8 must differ --
+  the loop should feel like a bustle, not a hover.
+- **Frames 9-13: the attack**, as before -- wind-up, throw, follow-through,
+  and two frames of recovery.
+
+He is a plasterer with a trowel: the walk should look like someone hurrying
+to a job with a heavy tool, comic and bustling.
+
+## P15b -- Wasp wordmark contrast (1 file)
+
+`wordmark_wasps.png` -- the lettering is pale gold with a light outline. On
+the wasp nameplate (cream) and on the kingdom-select plank (also cream) it
+nearly vanishes; every other kingdom reads at a glance. Same word, same
+shape, but with the **heavy dark-sepia ink** the other six carry, so it holds
+against a pale ground.
+
+## Still outstanding from P11
+
+| Item | Assets |
+|---|---|
+| Beetle re-roll (ink density measured at 55% near-black vs 14% for ants) | 7 sheets |
+| Wasp wing correction | 5 sheets |
+
+Reminder for all of the above: **deliver RAW output.** No background cleanup,
+no alpha correction. A lossy restoration pass is what damaged the beetles in
+the first place.
+
+| Batch | Assets | Status |
+|---|---|---|
+| P15a Mud Dauber walk | wasp_dauber_sheet.png at 14 frames | PENDING |
+| P15b Wasp wordmark | wordmark_wasps.png | PENDING |

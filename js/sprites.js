@@ -335,10 +335,15 @@ window.SL = window.SL || {};
     if (img) {
       const fw = 256;
       const totalFrames = Math.max(1, Math.floor(img.width / fw));
+      // An expanded sheet ends with five attack frames; everything before
+      // them is the walk. Deriving the split from the sheet's own length
+      // rather than hardcoding 6 means a unit whose stride needs more room
+      // can simply ship a longer sheet. An 11-frame sheet still splits 6/5.
       const expanded = totalFrames >= 11;
-      const walkFrames = expanded ? 6 : Math.min(4, totalFrames);
-      const attackStart = expanded ? 6 : Math.min(4, totalFrames - 1);
-      const attackFrames = expanded ? Math.min(5, totalFrames - attackStart) : Math.min(2, totalFrames - attackStart);
+      const ATTACK = 5;
+      const walkFrames = expanded ? totalFrames - ATTACK : Math.min(4, totalFrames);
+      const attackStart = expanded ? walkFrames : Math.min(4, totalFrames - 1);
+      const attackFrames = expanded ? ATTACK : Math.min(2, totalFrames - attackStart);
       let frame;
       if (o.state === 'fight' || o.state === 'chomp') {
         // o.atkPhase runs 0->1 across one attack cycle. Expanded sheets can
@@ -564,7 +569,8 @@ window.SL = window.SL || {};
       ctx.clearRect(0, 0, cv.width, cv.height);
       const img = sheet(cardId + '_sheet');
       if (img) {
-        const walkFrames = img.width >= 2816 ? 6 : 4;
+        const total = Math.max(1, Math.floor(img.width / 256));
+        const walkFrames = total >= 11 ? total - 5 : 4;
         const f = Math.floor(ms / 130) % walkFrames;
         ctx.drawImage(img, f * 256, 0, 256, 256, 0, 0, cv.width, cv.height);
       } else {

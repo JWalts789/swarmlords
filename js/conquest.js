@@ -904,30 +904,38 @@ window.SL = window.SL || {};
     }
 
     // yield — a settlement plaza is busy, so give the number a plate to sit on
+    // The coin and the number are measured and centred as one group. A fixed
+    // left offset put the coin at -15 and the number at +2 whatever the
+    // number was, so every two-digit settlement sat off its own plate.
+    const coin = SL.sprites.sheet('hud_gold') || SL.sprites.sheet('ui_coin');
+    const uiIcons = coin ? null : SL.sprites.sheet('ui_icons');
+    const yLabel = String(t.yield);
+    ctx.font = '900 14px "Trebuchet MS", sans-serif';
+    const IC = (coin || uiIcons) ? 16 : 0;
+    const GAP = IC ? 3 : 0;
+    const gw = IC + GAP + ctx.measureText(yLabel).width;
+
+    // a settlement plaza is busy, so the number gets a plate, sized to what
+    // it actually has to hold
     if (townImg) {
-      ctx.fillStyle = 'rgba(27,18,12,0.62)';
-      ctx.strokeStyle = 'rgba(240,227,200,0.5)';
+      const pw = gw + 16, phh = 22;
+      ctx.fillStyle = 'rgba(27,18,12,0.66)';
+      ctx.strokeStyle = 'rgba(240,227,200,0.55)';
       ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.ellipse(p.x, p.y, 21, 13, 0, 0, Math.PI * 2);
+      roundRect(ctx, p.x - pw / 2, p.y - phh / 2, pw, phh, phh / 2);
       ctx.fill(); ctx.stroke();
     }
-    ctx.font = '900 12px "Trebuchet MS", sans-serif';
-    ctx.fillStyle = '#f0e3c8';
+
+    const gx = p.x - gw / 2;
+    if (coin) ctx.drawImage(coin, gx, p.y - IC / 2, IC, IC);
+    else if (uiIcons) ctx.drawImage(uiIcons, 0, 0, 256, 256, gx, p.y - IC / 2, IC, IC);
+    ctx.textAlign = 'left';
+    ctx.lineJoin = 'round';
     ctx.strokeStyle = '#1b120c';
-    ctx.lineWidth = 3;
-    const coin = SL.sprites.sheet('ui_coin');
-    const uiIcons = SL.sprites.sheet('ui_icons');
-    if (coin || uiIcons) {
-      if (coin) ctx.drawImage(coin, p.x - 15, p.y - 7, 14, 14);
-      else ctx.drawImage(uiIcons, 0, 0, 256, 256, p.x - 15, p.y - 7, 14, 14);
-      ctx.textAlign = 'left';
-      ctx.strokeText(t.yield, p.x + 2, p.y + 5);
-      ctx.fillText(t.yield, p.x + 2, p.y + 5);
-    } else {
-      ctx.textAlign = 'center';
-      ctx.strokeText('\u25c9' + t.yield, p.x, p.y + 5);
-      ctx.fillText('\u25c9' + t.yield, p.x, p.y + 5);
-    }
+    ctx.lineWidth = 3.5;
+    ctx.strokeText(yLabel, gx + IC + GAP, p.y + 5);
+    ctx.fillStyle = '#f7ecd2';
+    ctx.fillText(yLabel, gx + IC + GAP, p.y + 5);
     ctx.textAlign = 'center';
 
     // boon marker: delivered glyph strip if present, else the text icon
