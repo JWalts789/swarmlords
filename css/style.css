@@ -147,7 +147,11 @@ html, body {
   border: 3px solid var(--ink); flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
-.faction-info { flex: 1; min-width: 0; }
+.faction-info { flex: 1; min-width: 0; display: flex; gap: 14px; align-items: flex-start; }
+.faction-id { flex: 0 1 38%; min-width: 0; }
+.faction-perks { flex: 1 1 auto; min-width: 0; border-left: 2px solid rgba(43,29,22,.16); padding-left: 12px; }
+.faction-perk { font-size: 11px; line-height: 1.3; color: var(--ink-soft); }
+.faction-perk + .faction-perk { margin-top: 3px; }
 .faction-name { font-weight: 900; font-size: 16px; letter-spacing: 1px; }
 .faction-kingdom { font-size: 11px; color: var(--ink-soft); font-weight: 700; letter-spacing: 1px; }
 .faction-desc { font-size: 11px; margin-top: 3px; color: var(--ink-soft); }
@@ -534,17 +538,6 @@ body.no-anim *, body.no-anim *::after, body.no-anim *::before {
 #card-inspect .ci-desc { font-size: 10px; font-style: italic; margin-top: 5px; color: var(--ink); }
 
 /* first-battle onboarding hint */
-#battle-hint {
-  position: absolute; left: 50%; transform: translateX(-50%);
-  bottom: calc(140px + var(--safe-bot));
-  background: var(--ink); color: var(--brass);
-  border: 3px solid var(--brass); border-radius: 12px;
-  padding: 8px 18px; font-size: 13px; font-weight: 900; letter-spacing: 1.5px;
-  white-space: nowrap; z-index: 12; pointer-events: none;
-  animation: hintPulse 1.4s ease-in-out infinite;
-}
-@keyframes hintPulse { 0%,100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.06); } }
-@media (max-height: 500px) { #battle-hint { bottom: calc(104px + var(--safe-bot)); font-size: 11px; padding: 6px 14px; } }
 
 .mp-why {
   font-size: 10px; font-weight: 700; color: var(--ink-soft);
@@ -866,7 +859,9 @@ body.no-anim *, body.no-anim *::after, body.no-anim *::before {
   animation: hintPulse 1.4s ease-in-out infinite;
 }
 @keyframes hintPulse { 0%,100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.06); } }
-@media (max-height: 500px) { #battle-hint { bottom: calc(104px + var(--safe-bot)); font-size: 11px; padding: 6px 14px; } }
+/* the meter sits at 98px and stands 26px tall on a short screen, so the
+   coach has to clear 124px or it covers the energy the player is told to spend */
+@media (max-height: 500px) { #battle-hint { bottom: calc(132px + var(--safe-bot)); font-size: 11px; padding: 6px 14px; } }
 
 .mp-why {
   font-size: 10px; font-weight: 700; color: var(--ink-soft);
@@ -1327,6 +1322,9 @@ body.energy-art #energy-bar { border-left-width: 37px; border-right-width: 37px;
   .faction-kingdom { font-size: 10px; }
   .faction-desc { font-size: 10px; line-height: 1.25; }
   .faction-lock { font-size: 9px; }
+  .faction-perk { font-size: 10px; line-height: 1.25; }
+  .faction-info { gap: 10px; }
+  .faction-perks { padding-left: 9px; }
   .faction-list { gap: 7px; }
 }
 
@@ -1436,4 +1434,56 @@ body.upg-art .upg-card.rarity-legendary {
   content: ""; display: inline-block; width: 13px; height: 13px;
   margin-left: 5px; vertical-align: -2px;
   background-size: contain; background-repeat: no-repeat;
+}
+
+/* ---- energy meter: the fill belongs IN the trough's channel ----
+   ui_energy_frame is 512x48, but at mid-span its painted body is only rows
+   18-37 and the hollow channel is rows 23-32. Drawing the fill at the
+   element's full height therefore made a fat honey slab sitting across a
+   hairline of bark. The fill is now inset to the channel's real fractions
+   (47.9% down, 20.8% tall) and the meter is taller so that channel is
+   actually a readable band. */
+body.energy-art #energy-bar {
+  height: 44px;
+  width: min(469px, 56vw);        /* 44 x 10.67, the art's own ratio */
+  overflow: visible;
+}
+body.energy-art #energy-fill {
+  position: absolute;
+  top: 47.9%; height: 20.8%;
+  left: 0; margin: 0;
+  border-radius: 0; box-shadow: none;
+  /* the tile is seam-perfect left-to-right, so repeat it at channel height */
+  background: url("../assets/sprites/ui_energy_fill.png") left center/auto 100% repeat-x;
+}
+body.energy-art #energy-num { top: 57.3%; transform: translateY(-50%); }
+
+@media (max-height: 500px) {
+  body.energy-art #energy-bar {
+    height: 38px; width: min(405px, 50vw);
+    bottom: calc(92px + var(--safe-bot));
+    border-left-width: 30px; border-right-width: 30px;
+  }
+}
+
+/* ---- draft: one row, aligned plates ----
+   Three large cards overflowed the modal and wrapped, clipping the third
+   against the panel's bottom edge. They now share the row and shrink to fit;
+   the art block grows so every card's name plate lands on the same line
+   regardless of how many stats a unit carries. */
+.draft-row { flex-wrap: nowrap; align-items: stretch; }
+.draft-row .card--large {
+  width: auto; flex: 1 1 0; min-width: 0; max-width: 140px;
+}
+.draft-row .card--large .card-art { flex: 1 1 auto; }
+.draft-row .card--large .card-name,
+.draft-row .card--large .card-tags,
+.draft-row .card--large .card-stats { flex: 0 0 auto; }
+/* reserve the tag and stat rows even when a unit has neither, so the art
+   absorbs the slack and every name plate lands on the same line */
+.draft-row .card--large .card-tags { min-height: 13px; }
+.draft-row .card--large .card-stats { min-height: 24px; }
+@media (max-width: 620px) {
+  .draft-row .card--large .card-art canvas,
+  .draft-row .card--large .card-art img { width: 62px; height: 62px; }
 }

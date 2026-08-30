@@ -1027,3 +1027,31 @@ different object.
 | P14b rarity plaques | 2 files | PENDING |
 
 **27 files.** All hooks are already live in the engine.
+
+## P14c — Energy trough, re-roll (1 file)
+
+`ui_energy_frame.png` — **512×48** RGBA, replacing the current one.
+
+The delivered trough reads as a decorative vine rather than a vessel. At its
+mid-span the painted body is only 20 of the 48 rows and the hollow channel is
+10 — so the nectar that fills it can only ever be a hairline, and at any
+readable thickness it spills over the rails instead of sitting in them.
+
+What is needed instead:
+
+- The **channel is the subject**. Across the whole middle span it must be
+  **fully transparent and 24–28px tall**, vertically centred (roughly rows
+  10–36 of 48). The fill is drawn into that gap.
+- The **rails above and below it are solid pale bark**, 8–10px each, with a
+  wobbly inked inner edge so the nectar looks contained by a real lip.
+- The middle span is **stretched horizontally** by the engine, so keep it
+  uniform — no motif that would smear. All character goes in the **end caps**
+  (outer ~56px each): a curl of vine, a leaf, a small bee at one end.
+- Caps may extend above and below the rails; the middle must not.
+
+Think of a long hollowed twig seen side-on, open along its length, with the
+ends carved. When it is empty you should read an empty vessel, not a line.
+
+| Batch | Assets | Status |
+|---|---|---|
+| P14c energy trough | ui_energy_frame.png (re-roll) | PENDING |

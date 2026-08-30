@@ -981,8 +981,12 @@ window.SL = window.SL || {};
     // A 3-sliced plate keeps its ornament in the outer quarter of the source.
     // Content has to start inside that cap or it sits on top of the artwork.
     const ph = H + 10;
-    const capOf = (img) => (img ? ph * (img.width * 0.25) / img.height : 0);
-    const padOf = (cap) => (cap ? 3 : 7);
+    // Several plates carry ornament well past a quarter of their width (the
+    // ant scrollwork, the termite skulls), so reserve 30% as fixed cap and
+    // leave a real gap after it rather than letting the seal ride the art.
+    const CAP_F = 0.30, SEAL_GAP = 9;
+    const capOf = (img) => (img ? ph * (img.width * CAP_F) / img.height : 0);
+    const padOf = (cap) => (cap ? 5 : 7);
 
     const meta = chips.map(function (c) {
       const owner = c[0], fid = c[1];
@@ -1002,7 +1006,12 @@ window.SL = window.SL || {};
       const WORD_MAX = 96;
       if (wordW > WORD_MAX) { wordH = Math.round(wordH * WORD_MAX / wordW); wordW = WORD_MAX; }
       const textW = word ? wordW : ctx.measureText(label).width;
-      const w = cap * 2 + pad * 2 + ICON + 5 + textW;
+      // A hand-lettered plate says which kingdom it is; the seal beside it is
+      // redundant and it was the seal crowding the lettering into the end
+      // caps. Lettered plates carry the wordmark alone, centred.
+      const w = word
+        ? cap * 2 + pad * 2 + wordW
+        : cap * 2 + pad * 2 + ICON + SEAL_GAP + textW;
       return { owner, fid, alive, label, img, cap, pad, w, word, wordW, wordH };
     });
 
@@ -1029,7 +1038,7 @@ window.SL = window.SL || {};
       if (m.img) {
         // fixed decorative caps, stretched plain middle
         const sw = m.img.width, sh = m.img.height;
-        const capS = sw * 0.25;
+        const capS = sw * CAP_F;
         const py = cy - ph / 2;
         ctx.drawImage(m.img, 0, 0, capS, sh, lx, py, m.cap, ph);
         ctx.drawImage(m.img, capS, 0, sw - capS * 2, sh,
@@ -1046,6 +1055,16 @@ window.SL = window.SL || {};
       }
 
       const ix = lx + m.cap + m.pad;
+      if (!m.compact && m.word) {
+        ctx.drawImage(m.word, lx + (m.w - m.wordW) / 2, cy - m.wordH / 2,
+          m.wordW, m.wordH);
+        if (!m.alive) {
+          ctx.font = '900 13px "Trebuchet MS", sans-serif';
+          ctx.fillStyle = '#d84b2a';
+          ctx.fillText('☠', lx + m.cap + 1, cy + 5);
+          ctx.font = '900 10px "Trebuchet MS", sans-serif';
+        }
+      } else {
       // the plates are faction-coloured and so are the emblems, so the mark
       // sits on a cream seal or it disappears into its own banner
       ctx.fillStyle = 'rgba(244,235,214,0.95)';
@@ -1060,10 +1079,8 @@ window.SL = window.SL || {};
 
       // the painted plates are saturated and dark, so the label is cream
       // with an ink stroke — legible on plate art or on the drawn fallback
-      if (!m.compact && m.word) {
-        ctx.drawImage(m.word, ix + ICON + 5, cy - m.wordH / 2, m.wordW, m.wordH);
-      } else if (!m.compact) {
-        const tx = ix + ICON + 5;
+      if (!m.compact) {
+        const tx = ix + ICON + SEAL_GAP;
         ctx.lineJoin = 'round';
         ctx.strokeStyle = 'rgba(20,13,9,0.9)';
         ctx.lineWidth = 3;
@@ -1073,6 +1090,7 @@ window.SL = window.SL || {};
       } else if (!m.alive) {
         ctx.fillStyle = '#d84b2a';
         ctx.fillText('☠', ix + ICON + 2, cy + 4);
+      }
       }
 
       if (!m.alive) {

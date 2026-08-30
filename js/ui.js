@@ -103,12 +103,20 @@ window.SL = window.SL || {};
       const info = document.createElement('div');
       info.className = 'faction-info';
       const loy = SL.DATA.LOYALTY[fid];
+      // Two columns: identity on the left, what the kingdom actually does on
+      // the right. Stacked, these rows grew tall enough that only two fitted
+      // on a landscape phone while most of the plank sat empty.
       info.innerHTML =
-        '<div class="faction-name">' + fac.name + (meta.wins[fid] ? ' 👑×' + meta.wins[fid] : '') + '</div>' +
-        '<div class="faction-kingdom">' + fac.kingdom + '</div>' +
-        '<div class="faction-desc">' + fac.blurb + '<br><b>' + fac.passiveDesc + '</b>' +
-        (loy ? '<br>Devoted: <b>' + loy.name + '</b> — ' + loy.desc : '') + '</div>' +
-        (unlocked ? '' : '<div class="faction-lock">🔒 ' + fac.unlockHint + '</div>');
+        '<div class="faction-id">' +
+          '<div class="faction-name">' + fac.name + (meta.wins[fid] ? ' 👑×' + meta.wins[fid] : '') + '</div>' +
+          '<div class="faction-kingdom">' + fac.kingdom + '</div>' +
+          '<div class="faction-desc">' + fac.blurb + '</div>' +
+        '</div>' +
+        '<div class="faction-perks">' +
+          '<div class="faction-perk"><b>' + fac.passiveDesc + '</b></div>' +
+          (loy ? '<div class="faction-perk">Devoted: <b>' + loy.name + '</b> — ' + loy.desc + '</div>' : '') +
+          (unlocked ? '' : '<div class="faction-lock">🔒 ' + fac.unlockHint + '</div>') +
+        '</div>';
       el.appendChild(sw);
       el.appendChild(info);
       if (unlocked) {
@@ -395,7 +403,10 @@ window.SL = window.SL || {};
     win.appendChild(name);
 
     const tags = roleTags(def);
-    if (tags.length) {
+    // The row is always present on a large card, empty or not: a card that
+    // simply omitted it sat 16px taller in the body, so a draft of three
+    // showed its name plates on three different lines.
+    if (tags.length || large) {
       const row = document.createElement('div');
       row.className = 'card-tags';
       tags.forEach((t) => {
