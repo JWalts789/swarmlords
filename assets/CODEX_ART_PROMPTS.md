@@ -1108,3 +1108,60 @@ the first place.
 |---|---|---|
 | P15a Mud Dauber walk | wasp_dauber_sheet.png at 14 frames | PENDING |
 | P15b Wasp wordmark | wordmark_wasps.png | PENDING |
+
+---
+
+# PRIORITY 16 -- THE SPOILS CHEST AND SELECT LETTERING (added 2026-08-29)
+
+## P16a -- The spoils chest (1 file)
+
+Winning a battle used to be a toast and an immediate draft modal. There is
+now a ceremony: the chest lands, strains three times, bursts, and pays the
+rewards out one chip at a time before the recruits are offered. **The whole
+sequence already runs** on a drawn stand-in -- this replaces it.
+
+`chest_sheet.png` -- **2304x384**, RGBA, **6 frames of 384x384**, in order:
+
+| Frame | The chest is |
+|---|---|
+| 0 | **Closed.** A squat 1930s cartoon strongbox: rounded lid, curved wooden staves, two brass bands, an oversized brass lock plate. Sitting still, weight on the ground. |
+| 1 | **Straining.** Lid pressed up a hair, the whole body squashed slightly wider, one band starting to bow. A thin seam of gold light at the lid line. |
+| 2 | **Straining harder.** Squashed wider still, lid tilted, the lock plate visibly under load, the seam of light brighter and wider. Maybe one rivet popping. |
+| 3 | **Cracking.** Lid a third open, light pouring out in a hard-edged wedge, the chest stretched taller in anticipation. Nothing of the contents visible yet. |
+| 4 | **Burst.** Lid flung fully back, the body stretched tall, coins and sparks leaving the mouth, light blowing out past the frame edges. The loudest frame. |
+| 5 | **Open, settled.** Lid back and resting, body returned to normal proportion, a soft glow in the mouth and a coin or two balanced on the rim. This frame holds while the rewards are read, so it must be **calm and stable**. |
+
+Rules for the strip:
+- **The chest stays centred in every cell** and the same distance off the
+  bottom, so it does not appear to drift as the frames step. Squash and
+  stretch are welcome, but around a fixed base.
+- Frames 0-3 keep the same silhouette footprint; only 4 breaks out.
+- Transparent background throughout. Nothing may touch a cell edge except
+  frame 4's light, which may bleed.
+- Flat cel paint, wobbly sepia ink, the same garden materials as the rest of
+  the game: wood, brass, no chrome or gloss.
+
+Think of the Cuphead reward chest crossed with a mail-order strongbox that
+very much does not want to stay shut.
+
+## P16b -- Kingdom select lettering (3 files, RGBA)
+
+The select screen is rebuilt as a board of six placards with a detail panel.
+Its heading and two buttons are the last UI-font words on it.
+
+| File | Size | Word |
+|---|---|---|
+| `head_kingdoms.png` | 768x96 | **CHOOSE YOUR KINGDOM** |
+| `word_back.png` | 384x96 | **BACK** |
+| `word_towar.png` | 384x96 | **TO WAR** |
+
+Same rules as the shop headings: all caps, one horizontal line, trimmed
+tight, transparent. `head_kingdoms` is cream with heavy sepia ink (it sits on
+the dark stone above the board); the two button words are **dark sepia** --
+they sit on pale wooden plates. **TO WAR** can carry a little more swagger
+than **BACK**; it is the button that starts a campaign.
+
+| Batch | Assets | Status |
+|---|---|---|
+| P16a spoils chest | chest_sheet.png (6 x 384) | PENDING |
+| P16b select lettering | head_kingdoms, word_back, word_towar | PENDING |

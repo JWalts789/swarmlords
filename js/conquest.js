@@ -168,13 +168,19 @@ window.SL = window.SL || {};
       const prevOwner = t.owner;
       captureTerritory(t.id, 'player');
       run.stats.territoriesTaken++;
-      SL.audio.sfx('coin');
-      SL.ui.toast('Captured ' + t.name + '! +' + loot + ' gold');
       checkUnlocks('any');
-      // recruitment draft from the defender's species
+      // The spoils are paid out through the chest: the loot, the ground
+      // taken, and the boon if the territory carries one, then the recruits.
+      const spoils = [
+        { kind: 'gold', label: '+' + loot + ' GOLD' },
+        { kind: 'territory', label: t.name.toUpperCase() + ' TAKEN' },
+      ];
+      if (t.boon) spoils.push({ kind: 'boon', label: SL.DATA.BOONS[t.boon].name.toUpperCase() });
       const pool = draftPool(prevOwner === 'neutral' ? 'neutral' : prevOwner, rng, 3);
-      SL.ui.draftModal(pool, {
-        title: 'RECRUITMENT', sub: 'The defeated bend the knee. Enlist one:',
+      SL.spoils.open({
+        rewards: spoils,
+        cards: pool,
+        sub: 'The defeated bend the knee. Enlist one:',
         skippable: true, skipLabel: 'SKIP (+2 gold)',
       }, (picked) => {
         if (picked) { run.deck.push(picked); SL.audio.sfx('draft'); }
@@ -329,11 +335,16 @@ window.SL = window.SL || {};
               run.gold += loot; run.stats.goldEarned += loot;
               rs.grudges.player = (rs.grudges.player || 0) + 1;
               rs.power = Math.max(2, rs.power - 0.6);
-              SL.ui.toast('Held ' + t.name + '! +' + loot + ' gold');
+              const heldSpoils = [
+                { kind: 'gold', label: '+' + loot + ' GOLD' },
+                { kind: 'territory', label: t.name.toUpperCase() + ' HELD' },
+              ];
               if (rng.chance(0.5)) {
                 const pool = draftPool(fid, rng, 2);
-                SL.ui.draftModal(pool, {
-                  title: 'PRISONERS', sub: 'Captured attackers offer service:',
+                SL.spoils.open({
+                  rewards: heldSpoils,
+                  cards: pool,
+                  sub: 'Captured attackers offer service:',
                   skippable: true, skipLabel: 'REFUSE',
                 }, (picked) => {
                   if (picked) { run.deck.push(picked); SL.audio.sfx('draft'); }

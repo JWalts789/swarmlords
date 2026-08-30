@@ -168,7 +168,7 @@ window.SL = window.SL || {};
     SL.sprites.onSheetLoad(applyArtClasses);
 
     // dev boot shortcuts: ?demo=map | ?demo=battle | ?demo=shop|deck|draft|results
-    const dm = /demo=(shop|deck|draft|results|faction)/.exec(location.search);
+    const dm = /demo=(shop|deck|draft|results|faction|spoils)/.exec(location.search);
     const draftIds = () => {
       const cm = /cards=([a-z0-9_,]+)/.exec(location.search);
       const ids = cm ? cm[1].split(',').filter((id) => SL.DATA.CARDS[id]) : [];
@@ -184,6 +184,15 @@ window.SL = window.SL || {};
         // faction frames and interiors side by side)
         else if (dm[1] === 'draft') SL.ui.draftModal(draftIds(),
           { title: 'RECRUITMENT', sub: 'The defeated bend the knee. Enlist one:', skippable: true, skipLabel: 'SKIP (+2 gold)' }, () => {});
+        else if (dm[1] === 'spoils') SL.spoils.open({
+          rewards: [
+            { kind: 'gold', label: '+14 GOLD' },
+            { kind: 'territory', label: 'BLACKTHORN TAKEN' },
+            { kind: 'boon', label: 'SUGAR SPRING' },
+          ],
+          cards: draftIds(),
+          skippable: true, skipLabel: 'SKIP (+2 gold)',
+        }, () => {});
         else if (dm[1] === 'results') SL.ui.resultsScreen({ won: true, faction: 'ants', turns: 24,
           stats: { battlesWon: 12, battlesLost: 3, territoriesTaken: 14, factionsEliminated: 3, goldEarned: 420 },
           unlockedThisRun: ['wasps'] });

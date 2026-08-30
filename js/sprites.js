@@ -55,7 +55,7 @@ window.SL = window.SL || {};
      'map_road', 'hud_turn', 'hud_deck', 'hud_home', 'hud_menu',
      'hud_territory', 'hud_gold',
      'head_shop', 'head_market', 'head_upgrades', 'head_muster',
-     'head_kingdoms', 'word_back', 'word_towar',
+     'head_kingdoms', 'word_back', 'word_towar', 'chest_sheet',
      'ui_card_upgrade_rare', 'ui_card_upgrade_legendary',
      'ui_victory_plate'].forEach(probe);
     // a battlefield per kingdom, chosen by whose ground is being fought over
