@@ -393,6 +393,32 @@ html, body {
 .results-stats { font-size: 13px; line-height: 1.7; text-align: center; }
 .results-stats b { color: var(--blood); }
 
+/* The final victory report has its own opaque certificate plate. Keep the
+   modal at the artwork's 3:2 ratio and constrain by landscape phone height. */
+.modal-box.results-victory {
+  width: min(92vw, 126vh, 560px);
+  aspect-ratio: 3 / 2;
+  box-sizing: border-box;
+  max-height: 84vh;
+  overflow: hidden;
+  justify-content: center;
+  gap: 8px;
+  padding: 17% 10% 10%;
+  background: var(--paper) url("../assets/sprites/ui_victory_plate.png") center / 100% 100% no-repeat;
+  border: 0;
+  border-image: none;
+  border-radius: 0;
+}
+body.ui-art .modal-box.results-victory {
+  background: var(--paper) url("../assets/sprites/ui_victory_plate.png") center / 100% 100% no-repeat;
+  border: 0;
+  border-image: none;
+}
+.results-victory .modal-title { font-size: clamp(17px, 3.2vw, 22px); }
+.results-victory .results-stats { font-size: clamp(10px, 2vw, 13px); line-height: 1.45; }
+.results-victory .modal-buttons { flex-wrap: nowrap; gap: 8px; }
+.results-victory .small-btn, .results-victory .big-btn { padding-block: 7px; }
+
 /* ---------- landscape game: rotate prompt when held tall ---------- */
 
 #rotate-overlay {

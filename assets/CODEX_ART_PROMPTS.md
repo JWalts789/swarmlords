@@ -1055,6 +1055,7 @@ ends carved. When it is empty you should read an empty vessel, not a line.
 | Batch | Assets | Status |
 |---|---|---|
 | P14c energy trough | ui_energy_frame.png (re-roll) | **ACCEPTED 2026-08-29** |
+| P14d victory plate | ui_victory_plate.png (768×512, opaque) | **ACCEPTED 2026-08-29** |
 
 ---
 

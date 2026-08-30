@@ -56,7 +56,8 @@ window.SL = window.SL || {};
      'hud_territory', 'hud_gold',
      'head_shop', 'head_market', 'head_upgrades', 'head_muster',
      'head_kingdoms', 'word_back', 'word_towar',
-     'ui_card_upgrade_rare', 'ui_card_upgrade_legendary'].forEach(probe);
+     'ui_card_upgrade_rare', 'ui_card_upgrade_legendary',
+     'ui_victory_plate'].forEach(probe);
     // a battlefield per kingdom, chosen by whose ground is being fought over
     Object.keys(SL.DATA.FACTIONS).forEach((f) => probe('battle_bg_' + f));
     // per-faction territory art, falls back to the generic node when absent

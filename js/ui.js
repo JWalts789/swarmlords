@@ -341,6 +341,7 @@ window.SL = window.SL || {};
     veil.className = 'modal-veil';
     const box = document.createElement('div');
     box.className = 'modal-box';
+    if (opts && opts.className) box.classList.add(opts.className);
     box.appendChild(contentNode);
     veil.appendChild(box);
     $('overlay-root').appendChild(veil);
@@ -662,6 +663,7 @@ window.SL = window.SL || {};
       summary.won ? 'last kingdom standing' : 'the colony falls');
     setTimeout(() => {
       modal({
+        className: summary.won ? 'results-victory' : 'results-defeat',
         title: summary.won ? 'KING OF THE GARDEN' : 'THE COLONY FALLS',
         content,
         buttons: [
