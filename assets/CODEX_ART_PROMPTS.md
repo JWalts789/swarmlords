@@ -1163,5 +1163,5 @@ than **BACK**; it is the button that starts a campaign.
 
 | Batch | Assets | Status |
 |---|---|---|
-| P16a spoils chest | chest_sheet.png (6 x 384) | PENDING |
-| P16b select lettering | head_kingdoms, word_back, word_towar | PENDING |
+| P16a spoils chest | chest_sheet.png (6 x 384) | **ACCEPTED** 2026-08-29 |
+| P16b select lettering | head_kingdoms, word_back, word_towar | **ACCEPTED** 2026-08-29 |
