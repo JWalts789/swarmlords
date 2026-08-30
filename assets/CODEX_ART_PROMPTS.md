@@ -1020,9 +1020,9 @@ different object.
 | Batch | Assets | Status |
 |---|---|---|
 | P12 card interiors | 7 × card_bg_*.png | **ACCEPTED 2026-08-29** |
-| P13a HUD glyphs | 6 files | PENDING |
-| P13b territory rings | 7 × node_ring_*.png | PENDING |
-| P13c road segment | map_road.png (seamless L/R) | PENDING |
+| P13a HUD glyphs | 6 files | **ACCEPTED 2026-08-29** |
+| P13b territory rings | 7 × node_ring_*.png | **ACCEPTED 2026-08-29** |
+| P13c road segment | map_road.png (seamless L/R) | **ACCEPTED 2026-08-29** |
 | P14a shop headings | 4 files | PENDING |
 | P14b rarity plaques | 2 files | PENDING |
 
