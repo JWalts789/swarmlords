@@ -1259,3 +1259,53 @@ character is stepping in place, whatever the balance figures say.
 | Batch | Assets | Status |
 |---|---|---|
 | P18 Dauber opposing steps | wasp_dauber_sheet.png, frames 5-9 redrawn | **ACCEPTED + WIRED 2026-09-01** — all five pairs pass; weakest 1.159, overall opposite/adjacent ratio 1.257 |
+
+---
+
+# PRIORITY 19 -- MUD DAUBER: SECOND HALF IS A DIFFERENT RENDER (2026-09-01)
+
+P18's poses are right and stay. The opposing-step geometry passes its
+acceptance test at **1.19** (target 1.15) with every pair opposing, and the
+balance holds. Do not re-pose anything.
+
+**But frames 5-9 are a different rendering of the character.** Side by side
+with the first half they read as a second, grungier bee, and at walk speed he
+flips between the two looks twice per second. Measured:
+
+| | frames 0-4 | frames 5-9 |
+|---|---|---|
+| semi-transparent edge px/frame | 377 | **1430 (3.8x)** |
+| edge skirt luminance | 150 (paint-coloured) | **53 (near-black halo)** |
+| mean ink luminance | 101.6 | 95.2 (6% darker) |
+
+The first half has a clean cel edge; the second half has a **dark
+semi-transparent halo** hugging the whole silhouette -- the classic sign of
+an alpha matte cut from a dark background. The body paint is also slightly
+darker and the line weight heavier.
+
+Also: the **trowel swaps hands** between the halves. In frames 0-4 it rides
+in the trailing hand (hidden behind the body in some frames); in 5-9 it is
+brandished large in the leading hand. Opposite steps keep the prop in the
+SAME hand -- only the legs and free arm oppose.
+
+## What is needed
+
+Re-render frames 5-9 only, matching the first half exactly:
+
+- Same palette, same line weight, same crisp hard-edged alpha (no dark
+  skirt). Treat frames 0-4 as the style reference.
+- Trowel in the same hand as frames 0-4, swinging counter to the stride.
+- Keep the P18 poses -- opposite legs, same body positions.
+
+## Acceptance (all measurable before delivery)
+
+1. Semi-transparent (alpha 30-200) pixels per frame within **1.5x** of the
+   first-half mean (~377), with mean luminance of those pixels **above 120**.
+2. Mean ink luminance per frame within **+/-4** of the first-half mean 101.6.
+3. Opposite/adjacent ratio stays **>= 1.15**.
+4. Trowel visible in the same hand throughout, or hidden behind the body
+   exactly as in the matching first-half frame.
+
+| Batch | Assets | Status |
+|---|---|---|
+| P19 Dauber render match | wasp_dauber_sheet.png, frames 5-9 re-rendered | PENDING |
