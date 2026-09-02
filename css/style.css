@@ -2304,3 +2304,38 @@ body.energy-art #energy-num {
   min-width: clamp(30px, 5.2vh, 48px); height: clamp(22px, 3.8vh, 35px);
   font-size: clamp(11px, 2vh, 19px);
 }
+
+/* ---- energy trough, final geometry ----
+   Two faults were left. The 5/11 badge was positioned from the PADDING box,
+   which starts inside the left cap, so it sat squarely on top of the painted
+   bucket-and-vine and the trough looked like it had no left end. And the
+   unfilled part of the channel was fully transparent, so the battlefield
+   showed between the two pale rails -- which is what read as white bars.
+   An empty vessel should read as empty, not as a gap. */
+body.energy-art #energy-bar {
+  --ebh: clamp(30px, 5.8vh, 54px);
+  --ecap: calc(var(--ebh) * 1.167);   /* the cap art is 56x48 */
+  height: var(--ebh);
+  width: min(52vw, calc(var(--ebh) * 10.67));
+  border-left-width: var(--ecap);
+  border-right-width: var(--ecap);
+  /* dark interior behind the channel only, clipped to the plain middle so
+     it never runs under the painted caps */
+  background: linear-gradient(to bottom,
+      transparent 0 22.9%,
+      rgba(46,30,18,.55) 22.9% 77.1%,
+      transparent 77.1% 100%) content-box;
+}
+/* seated clear of the left cap rather than on top of it */
+body.energy-art #energy-num {
+  left: calc(-1 * (var(--ecap) + clamp(32px, 5.6vh, 52px)));
+  min-width: clamp(30px, 5.2vh, 48px);
+  height: clamp(22px, 3.8vh, 35px);
+  font-size: clamp(11px, 2vh, 19px);
+}
+
+/* painted HUD glyphs sit inline with their readout, sized to its type */
+.hud-ic-img {
+  display: inline-block; width: 1.5em; height: 1.5em;
+  vertical-align: -0.42em; object-fit: contain;
+}

@@ -238,6 +238,14 @@ window.SL = window.SL || {};
 
   // Gold readout: the painted coin when available, else the text glyph.
   // big=true swaps in the coin stack for larger sums.
+
+  // A painted HUD glyph, requested by path; it removes itself on a real 404
+  // so the label beside it still reads.
+  function hudIcon(name) {
+    return '<img class="hud-ic-img" src="assets/sprites/' + name + '.png"'
+      + ' alt="" onerror="this.remove()">';
+  }
+
   function coinHTML(n, big) {
     // The coin is requested by path, not by asking whether its sheet has
     // loaded yet -- hasSheet at render time left every price reading
@@ -254,12 +262,14 @@ window.SL = window.SL || {};
     if (!run) return;
     $('btn-endturn').innerHTML = 'WAIT ' + coinHTML(2);
     $('tb-gold').innerHTML = coinHTML(run.gold, run.gold >= 20);
-    if (SL.sprites.hasSheet('ui_icons')) {
-      $('tb-terr').innerHTML = '<span class="ui-ic ui-ic-terr"></span> ' + SL.conquest.playerTerrs().length;
-      $('btn-deck').innerHTML = '<span class="ui-ic ui-ic-deck"></span> DECK';
-    } else {
-      $('tb-terr').textContent = '⬢ ' + SL.conquest.playerTerrs().length;
-    }
+    // Seventh instance of the same bug: this asked hasSheet at render time,
+    // so a topbar built before the probe finished kept the geometric
+    // fallback for the session -- and it applied .ui-ic-terr, a 17px strip
+    // sprite from an older icon sheet, rather than the painted P13 glyph.
+    // Both readouts use the painted glyph by path now.
+    $('tb-terr').innerHTML = hudIcon('hud_territory') + ' '
+      + SL.conquest.playerTerrs().length;
+    $('btn-deck').innerHTML = hudIcon('hud_deck') + ' DECK';
     $('tb-turn').innerHTML = '<span class="hud-ic hud-ic-turn"></span> TURN ' + run.turn;
   }
 
