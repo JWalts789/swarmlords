@@ -174,7 +174,25 @@ window.SL = window.SL || {};
     remBtn.disabled = run.gold < removalPrice(run) || run.deck.length <= 8;
   }
 
+  // Painted lettering as a real img: the browser keeps its aspect, and the
+  // text label only returns if the file genuinely is not there.
+  function headImg(sel, file, fallback) {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    const img = document.createElement('img');
+    img.className = 'shop-head-img';
+    img.alt = fallback;
+    img.addEventListener('error', () => { el.textContent = fallback; });
+    img.src = 'assets/sprites/' + file + '.png';
+    el.textContent = '';
+    el.appendChild(img);
+  }
+
   function init() {
+    headImg('.shop-title', 'head_shop', 'THE CAPITAL SHOP');
+    headImg('.head-market', 'head_market', 'SPECIES MARKET');
+    headImg('.head-upgrades', 'head_upgrades', 'COLONY UPGRADES');
+    headImg('.head-muster', 'head_muster', 'MUSTER OUT');
     $('btn-shop-close').addEventListener('click', () => { SL.audio.sfx('click'); close(); });
     $('btn-shop-reroll').addEventListener('click', () => {
       const run = SL.conquest.getRun();

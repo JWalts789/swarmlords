@@ -239,9 +239,14 @@ window.SL = window.SL || {};
   // Gold readout: the painted coin when available, else the text glyph.
   // big=true swaps in the coin stack for larger sums.
   function coinHTML(n, big) {
-    if (big && SL.sprites.hasSheet('ui_coin_stack')) return '<span class="ui-coin stack"></span> ' + n;
-    if (SL.sprites.hasSheet('ui_coin')) return '<span class="ui-coin"></span> ' + n;
-    return n + ' gold';
+    // The coin is requested by path, not by asking whether its sheet has
+    // loaded yet -- hasSheet at render time left every price reading
+    // "6 gold" when a screen built before the probe finished. If the file
+    // genuinely is missing the img removes itself and the number stands.
+    const f = big ? 'ui_coin_stack' : 'ui_coin';
+    return '<img class="ui-coin-img' + (big ? ' stack' : '') + '"'
+      + ' src="assets/sprites/' + f + '.png" alt="gold"'
+      + ' onerror="this.remove()"> ' + n;
   }
 
   function updateTopbar() {

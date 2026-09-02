@@ -547,9 +547,6 @@ body.ui-art .modal-box, body.ui-art #map-panel {
 body.ui-art .modal-box, body.ui-art #map-panel { background-color: var(--paper); }
 body.ui-art .shop-col { background-color: rgba(240,227,200,.9); }
 
-/* shop market cards get room to breathe on their own screen */
-.shop-cards @media (max-height: 500px) {
-      }
 
 /* QA: ?noanim=1 freezes intro animations so headless capture is truthful */
 body.no-anim *, body.no-anim *::after, body.no-anim *::before {
@@ -1435,22 +1432,7 @@ body.cf-neutral .f-neutral::before { inset: 7% 9%; }
    Lettered headings, HUD glyphs and rarity plaques. Each rule only bites
    when its art exists, so the current type stays as the fallback. */
 
-/* --- shop: hand-lettered headings replace the UI font --- */
-/* the type only goes transparent once its replacement art has loaded,
-   otherwise the headings would simply vanish */
-body.head-art .shop-title.lettered,
-body.head-art .shop-col-head span.lettered {
-  color: transparent; text-shadow: none;
-  background-repeat: no-repeat; background-position: left center;
-  background-size: contain;
-  display: inline-block;
-}
-body.head-art .shop-title.lettered { width: 210px; height: 26px; }
-body.head-art .shop-col-head span.lettered { width: 128px; height: 15px; }
-body.head-art .shop-title.lettered { background-image: url("../assets/sprites/head_shop.png"); }
-body.head-art .head-market.lettered { background-image: url("../assets/sprites/head_market.png"); }
-body.head-art .head-upgrades.lettered { background-image: url("../assets/sprites/head_upgrades.png"); }
-body.head-art .head-muster.lettered { background-image: url("../assets/sprites/head_muster.png"); }
+/* shop headings are <img>s appended by shop.js headImg(); nothing here */
 
 /* --- map HUD: painted glyphs beside each readout --- */
 .hud-ic {
@@ -2178,8 +2160,6 @@ body.energy-art #energy-bar {
 .spoils-chest { width: clamp(124px, 26vh, 240px); height: clamp(124px, 26vh, 240px); }
 
 /* ---- the shop ---- */
-body.head-art .shop-title.lettered { width: clamp(190px, 36vh, 330px); height: clamp(24px, 4.5vh, 41px); }
-body.head-art .shop-col-head span.lettered { width: clamp(118px, 22vh, 205px); height: clamp(14px, 2.6vh, 24px); }
 .shop-stats { font-size: clamp(10px, 1.9vh, 18px); }
 .upg-name { font-size: clamp(12px, 2.2vh, 21px); }
 .upg-desc { font-size: clamp(9px, 1.8vh, 17px); }
@@ -2214,4 +2194,56 @@ body.energy-art #energy-num {
 @media (max-height: 500px) {
   body.energy-art #energy-bar { bottom: calc(92px + var(--safe-bot)); }
   #battle-hint { bottom: calc(132px + var(--safe-bot)); }
+}
+
+/* ==================== SHOP, LAID OUT TO BE READ ====================
+   The headings are real images sized by height (art is alpha-trimmed, so
+   the aspect is the lettering's own); the vine keeps its natural aspect as
+   a centred flourish instead of being magnified across the column; cards
+   hang from the top of the market instead of floating mid-air; plaques and
+   the muster plank stop stretching to whatever width the column happens to
+   have. */
+.shop-head-img { display: block; width: auto; height: clamp(15px, 2.9vh, 27px); }
+.shop-title .shop-head-img { height: clamp(24px, 4.6vh, 43px); }
+.shop-col-head { border-bottom: none; }
+
+body.ui-art .shop-col-head, body.ui-art .shop-section-title {
+  background: url("../assets/sprites/ui_divider.png") center bottom / auto clamp(10px, 1.9vh, 17px) no-repeat;
+  padding-bottom: clamp(12px, 2.4vh, 23px);
+}
+
+/* market cards belong under their heading, not centred in the void */
+.shop-cards {
+  align-items: flex-start; align-content: flex-start;
+  padding-top: clamp(6px, 3vh, 30px);
+  gap: clamp(8px, 2vh, 20px);
+}
+
+/* the pressed-leaf plaque was painted at roughly 1.5:1; letting it stretch
+   to a 700px column bloats the leaf. It keeps a sane width and centres. */
+.shop-upgrades { align-items: center; gap: clamp(6px, 1.4vh, 14px); }
+.shop-upgrades .upg-card { width: 100%; max-width: clamp(340px, 58vh, 520px); }
+
+/* the muster plank is a button, not a banner */
+#btn-shop-remove.wide {
+  width: auto; align-self: center;
+  min-width: clamp(220px, 44vh, 400px);
+}
+.shop-col-side { align-items: stretch; }
+.shop-col-side .shop-col-head { flex-shrink: 0; }
+
+/* the treasury line reads as the map HUD does */
+.shop-stats { font-size: clamp(11px, 2vh, 19px); }
+.shop-item-price { font-size: clamp(10px, 1.9vh, 18px); }
+
+/* the coin rides inline with whatever price text surrounds it */
+.ui-coin-img {
+  display: inline-block; width: 1.05em; height: 1.05em;
+  vertical-align: -0.16em; object-fit: contain;
+}
+.ui-coin-img.stack { width: 1.3em; }
+
+/* the vine flourish can carry a little more presence */
+body.ui-art .shop-col-head, body.ui-art .shop-section-title {
+  background-size: auto clamp(12px, 2.2vh, 20px);
 }
