@@ -1255,9 +1255,17 @@ body.btn-art .big-btn:active,
 body.btn-art .small-btn:active,
 body.btn-art .action-btn:active { transform: translateY(2px); }
 body.btn-art .tb-item, body.btn-art #map-topbar .tb-btn {
-  border-width: 10px; border-style: solid; border-color: transparent;
-  border-image: url("../assets/sprites/ui_pill.png") 22 fill round;
+  /* The twig frame's ornament reaches far past a uniform 22px: mushrooms
+     ~45px into the left end, leaves ~36px on the right. Slicing at 22 split
+     them and ROUND tiled the fragments through the middle, which is what
+     drew a second box inside every pill. Deep asymmetric slices keep the
+     ornament whole in the caps; only the plain twig rail stretches. */
+  border-style: solid; border-color: transparent;
+  border-width: clamp(8px, 1.5vh, 14px) clamp(13px, 2.4vh, 22px)
+                clamp(7px, 1.3vh, 12px) clamp(16px, 2.9vh, 27px);
+  border-image: url("../assets/sprites/ui_pill.png") 26 38 22 46 fill stretch;
   border-radius: 0; background: none; box-shadow: none; color: var(--paper);
+  justify-content: center;
 }
 
 /* painted sunburst + lettered title cards */
@@ -2246,4 +2254,53 @@ body.ui-art .shop-col-head, body.ui-art .shop-section-title {
 /* the vine flourish can carry a little more presence */
 body.ui-art .shop-col-head, body.ui-art .shop-section-title {
   background-size: auto clamp(12px, 2.2vh, 20px);
+}
+
+/* ---- map action planks: the art as painted, not as tiled ----
+   ui_btn_primary's leaf sprig reaches a quarter of the way into the plank;
+   no 9-slice can keep that whole, and ROUND was repeating sprig and nail
+   fragments across the WAIT button. These two buttons are short labels on
+   fixed planks, so they simply wear the whole painting at its own 512:192,
+   with the label centred on the plain middle of the wood. */
+body.btn-art #map-actionbar .action-btn {
+  border: none; border-image: none;
+  background: url("../assets/sprites/ui_btn.png") center / 100% 100% no-repeat;
+  height: clamp(44px, 8.2vh, 78px);
+  aspect-ratio: 512 / 192;
+  padding: 0 clamp(18px, 3.4vh, 34px);
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 auto;
+}
+body.btn-art #map-actionbar .action-btn.primary {
+  background-image: url("../assets/sprites/ui_btn_primary.png");
+  /* the sprig occupies the top-left of the painting; nudge the label onto
+     the plain wood right of it */
+  padding-left: clamp(26px, 4.8vh, 48px);
+}
+body.btn-art #map-actionbar .action-btn:active { transform: translateY(2px); }
+
+/* ---- cards: the creature is the card ---- */
+.card--hand .card-art canvas, .card--hand .card-art img {
+  width: clamp(54px, 13.6vh, 112px); height: clamp(54px, 13.6vh, 112px);
+}
+.card--large .card-art canvas, .card--large .card-art img {
+  width: clamp(74px, 19vh, 160px); height: clamp(74px, 19vh, 160px);
+}
+
+/* ---- energy trough: caps at the art's own proportion ----
+   Each end cap is 56px of a 48px-tall painting. Rendering them at a width
+   chosen independently of the bar's height squashed the right cap -- the
+   bucket bee -- and clipped it. Cap width now follows bar height at the
+   painted 56:48, and the bar sits a touch lower so the pale rails read as
+   rails rather than as white bars. */
+body.energy-art #energy-bar {
+  height: clamp(30px, 5.8vh, 54px);
+  width: min(52vw, calc(clamp(30px, 5.8vh, 54px) * 10.67));
+  border-left-width: calc(clamp(30px, 5.8vh, 54px) * 1.167);
+  border-right-width: calc(clamp(30px, 5.8vh, 54px) * 1.167);
+}
+body.energy-art #energy-num {
+  left: calc(-1 * clamp(36px, 6.6vh, 60px));
+  min-width: clamp(30px, 5.2vh, 48px); height: clamp(22px, 3.8vh, 35px);
+  font-size: clamp(11px, 2vh, 19px);
 }

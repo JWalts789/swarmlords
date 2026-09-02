@@ -471,7 +471,12 @@ window.SL = window.SL || {};
     if (def.type === 'unit') {
       const img = sheet(def.id + '_sheet');
       if (img) {
-        ctx.drawImage(img, 0, 0, 256, 256, 2, 2, size - 4, size - 4);
+        // crop the cell's empty margin so the creature fills the thumb --
+        // full-cell draws left every card art ~25% smaller than it could be,
+        // and at hand size that is the difference between recognising a unit
+        // and guessing. 18px is inside every subject's bbox fleet-wide.
+        const Z = 18;
+        ctx.drawImage(img, Z, Z, 256 - Z * 2, 256 - Z * 2, 2, 2, size - 4, size - 4);
       } else {
         painted = false;
         ctx.save();
