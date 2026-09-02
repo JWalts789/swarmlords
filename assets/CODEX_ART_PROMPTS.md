@@ -1258,4 +1258,4 @@ character is stepping in place, whatever the balance figures say.
 
 | Batch | Assets | Status |
 |---|---|---|
-| P18 Dauber opposing steps | wasp_dauber_sheet.png, frames 5-9 redrawn | PENDING |
+| P18 Dauber opposing steps | wasp_dauber_sheet.png, frames 5-9 redrawn | **ACCEPTED + WIRED 2026-09-01** — all five pairs pass; weakest 1.159, overall opposite/adjacent ratio 1.257 |
