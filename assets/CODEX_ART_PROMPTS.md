@@ -1344,4 +1344,4 @@ IT, sized to fill ~55-65% of the face height.
 
 | Batch | Assets | Status |
 |---|---|---|
-| P20 buttons + tag | btn_wait, btn_towar, btn_reroll, btn_remove, ui_cost_tag | PENDING |
+| P20 buttons + tag | btn_wait, btn_towar, btn_reroll, btn_remove, ui_cost_tag | **ACCEPTED + WIRED 2026-09-02** |
