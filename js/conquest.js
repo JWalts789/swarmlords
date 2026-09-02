@@ -588,7 +588,11 @@ window.SL = window.SL || {};
     return {
       scale, W,
       // chrome floats over the map, so the field can breathe
-      top: Math.min(96, 34 / scale + 52), // room for the legend strip
+      // Room for BOTH chrome rows: the DOM HUD pills sit in the first
+      // ~46 css px, and the painted legend was being drawn in that same
+      // band, so every nameplate slid underneath the gold and turn pills.
+      // The extra height seats the legend in its own row below them.
+      top: Math.min(124, 46 / scale + 78),
       bot: MAP_H - Math.min(92, 52 / scale + 26),
     };
   }
@@ -1001,7 +1005,7 @@ window.SL = window.SL || {};
     ctx.fillRect(0, L.top - 62, L.W, 58);
 
     const chips = [['player', run.faction]].concat(run.rivals.map((f) => [f, f]));
-    const ICON = 24, GAP = 10, H = 32;
+    const ICON = 24, GAP = 16, H = 32;   // plates have carved end caps; 10px let them interlock
     ctx.font = '900 10px "Lilita One", "Trebuchet MS", sans-serif';
     ctx.textAlign = 'left';
 

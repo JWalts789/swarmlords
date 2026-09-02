@@ -25,8 +25,10 @@
   --brass: #e0a51e;
   --blood: #d84b2a;
   --good: #4da05c;
-  --card-w: 72px;
-  --card-h: 96px;
+  /* the hand scales with the screen: 72x96 at a 440px phone, up to
+     132x176 on a desktop, always at the card art's 3:4 */
+  --card-w: clamp(66px, 16.4vh, 132px);
+  --card-h: clamp(88px, 21.8vh, 176px);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
@@ -459,7 +461,7 @@ body.ui-art .modal-box, body.ui-art #map-panel {
 
 /* compact battle hand on short (landscape phone) screens */
 @media (max-height: 500px) {
-  :root { --card-w: 62px; --card-h: 82px; }
+
       #hand-area { padding: 4px calc(8px + var(--safe-right)) calc(4px + var(--safe-bot)) calc(8px + var(--safe-left)); }
   #energy-bar { bottom: calc(94px + var(--safe-bot)); height: 11px; }
   #next-thumb { width: 34px; height: 44px; }
@@ -770,7 +772,7 @@ body.ui-art .modal-box, body.ui-art #map-panel {
 
 /* compact battle hand on short (landscape phone) screens */
 @media (max-height: 500px) {
-  :root { --card-w: 62px; --card-h: 82px; }
+
       #hand-area { padding: 4px calc(8px + var(--safe-right)) calc(4px + var(--safe-bot)) calc(8px + var(--safe-left)); }
   #energy-bar { bottom: calc(94px + var(--safe-bot)); height: 11px; }
   #next-thumb { width: 34px; height: 44px; }
@@ -2115,3 +2117,101 @@ body.kingdom-art .faction-card.locked {
 }
 .faction-card .faction-kingdom { color: color-mix(in srgb, var(--fc) 62%, var(--ink)); }
 .fd-kingdom { color: color-mix(in srgb, var(--fc) 62%, var(--ink)); }
+
+/* ==================== THE DESKTOP PASS ====================
+   Everything below exists because the UI was sized in fixed px for a 440px
+   phone. On a desktop the game was full-bleed but its chrome was a postage
+   stamp: 12px battle labels, a 420px modal, 140px shop cards, tiny menu
+   planks. Every size here scales with viewport height between the phone
+   values (unchanged) and a desktop ceiling. */
+
+/* ---- battle chrome ---- */
+#battle-topbar { font-size: clamp(12px, 2.2vh, 21px); }
+#battle-topbar .pill, #battle-topbar button { font-size: inherit; }
+#battle-hint { font-size: clamp(11px, 2vh, 20px); padding: clamp(6px, 1.4vh, 14px) clamp(14px, 3vh, 30px); }
+.next-label { font-size: clamp(8px, 1.4vh, 13px); }
+#next-thumb {
+  width: clamp(40px, 8.6vh, 74px); height: clamp(52px, 11.2vh, 96px);
+}
+#next-thumb canvas { width: 100% !important; height: auto !important; }
+body.energy-art #energy-bar {
+  height: clamp(34px, 7.2vh, 66px);
+  width: min(56vw, calc(clamp(34px, 7.2vh, 66px) * 10.67));
+  border-left-width: clamp(28px, 6vh, 55px);
+  border-right-width: clamp(28px, 6vh, 55px);
+}
+#energy-num { font-size: clamp(11px, 2vh, 19px); }
+
+/* ---- map HUD pills ---- */
+.tb-item, #map-topbar .tb-btn { font-size: clamp(11px, 2.1vh, 20px); }
+.tb-item { padding: clamp(3px, .7vh, 7px) clamp(9px, 1.8vh, 18px); }
+#map-topbar .tb-btn { padding: clamp(4px, .9vh, 9px) clamp(9px, 1.8vh, 18px); }
+.action-btn { font-size: clamp(13px, 2.3vh, 22px); }
+
+/* ---- menus and modals ---- */
+.big-btn { font-size: clamp(15px, 2.9vh, 28px); padding: clamp(10px, 2.2vh, 22px) clamp(20px, 4.4vh, 44px); min-width: clamp(200px, 42vh, 400px); }
+.small-btn { font-size: clamp(12px, 2.1vh, 20px); padding: clamp(7px, 1.4vh, 14px) clamp(12px, 2.5vh, 25px); }
+.title-tagline { font-size: clamp(11px, 2vh, 19px); }
+.title-footer { font-size: clamp(10px, 1.7vh, 16px); }
+.modal-box { width: min(92vw, clamp(420px, 76vh, 720px)); padding: clamp(12px, 2.6vh, 26px); }
+.modal-title { font-size: clamp(16px, 3vh, 29px); }
+.modal-sub { font-size: clamp(10px, 1.9vh, 18px); }
+.deck-chip, .army-chip { font-size: clamp(10px, 1.9vh, 18px); }
+.results-stats { font-size: clamp(11px, 2.1vh, 20px); }
+
+/* large cards (draft, spoils, shop market) ride the same curve */
+.card--large { width: clamp(122px, 27vh, 220px); min-height: clamp(170px, 37.5vh, 306px); }
+.card--large .card-art canvas, .card--large .card-art img {
+  width: clamp(64px, 14.5vh, 118px); height: clamp(64px, 14.5vh, 118px);
+}
+.card--large .card-name { font-size: clamp(11px, 2.1vh, 19px); }
+.card--large .card-stats { font-size: clamp(8px, 1.6vh, 15px); }
+.card--large .card-stats b { font-size: clamp(10px, 1.9vh, 18px); }
+.card--large .card-cost { font-size: clamp(12px, 2.3vh, 22px); }
+.card--large .card-tag { font-size: clamp(7px, 1.4vh, 13px); }
+.draft-row .card--large { max-width: clamp(122px, 27vh, 220px); }
+.spoils-lower .draft-row { width: min(88vw, clamp(430px, 88vh, 760px)); }
+.spoils-lower .draft-row .card--large { max-width: clamp(106px, 25vh, 205px); }
+.spoils-chip-text { font-size: clamp(11px, 2.2vh, 21px); }
+.spoils-chip-ic { width: clamp(14px, 2.6vh, 25px); height: clamp(14px, 2.6vh, 25px); }
+.spoils-sub { font-size: clamp(10px, 1.9vh, 18px); }
+.spoils-chest { width: clamp(124px, 26vh, 240px); height: clamp(124px, 26vh, 240px); }
+
+/* ---- the shop ---- */
+body.head-art .shop-title.lettered { width: clamp(190px, 36vh, 330px); height: clamp(24px, 4.5vh, 41px); }
+body.head-art .shop-col-head span.lettered { width: clamp(118px, 22vh, 205px); height: clamp(14px, 2.6vh, 24px); }
+.shop-stats { font-size: clamp(10px, 1.9vh, 18px); }
+.upg-name { font-size: clamp(12px, 2.2vh, 21px); }
+.upg-desc { font-size: clamp(9px, 1.8vh, 17px); }
+.upg-price, .shop-price-btn { font-size: clamp(10px, 2vh, 19px); }
+
+/* ---- round 2: the parts INSIDE the scaled chrome ----
+   The hand-card frames took the vh curve but their art and labels were
+   still phone-fixed, so a desktop hand was big empty frames around tiny
+   bugs. The energy badge likewise stayed 38px beside a 66px trough and
+   clipped into its end cap. */
+.card--hand .card-art canvas, .card--hand .card-art img {
+  width: clamp(48px, 11.8vh, 96px); height: clamp(48px, 11.8vh, 96px);
+}
+.card--hand .card-name { font-size: clamp(8px, 1.5vh, 14px); }
+.card--hand .card-cost { font-size: clamp(11px, 2vh, 19px); }
+#hand-cards { gap: clamp(6px, 1.3vh, 13px); }
+body.energy-art #energy-num {
+  left: calc(-1 * clamp(40px, 7.4vh, 68px));
+  min-width: clamp(34px, 6vh, 56px); height: clamp(24px, 4.2vh, 39px);
+  font-size: clamp(12px, 2.2vh, 21px);
+}
+/* the market card's bug deserves the bigger stage it now has */
+.card--large .card-art canvas, .card--large .card-art img {
+  width: clamp(64px, 16.5vh, 140px); height: clamp(64px, 16.5vh, 140px);
+}
+.shop-col-head .small-btn { font-size: clamp(10px, 1.8vh, 17px); padding: clamp(3px, .8vh, 8px) clamp(9px, 1.8vh, 18px); }
+
+/* the meter and coach are anchored above the HAND, and the hand's height now
+   scales -- fixed 112/140px offsets left them buried inside the cards */
+#energy-bar { bottom: calc(clamp(112px, 25.5vh, 246px) + var(--safe-bot)); }
+#battle-hint { bottom: calc(clamp(140px, 34vh, 330px) + var(--safe-bot)); }
+@media (max-height: 500px) {
+  body.energy-art #energy-bar { bottom: calc(92px + var(--safe-bot)); }
+  #battle-hint { bottom: calc(132px + var(--safe-bot)); }
+}
