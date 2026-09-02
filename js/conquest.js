@@ -997,12 +997,9 @@ window.SL = window.SL || {};
   }
 
   function drawLegend(ctx, L) {
-    // the map pans under a fixed HUD, so seat the legend on a soft band
-    const band = ctx.createLinearGradient(0, L.top - 62, 0, L.top - 4);
-    band.addColorStop(0, 'rgba(30,20,14,0.42)');
-    band.addColorStop(1, 'rgba(30,20,14,0)');
-    ctx.fillStyle = band;
-    ctx.fillRect(0, L.top - 62, L.W, 58);
+    // No smoky band behind the plates any more: a soft grey rectangle over
+    // painted terrain was exactly the kind of box this game keeps unlearning.
+    // The plates are opaque and carry their own weight.
 
     const chips = [['player', run.faction]].concat(run.rivals.map((f) => [f, f]));
     const ICON = 24, GAP = 16, H = 32;   // plates have carved end caps; 10px let them interlock
@@ -1046,9 +1043,17 @@ window.SL = window.SL || {};
       const w = word
         ? cap * 2 + pad * 2 + wordW
         : cap * 2 + pad * 2 + ICON + SEAL_GAP + textW;
+      // measured per kingdom, unified below so the row reads as one banner
+      // rail rather than a huddle of mismatched tags
       return { owner, fid, alive, label, img, cap, pad, w, word, wordW, wordH };
     });
 
+    // uniform plates: every plate takes the widest one's measure, unless
+    // that would blow the budget on a narrow screen
+    const widest = Math.max.apply(null, meta.map((m) => m.w));
+    if (widest * meta.length + GAP * (meta.length - 1) <= L.W * 0.86) {
+      meta.forEach((m) => { m.w = widest; });
+    }
     let total = meta.reduce((n, m) => n + m.w, 0) + GAP * (meta.length - 1);
     // On a narrow screen four full plates fill the row and the labels press
     // into their end caps. Drop the wordmarks and keep the seals, which are

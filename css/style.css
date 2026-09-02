@@ -1261,9 +1261,14 @@ body.btn-art .tb-item, body.btn-art #map-topbar .tb-btn {
      drew a second box inside every pill. Deep asymmetric slices keep the
      ornament whole in the caps; only the plain twig rail stretches. */
   border-style: solid; border-color: transparent;
-  border-width: clamp(8px, 1.5vh, 14px) clamp(13px, 2.4vh, 22px)
-                clamp(7px, 1.3vh, 12px) clamp(16px, 2.9vh, 27px);
-  border-image: url("../assets/sprites/ui_pill.png") 26 38 22 46 fill stretch;
+  /* the dark opening is rows 32..73 of the 96-row art: the top rail is 32px
+     and the bottom 22. Slicing both at similar widths seated every glyph and
+     number HIGH in the opening. Rails now map at their true 32:22, so the
+     content box IS the painted opening. */
+  --prt: clamp(10px, 1.9vh, 17px);
+  border-width: var(--prt) clamp(13px, 2.4vh, 22px)
+                calc(var(--prt) * 0.6875) clamp(16px, 2.9vh, 27px);
+  border-image: url("../assets/sprites/ui_pill.png") 32 38 22 46 fill stretch;
   border-radius: 0; background: none; box-shadow: none; color: var(--paper);
   justify-content: center;
 }
@@ -2265,7 +2270,8 @@ body.ui-art .shop-col-head, body.ui-art .shop-section-title {
 body.btn-art #map-actionbar .action-btn {
   border: none; border-image: none;
   background: url("../assets/sprites/ui_btn.png") center / 100% 100% no-repeat;
-  height: clamp(44px, 8.2vh, 78px);
+  --abh: clamp(44px, 8.2vh, 78px);
+  height: var(--abh);
   aspect-ratio: 512 / 192;
   padding: 0 clamp(18px, 3.4vh, 34px);
   display: inline-flex; align-items: center; justify-content: center;
@@ -2273,9 +2279,12 @@ body.btn-art #map-actionbar .action-btn {
 }
 body.btn-art #map-actionbar .action-btn.primary {
   background-image: url("../assets/sprites/ui_btn_primary.png");
-  /* the sprig occupies the top-left of the painting; nudge the label onto
-     the plain wood right of it */
+  /* the sprig occupies the top-left of the painting and pushes the wood
+     face DOWN: measured, the face centres 7.6% below canvas centre. Label
+     shifts to match -- padding-top of 2x the offset moves a flex-centred
+     line down by exactly the offset. */
   padding-left: clamp(26px, 4.8vh, 48px);
+  padding-top: calc(var(--abh) * 0.152);
 }
 body.btn-art #map-actionbar .action-btn:active { transform: translateY(2px); }
 
@@ -2338,4 +2347,58 @@ body.energy-art #energy-num {
 .hud-ic-img {
   display: inline-block; width: 1.5em; height: 1.5em;
   vertical-align: -0.42em; object-fit: contain;
+}
+
+
+/* ---- the turn counter is centred on the SCREEN, not on leftover flex space
+   between two unequal groups ---- */
+#map-topbar { position: relative; }
+#tb-turn {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* ---- no flash of the drawn fallbacks on cold load ----
+   Screens hold at opacity 0 until the key art for the entry screens is in
+   (or a hard timeout passes), then fade up over the painted versions. */
+body.art-boot #screen-title,
+body.art-boot #screen-faction { opacity: 0; }
+#screen-title, #screen-faction { transition: opacity .28s ease; }
+
+/* ---- dedicated painted buttons and price tags (P20), each gated on its
+   own file; the current plank stays until its replacement exists ---- */
+body.has-btn-wait #btn-endturn.action-btn.primary {
+  background-image: url("../assets/sprites/btn_wait.png");
+  font-size: 0; padding: 0;
+}
+body.has-btn-towar #btn-faction-go .btn-word { display: none; }
+body.has-btn-towar #btn-faction-go {
+  background: url("../assets/sprites/btn_towar.png") center / 100% 100% no-repeat;
+  border: none; border-image: none; box-shadow: none;
+  aspect-ratio: 512 / 192; height: clamp(46px, 8.6vh, 82px); min-width: 0;
+}
+body.has-btn-reroll #btn-shop-reroll,
+body.has-btn-remove #btn-shop-remove {
+  border: none; border-image: none; box-shadow: none; background: none;
+  background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
+  aspect-ratio: 512 / 192; font-size: 0; padding: 0;
+}
+body.has-btn-reroll #btn-shop-reroll { background-image: url("../assets/sprites/btn_reroll.png"); height: clamp(30px, 5.6vh, 52px); }
+body.has-btn-remove #btn-shop-remove { background-image: url("../assets/sprites/btn_remove.png"); height: clamp(36px, 6.6vh, 62px); min-width: 0; }
+/* cost chip rides the button corner once the lettered plank owns the label */
+.btn-cost-chip {
+  display: none;
+  position: absolute; right: -6%; top: -22%;
+  background: radial-gradient(circle at 36% 30%, #ffd76b, var(--brass) 72%);
+  border: 2px solid var(--ink); border-radius: 999px;
+  padding: 1px 8px; font-size: clamp(10px, 1.9vh, 18px);
+  font-family: var(--font-display); color: var(--ink); z-index: 1;
+}
+body.has-btn-wait #btn-endturn .btn-cost-chip,
+body.has-btn-reroll #btn-shop-reroll .btn-cost-chip { display: block; }
+body.has-btn-wait #btn-endturn,
+body.has-btn-reroll #btn-shop-reroll { position: relative; overflow: visible; }
+body.has-ui-cost-tag .shop-item-price {
+  background: url("../assets/sprites/ui_cost_tag.png") center / 100% 100% no-repeat;
+  border: none; border-radius: 0; box-shadow: none;
 }

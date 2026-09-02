@@ -1309,3 +1309,39 @@ Re-render frames 5-9 only, matching the first half exactly:
 | Batch | Assets | Status |
 |---|---|---|
 | P19 Dauber render match | wasp_dauber_sheet.png, frames 5-9 re-rendered | **ACCEPTED + WIRED 2026-09-01** — semi-alpha 474/frame, skirt luminance 136.5, ink normalized, motion ratio 1.262 |
+
+---
+
+# PRIORITY 20 -- DEDICATED BUTTONS AND PRICE TAGS (added 2026-09-02)
+
+Generic planks with type composited on top keep fighting the art: the
+primary plank's sprig pushes its wood face 7.6% below centre, so any label
+centred on the canvas rides high. These five carry their lettering IN the
+painting, so centring is settled at the easel.
+
+All buttons: **512x192** RGBA, same family as ui_btn (weathered plank, wobbly
+sepia ink, one or two nails). Lettering baked on, **optically centred on the
+wood face** -- wherever the face sits in the canvas, the word is centred ON
+IT, sized to fill ~55-65% of the face height.
+
+| File | It is |
+|---|---|
+| `btn_wait.png` | the brass-tinted primary plank, lettered **WAIT** -- keep ornament clear of the top-right corner, where a +2 gold chip overlays |
+| `btn_towar.png` | the brass-tinted primary plank, lettered **TO WAR**, with a touch more swagger -- it starts a campaign |
+| `btn_reroll.png` | a smaller pale plank, lettered **REROLL**, with two curved refresh arrows worked into the carving -- top-right corner clear for the price chip |
+| `btn_remove.png` | a pale plank, lettered **REMOVE A CARD**, one corner splintered as if something was pried off |
+
+| File | Size | It is |
+|---|---|---|
+| `ui_cost_tag.png` | 192x96 | a small parchment price tag: string hole punched at the left, tag body plain and pale for a coin + number, edges inked. Transparent outside the tag. |
+
+## Acceptance
+
+1. Lettering centre within **2% of the wood-face centre** (face = the plain
+   lit wood, excluding outline, side-thickness and ornament).
+2. Buttons read at 40px tall; the tag at 22px.
+3. Same palette and line weight as ui_btn / ui_btn_primary.
+
+| Batch | Assets | Status |
+|---|---|---|
+| P20 buttons + tag | btn_wait, btn_towar, btn_reroll, btn_remove, ui_cost_tag | PENDING |

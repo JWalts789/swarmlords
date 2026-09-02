@@ -133,7 +133,8 @@ window.SL = window.SL || {};
     });
 
     const rrBtn = $('btn-shop-reroll');
-    rrBtn.innerHTML = 'REROLL ' + SL.ui.coinHTML(rerollPrice(run));
+    rrBtn.innerHTML = 'REROLL ' + SL.ui.coinHTML(rerollPrice(run))
+      + '<span class="btn-cost-chip">' + rerollPrice(run) + '</span>';
     rrBtn.disabled = run.gold < rerollPrice(run);
 
     // --- upgrades ---

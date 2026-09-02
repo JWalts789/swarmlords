@@ -260,7 +260,8 @@ window.SL = window.SL || {};
   function updateTopbar() {
     const run = SL.conquest.getRun();
     if (!run) return;
-    $('btn-endturn').innerHTML = 'WAIT ' + coinHTML(2);
+    $('btn-endturn').innerHTML = 'WAIT ' + coinHTML(2)
+      + '<span class="btn-cost-chip">+2</span>';
     $('tb-gold').innerHTML = coinHTML(run.gold, run.gold >= 20);
     // Seventh instance of the same bug: this asked hasSheet at render time,
     // so a topbar built before the probe finished kept the geometric

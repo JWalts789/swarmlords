@@ -148,7 +148,9 @@ window.SL = window.SL || {};
       // to a family class blanked the kingdom-select title and buttons the
       // moment the shop headings landed, because the rules turned the type
       // transparent while their replacement art did not exist yet.
-      ['head_kingdoms', 'word_back', 'word_towar'].forEach((n) => {
+      ['head_kingdoms', 'word_back', 'word_towar',
+       'btn_wait', 'btn_towar', 'btn_reroll', 'btn_remove',
+       'ui_cost_tag'].forEach((n) => {
         if (SL.sprites.hasSheet(n)) document.body.classList.add('has-' + n.replace(/_/g, '-'));
       });
       if (SL.sprites.hasSheet('hud_gold')) document.body.classList.add('hud-art');
@@ -166,6 +168,21 @@ window.SL = window.SL || {};
     }
     applyArtClasses();
     SL.sprites.onSheetLoad(applyArtClasses);
+
+    // The entry screens held at opacity 0 until their painted art is in --
+    // the drawn fallbacks used to flash for a beat on every cold load. A
+    // hard timeout guarantees the veil always lifts.
+    const endArtBoot = () => document.body.classList.remove('art-boot');
+    if (document.body.classList.contains('no-anim')) endArtBoot();
+    else {
+      const need = ['menu_bg', 'ui_btn', 'logo_wordmark', 'select_bg', 'ui_card_kingdom'];
+      const bootCheck = () => {
+        if (need.every((n) => SL.sprites.hasSheet(n))) endArtBoot();
+      };
+      SL.sprites.onSheetLoad(bootCheck);
+      bootCheck();
+      setTimeout(endArtBoot, 900);
+    }
 
     // dev boot shortcuts: ?demo=map | ?demo=battle | ?demo=shop|deck|draft|results
     const dm = /demo=(shop|deck|draft|results|faction|spoils)/.exec(location.search);
