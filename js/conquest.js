@@ -1009,6 +1009,15 @@ window.SL = window.SL || {};
     const plateFor = (fid) => SL.sprites.sheet('nameplate_' + fid)
       || SL.sprites.sheet('ui_nameplate');
 
+    // Where each plate's ribbon band centres, measured off the art (fraction
+    // of art height). The wordmark used to centre on the CANVAS: mantids'
+    // ribbon sits at 55.6% and termites' at 60.3%, so those two names rode
+    // 6-10% high and spilled out the top of their ribbons.
+    const PLATE_BAND = {
+      ants: 0.472, wasps: 0.491, beetles: 0.484, mantids: 0.556,
+      termites: 0.603, moths: 0.466, neutral: 0.544,
+    };
+
     // A 3-sliced plate keeps its ornament in the outer quarter of the source.
     // Content has to start inside that cap or it sits on top of the artwork.
     const ph = H + 10;
@@ -1095,7 +1104,8 @@ window.SL = window.SL || {};
 
       const ix = lx + m.cap + m.pad;
       if (!m.compact && m.word) {
-        ctx.drawImage(m.word, lx + (m.w - m.wordW) / 2, cy - m.wordH / 2,
+        const bandCy = cy - ph / 2 + ph * (PLATE_BAND[m.fid] || 0.5);
+        ctx.drawImage(m.word, lx + (m.w - m.wordW) / 2, bandCy - m.wordH / 2,
           m.wordW, m.wordH);
         if (!m.alive) {
           ctx.font = '900 13px "Lilita One", "Trebuchet MS", sans-serif';

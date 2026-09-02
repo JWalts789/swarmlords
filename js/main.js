@@ -150,6 +150,7 @@ window.SL = window.SL || {};
       // transparent while their replacement art did not exist yet.
       ['head_kingdoms', 'word_back', 'word_towar',
        'btn_wait', 'btn_towar', 'btn_reroll', 'btn_remove',
+       'btn_attack', 'btn_fortify',
        'ui_cost_tag'].forEach((n) => {
         if (SL.sprites.hasSheet(n)) document.body.classList.add('has-' + n.replace(/_/g, '-'));
       });
@@ -220,9 +221,18 @@ window.SL = window.SL || {};
     if (location.search.indexOf('demo=map') >= 0) {
       SL.conquest.startRun('ants');
       // ?demo=map&sel=N opens the territory panel for QA
-      const sm = /sel=(\d+)/.exec(location.search);
+      // ?sel=N opens territory N; ?sel=auto opens the first territory the
+      // player can actually attack, so the assault panel can be captured
+      // without knowing the run's layout in advance
+      const sm = /sel=(\d+|auto)/.exec(location.search);
       if (sm) setTimeout(() => {
-        const t = SL.conquest.terr(parseInt(sm[1], 10));
+        let t = null;
+        if (sm[1] === 'auto') {
+          const run = SL.conquest.getRun();
+          t = run.territories.find((x) => SL.conquest.attackableByPlayer(x));
+        } else {
+          t = SL.conquest.terr(parseInt(sm[1], 10));
+        }
         if (t) SL.ui.showTerritoryPanel(t);
       }, 300);
     } else if (location.search.indexOf('demo=battle') >= 0) {

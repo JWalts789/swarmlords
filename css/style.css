@@ -1783,6 +1783,11 @@ body.kingdom-art .faction-card.locked.selected {
    in. A tap collapses the schedule, so it never taxes a repeat player. */
 .spoils-veil {
   position: absolute; inset: 0; z-index: 60;
+  /* overlay-root is pointer-events:none so the map stays draggable under
+     toasts; every overlay that takes input must restore it. The modal veil
+     does; this one did not -- so after the first victory the whole spoils
+     screen was a picture: recruits, skip, tap-to-open all dead, veil stuck. */
+  pointer-events: auto;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 10px; padding: 12px;
   background: radial-gradient(circle at 50% 42%, rgba(60,40,18,.62) 0%, rgba(18,12,8,.88) 70%);
@@ -2401,4 +2406,35 @@ body.has-btn-reroll #btn-shop-reroll { position: relative; overflow: visible; }
 body.has-ui-cost-tag .shop-item-price {
   background: url("../assets/sprites/ui_cost_tag.png") center / 100% 100% no-repeat;
   border: none; border-radius: 0; box-shadow: none;
+}
+
+/* ---- territory panel actions: full art, label on the measured face ----
+   The danger plank was 9-sliced with its thorn tiled through the middle and
+   near-black text on dark red wood. Full art at its own aspect, label
+   centred on the face (measured +2.3% below canvas centre), cream ink. */
+body.btn-art #map-panel .action-btn {
+  border: none; border-image: none;
+  background: url("../assets/sprites/ui_btn.png") center / 100% 100% no-repeat;
+  --pbh: clamp(38px, 7vh, 66px);
+  height: var(--pbh);
+  aspect-ratio: 512 / 192;
+  padding: 0 clamp(14px, 2.8vh, 28px);
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 auto;
+}
+body.btn-art #map-panel .action-btn.danger {
+  background-image: url("../assets/sprites/ui_btn_danger.png");
+  padding-top: calc(var(--pbh) * 0.046);
+  color: var(--paper); text-shadow: 0 1px 2px rgba(27,18,12,.85);
+  letter-spacing: 1.2px;
+}
+body.btn-art #map-panel .action-btn:active { transform: translateY(2px); }
+/* dedicated lettered planks take over when they land */
+body.has-btn-attack #map-panel .action-btn.danger {
+  background-image: url("../assets/sprites/btn_attack.png");
+  font-size: 0; padding: 0;
+}
+body.has-btn-fortify #map-panel .action-btn:not(.danger) {
+  background-image: url("../assets/sprites/btn_fortify.png");
+  font-size: 0; padding: 0;
 }

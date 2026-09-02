@@ -1345,3 +1345,22 @@ IT, sized to fill ~55-65% of the face height.
 | Batch | Assets | Status |
 |---|---|---|
 | P20 buttons + tag | btn_wait, btn_towar, btn_reroll, btn_remove, ui_cost_tag | **ACCEPTED + WIRED 2026-09-02** |
+
+---
+
+# PRIORITY 21 -- TERRITORY PANEL PLANKS (added 2026-09-02)
+
+The assault panel's two actions, same contract as P20: **512x192** RGBA,
+ui_btn family, lettering baked on and optically centred on the wood face.
+
+| File | It is |
+|---|---|
+| `btn_attack.png` | the red-stained danger plank, lettered **ATTACK** in cream with heavy ink -- the thorn stays, but keep it OUT of the letterline; one corner may splinter |
+| `btn_fortify.png` | a pale plank, lettered **FORTIFY**, with a small stake-and-rope motif worked into one end |
+
+Acceptance as P20: lettering centre within 2% of the face centre, readable
+at 40px, transparent outside the plank.
+
+| Batch | Assets | Status |
+|---|---|---|
+| P21 panel planks | btn_attack, btn_fortify | PENDING |

@@ -57,6 +57,7 @@ window.SL = window.SL || {};
      'head_shop', 'head_market', 'head_upgrades', 'head_muster',
      'head_kingdoms', 'word_back', 'word_towar', 'chest_sheet',
      'btn_wait', 'btn_towar', 'btn_reroll', 'btn_remove', 'ui_cost_tag',
+     'btn_attack', 'btn_fortify',
      'ui_card_upgrade_rare', 'ui_card_upgrade_legendary',
      'ui_victory_plate'].forEach(probe);
     // a battlefield per kingdom, chosen by whose ground is being fought over

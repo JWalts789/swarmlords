@@ -81,6 +81,22 @@
     // ---- the recruits --------------------------------------------------
     function offerCards() {
       lower.innerHTML = '';
+      // If anything in here throws, the veil must still offer a way out --
+      // a reward screen that cannot be dismissed is a soft-lock.
+      try {
+        offerCardsInner();
+      } catch (e) {
+        lower.innerHTML = '';
+        const go = document.createElement('button');
+        go.className = 'big-btn';
+        go.textContent = 'ONWARD';
+        go.addEventListener('click', () => finish(null));
+        lower.appendChild(go);
+        lower.classList.add('is-in');
+      }
+    }
+
+    function offerCardsInner() {
       if (!opts.cards || !opts.cards.length) {
         const go = document.createElement('button');
         go.className = 'big-btn';
