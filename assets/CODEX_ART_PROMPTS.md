@@ -1308,4 +1308,4 @@ Re-render frames 5-9 only, matching the first half exactly:
 
 | Batch | Assets | Status |
 |---|---|---|
-| P19 Dauber render match | wasp_dauber_sheet.png, frames 5-9 re-rendered | PENDING |
+| P19 Dauber render match | wasp_dauber_sheet.png, frames 5-9 re-rendered | **ACCEPTED + WIRED 2026-09-01** — semi-alpha 474/frame, skirt luminance 136.5, ink normalized, motion ratio 1.262 |
