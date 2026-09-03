@@ -2438,3 +2438,55 @@ body.has-btn-fortify #map-panel .action-btn:not(.danger) {
   background-image: url("../assets/sprites/btn_fortify.png");
   font-size: 0; padding: 0;
 }
+
+/* ==================== TITLE SCREEN: THE HANDSHAKE ====================
+   The first thing a player sees. The CTA row was four near-identical cream
+   planks; now it has a hierarchy: NEW CAMPAIGN is the hero on the brass
+   plank, HOW TO PLAY seconds it, the toggles step back. Full art at the
+   plank's own 512:192, labels on the measured wood face (+7.6% on the
+   primary, -0.5% on the plain plank). */
+body.btn-art .title-buttons .big-btn,
+body.btn-art .title-buttons .small-btn {
+  border: none; border-image: none; box-shadow: none;
+  background: url("../assets/sprites/ui_btn.png") center / 100% 100% no-repeat;
+  aspect-ratio: 512 / 192;
+  display: inline-flex; align-items: center; justify-content: center;
+  /* an aspect-locked plank has a KNOWN width, so the type derives from the
+     height and can never wrap to two lines or spill the ends */
+  white-space: nowrap;
+  min-width: 0; padding: 0;
+}
+body.btn-art .title-buttons .big-btn {
+  --tbh: clamp(58px, 11.4vh, 104px);
+  height: var(--tbh);
+  background-image: url("../assets/sprites/ui_btn_primary.png");
+  padding-top: calc(var(--tbh) * 0.152);
+  font-size: calc(var(--tbh) * 0.255);
+  letter-spacing: 1.5px;
+}
+body.btn-art .title-buttons > .small-btn {
+  --tsh: clamp(38px, 7.2vh, 66px);
+  height: var(--tsh);
+  font-size: calc(var(--tsh) * 0.26);
+}
+body.btn-art .toggle-row .small-btn {
+  --tth: clamp(30px, 5.6vh, 50px);
+  height: var(--tth);
+  font-size: calc(var(--tth) * 0.27);
+  opacity: .92;
+}
+.title-buttons { gap: clamp(8px, 1.8vh, 18px); }
+.toggle-row { gap: clamp(8px, 1.8vh, 16px); }
+/* the off state reads muted even before painted toggles arrive */
+.toggle-row .small-btn:not(.is-on) { filter: saturate(.55) brightness(.92); }
+body.btn-art .title-buttons .big-btn:active,
+body.btn-art .title-buttons .small-btn:active { transform: translateY(2px); }
+
+/* dedicated lettered planks take over as they land, one file each */
+body.has-btn-newcampaign #btn-newrun { background-image: url("../assets/sprites/btn_newcampaign.png"); font-size: 0; padding: 0; }
+body.has-btn-continue #btn-continue { background-image: url("../assets/sprites/btn_continue.png"); font-size: 0; padding: 0; }
+body.has-btn-howtoplay #btn-howto { background-image: url("../assets/sprites/btn_howtoplay.png"); font-size: 0; padding: 0; }
+body.has-btn-sfx-on #btn-sfx.is-on { background-image: url("../assets/sprites/btn_sfx_on.png"); font-size: 0; padding: 0; }
+body.has-btn-sfx-off #btn-sfx:not(.is-on) { background-image: url("../assets/sprites/btn_sfx_off.png"); font-size: 0; padding: 0; }
+body.has-btn-music-on #btn-music.is-on { background-image: url("../assets/sprites/btn_music_on.png"); font-size: 0; padding: 0; }
+body.has-btn-music-off #btn-music:not(.is-on) { background-image: url("../assets/sprites/btn_music_off.png"); font-size: 0; padding: 0; }

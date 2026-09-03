@@ -151,6 +151,8 @@ window.SL = window.SL || {};
       ['head_kingdoms', 'word_back', 'word_towar',
        'btn_wait', 'btn_towar', 'btn_reroll', 'btn_remove',
        'btn_attack', 'btn_fortify',
+       'btn_newcampaign', 'btn_continue', 'btn_howtoplay',
+       'btn_sfx_on', 'btn_sfx_off', 'btn_music_on', 'btn_music_off',
        'ui_cost_tag'].forEach((n) => {
         if (SL.sprites.hasSheet(n)) document.body.classList.add('has-' + n.replace(/_/g, '-'));
       });

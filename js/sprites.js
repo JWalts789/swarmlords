@@ -58,6 +58,8 @@ window.SL = window.SL || {};
      'head_kingdoms', 'word_back', 'word_towar', 'chest_sheet',
      'btn_wait', 'btn_towar', 'btn_reroll', 'btn_remove', 'ui_cost_tag',
      'btn_attack', 'btn_fortify',
+     'btn_newcampaign', 'btn_continue', 'btn_howtoplay',
+     'btn_sfx_on', 'btn_sfx_off', 'btn_music_on', 'btn_music_off',
      'ui_card_upgrade_rare', 'ui_card_upgrade_legendary',
      'ui_victory_plate'].forEach(probe);
     // a battlefield per kingdom, chosen by whose ground is being fought over

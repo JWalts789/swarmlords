@@ -1364,3 +1364,35 @@ at 40px, transparent outside the plank.
 | Batch | Assets | Status |
 |---|---|---|
 | P21 panel planks | btn_attack, btn_fortify | PENDING |
+
+---
+
+# PRIORITY 22 -- TITLE SCREEN BUTTONS (added 2026-09-02, BEFORE P21)
+
+The first screen a player sees; these set the tone for everything after.
+Same contract as P20: **512x192** RGBA, ui_btn family, lettering baked on,
+optically centred on the wood face, transparent outside the plank.
+
+| File | It is |
+|---|---|
+| `btn_newcampaign.png` | the HERO. The brass primary plank, lettered **NEW CAMPAIGN**, with a little extra ceremony -- a banner tail, a sprig, one brass tack catching light. The most inviting button in the game. |
+| `btn_continue.png` | the same brass plank, lettered **CONTINUE**, slightly calmer than the hero |
+| `btn_howtoplay.png` | a pale plank, lettered **HOW TO PLAY**, modest |
+
+**Toggles** -- 256x96 RGBA each, small bark tags:
+
+| File | It is |
+|---|---|
+| `btn_sfx_on.png` | a small bark tag with a carved acorn-bell and **SFX** lettered beside it, warm and lit |
+| `btn_sfx_off.png` | the same tag gone grey-brown, the bell cracked, a small X scratched over it |
+| `btn_music_on.png` | the same tag shape with a cricket-fiddle and **MUSIC**, warm and lit |
+| `btn_music_off.png` | its muted, scratched-out state |
+
+The on/off pairs must share the exact silhouette so toggling never jumps.
+
+Acceptance: lettering centre within 2% of face centre; hero readable at
+70px, toggles at 34px; on/off pairs pixel-aligned.
+
+| Batch | Assets | Status |
+|---|---|---|
+| P22 title buttons | 3 planks + 4 toggle states | PENDING |

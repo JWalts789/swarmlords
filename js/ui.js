@@ -36,6 +36,9 @@ window.SL = window.SL || {};
     $('btn-continue').classList.toggle('hidden', !hasRun);
     $('btn-sfx').textContent = 'SFX: ' + (SL.game.meta.sfx ? 'ON' : 'OFF');
     $('btn-music').textContent = 'MUSIC: ' + (SL.game.meta.music ? 'ON' : 'OFF');
+    // state as a class as well, so painted on/off toggles can bind to it
+    $('btn-sfx').classList.toggle('is-on', !!SL.game.meta.sfx);
+    $('btn-music').classList.toggle('is-on', !!SL.game.meta.music);
 
     // marching bug parade
     const wrap = $('title-bugs');
