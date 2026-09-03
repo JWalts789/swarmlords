@@ -1363,7 +1363,7 @@ at 40px, transparent outside the plank.
 
 | Batch | Assets | Status |
 |---|---|---|
-| P21 panel planks | btn_attack, btn_fortify | PENDING |
+| P21 panel planks | btn_attack, btn_fortify | **ACCEPTED + WIRED 2026-09-02** |
 
 ---
 
@@ -1395,4 +1395,4 @@ Acceptance: lettering centre within 2% of face centre; hero readable at
 
 | Batch | Assets | Status |
 |---|---|---|
-| P22 title buttons | 3 planks + 4 toggle states | PENDING |
+| P22 title buttons | 3 planks + 4 toggle states | **ACCEPTED + WIRED 2026-09-02** |
